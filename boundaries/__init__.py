@@ -21,7 +21,7 @@ def autodiscover(base_dir):
     """
     global _basepath
     definition_file_re = re.compile(r'definitions?\.py$')
-    for (dirpath, dirnames, filenames) in os.walk(base_dir):
+    for (dirpath, dirnames, filenames) in os.walk(base_dir, followlinks=True):
         _basepath = dirpath
         for filename in filenames:
             if definition_file_re.search(filename):
