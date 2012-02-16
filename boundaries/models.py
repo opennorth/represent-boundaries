@@ -132,7 +132,7 @@ class Boundary(models.Model):
 
     @staticmethod
     def prepare_queryset_for_get_dicts(qs):
-        return qs.values_list('slug', 'set', 'name', 'set_name')
+        return qs.values_list('slug', 'set', 'name', 'set_name', 'external_id')
 
     @staticmethod
     def get_dicts(boundaries):
@@ -144,6 +144,7 @@ class Boundary(models.Model):
                     'boundary_set_url': urlresolvers.reverse('boundaries_set_detail', kwargs={'slug': b[1]}),
                 },
                 'boundary_set_name': b[3],
+                'external_id': b[4],
             } for b in boundaries
         ]
 
