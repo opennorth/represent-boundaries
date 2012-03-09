@@ -148,6 +148,8 @@ class ModelGeoListView(ModelListView):
         if self.default_geo_filter_field:
             if 'contains' in request.GET:
                 lat, lon = re.sub(r'[^\d.,-]', '', request.GET['contains']).split(',')
+                if not lat and not lon:
+                    return HttpResponseBadRequest()
                 wkt_pt = 'POINT(%s %s)' % (lon, lat)
                 qs = qs.filter(**{self.default_geo_filter_field + "__contains" : wkt_pt})
 
