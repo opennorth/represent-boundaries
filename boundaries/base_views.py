@@ -6,7 +6,7 @@ from urllib import urlencode
 
 from django.contrib.gis.measure import D
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse, Http404, HttpResponseForbidden
+from django.http import HttpResponse, Http404, HttpResponseForbidden, HttpResponseBadRequest
 from django.template import loader, RequestContext
 from django.template.defaultfilters import escapejs
 from django.utils import simplejson as json
