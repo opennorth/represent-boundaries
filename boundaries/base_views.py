@@ -23,6 +23,9 @@ class RawJSONResponse(object):
     def __init__(self, content):
         self.content = content
 
+class BadRequestException(Exception):
+    pass
+
 class APIView(View):
     """Base view class that serializes subclass responses to JSON.
 
@@ -32,7 +35,10 @@ class APIView(View):
     content_type = 'application/json; charset=utf-8'
 
     def dispatch(self, request, *args, **kwargs):
-        result = super(APIView, self).dispatch(request, *args, **kwargs)
+        try:
+            result = super(APIView, self).dispatch(request, *args, **kwargs)
+        except BadRequestException as e:
+            return HttpResponseBadRequest(unicode(e), mimetype='text/plain')
         if isinstance(result, HttpResponse):
             return result
         if request.GET.get('format') == 'apibrowser':
@@ -153,10 +159,11 @@ class ModelGeoListView(ModelListView):
 
         if self.default_geo_filter_field:
             if 'contains' in request.GET:
-                lat, lon = re.sub(r'[^\d.,-]', '', request.GET['contains']).split(',')
-                if not lat and not lon:
-                    return HttpResponseBadRequest()
-                wkt_pt = 'POINT(%s %s)' % (lon, lat)
+                try:
+                    lat, lon = re.sub(r'[^\d.,-]', '', request.GET['contains']).split(',')
+                    wkt_pt = 'POINT(%s %s)' % (lon, lat)
+                except ValueError:
+                    raise BadRequestException("Invalid lat/lon values")
                 qs = qs.filter(**{self.default_geo_filter_field + "__contains" : wkt_pt})
 
             if 'near' in request.GET:
