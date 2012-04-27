@@ -12,6 +12,7 @@ from django.template.defaultfilters import escapejs
 from django.utils import simplejson as json
 from django.views.generic import View
 
+from tastypie.exceptions import BadRequest
 from tastypie.paginator import Paginator
 
 from boundaries import kml
@@ -22,9 +23,6 @@ class RawJSONResponse(object):
     already-serialized JSON to return"""
     def __init__(self, content):
         self.content = content
-
-class BadRequestException(Exception):
-    pass
 
 class APIView(View):
     """Base view class that serializes subclass responses to JSON.
@@ -37,7 +35,7 @@ class APIView(View):
     def dispatch(self, request, *args, **kwargs):
         try:
             result = super(APIView, self).dispatch(request, *args, **kwargs)
-        except BadRequestException as e:
+        except BadRequest as e:
             return HttpResponseBadRequest(unicode(e), mimetype='text/plain')
         if isinstance(result, HttpResponse):
             return result
@@ -157,7 +155,7 @@ class ModelGeoListView(ModelListView):
                     lat, lon = re.sub(r'[^\d.,-]', '', request.GET['contains']).split(',')
                     wkt_pt = 'POINT(%s %s)' % (lon, lat)
                 except ValueError:
-                    raise BadRequestException("Invalid lat/lon values")
+                    raise BadRequest("Invalid lat/lon values")
                 qs = qs.filter(**{self.default_geo_filter_field + "__contains" : wkt_pt})
 
             if 'near' in request.GET:
