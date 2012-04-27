@@ -117,12 +117,6 @@ class ModelListView(APIView):
         return {}
 
     def get(self, request, **kwargs):
-        for parameter in ['point', 'contains']:
-            if parameter in request.GET:
-                lat, lon = re.sub(r'[^\d.,-]', '', request.GET[parameter]).split(',')
-                if not lat and not lon:
-                    return HttpResponseBadRequest()
-
         qs = self.get_qs(request, **kwargs)
         qs = self.filter(request, qs)
         if hasattr(self.model, 'prepare_queryset_for_get_dicts'):
