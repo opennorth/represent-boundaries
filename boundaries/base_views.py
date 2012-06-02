@@ -61,7 +61,7 @@ class APIView(View):
         jsonresult = json.dumps(result, indent=4)
         t = loader.get_template('boundaries/apibrowser.html')
         json_url = request.path
-        params = dict(request.GET.items())
+        params = dict([k, v.encode('utf-8')] for k,v in request.GET.items())
         params.pop('format')
         if params:
             json_url += '?' + urlencode(params)
