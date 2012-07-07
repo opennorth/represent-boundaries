@@ -70,8 +70,8 @@ class Command(BaseCommand):
     @transaction.commit_on_success
     def load_set(self, kind, config, options):
         log.info('Processing %s.' % kind)
-
-        BoundarySet.objects.filter(name=kind).delete()
+        
+        BoundarySet.objects.filter(slug=kind).delete()
 
         path = config['file']
         datasources = create_datasources(path)
@@ -87,8 +87,9 @@ class Command(BaseCommand):
             config['slug_func'] = config['name_func']
 
         # Create BoundarySet
-        set = BoundarySet.objects.create(
-            name=kind,
+        bset = BoundarySet.objects.create(
+            slug=kind,
+            name=config.get('name', kind),
             singular=config['singular'],
             authority=config.get('authority', ''),
             domain=config.get('domain', ''),
@@ -104,9 +105,9 @@ class Command(BaseCommand):
             if datasource.layer_count > 1:
                 log.warn('%s shapefile [%s] has multiple layers, using first.' % (datasource.name, kind))
             layer = datasource[0]
-            self.add_boundaries_for_layer(config, layer, set, options['database'])
+            self.add_boundaries_for_layer(config, layer, bset, options['database'])
 
-        log.info('%s count: %i' % (kind, Boundary.objects.filter(set=set).count()))
+        log.info('%s count: %i' % (kind, Boundary.objects.filter(set=bset).count()))
 
     def polygon_to_multipolygon(self, geom):
         """
@@ -121,7 +122,7 @@ class Command(BaseCommand):
         else:
             raise ValueError('Geom is neither Polygon nor MultiPolygon.')
 
-    def add_boundaries_for_layer(self, config, layer, set, database):
+    def add_boundaries_for_layer(self, config, layer, bset, database):
         # Get spatial reference system for the postgis geometry field
         geometry_field = Boundary._meta.get_field_by_name(GEOMETRY_COLUMN)[0]
         SpatialRefSys = connections[database].ops.spatial_ref_sys()
@@ -159,10 +160,12 @@ class Command(BaseCommand):
             external_id = str(config['id_func'](feature))
             feature_name = config['name_func'](feature)
             feature_slug = unicode(slugify(config['slug_func'](feature)).replace(u'—', '-'))
+            
+            log.info('%s...' % feature_slug)
 
             Boundary.objects.create(
-                set=set,
-                set_name=set.singular,
+                set=bset,
+                set_name=bset.singular,
                 external_id=external_id,
                 name=feature_name,
                 slug=feature_slug,

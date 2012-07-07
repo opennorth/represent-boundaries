@@ -2,7 +2,9 @@ from datetime import date
 
 import boundaries
 
-boundaries.register('Federal electoral districts', # The name of the boundary set
+boundaries.register('federal-electoral-districts', # The slug of the boundary set
+	# The name of the boundary set for display.
+	name='Federal electoral districts',
     # Generic singular name for a boundary from this set. Optional if the
     # boundary set's name ends in "s".
     singular='Federal electoral district', # If this were omitted, the same value would be generated

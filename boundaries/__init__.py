@@ -9,11 +9,11 @@ logger = logging.getLogger(__name__)
 registry = {}
 _basepath = '.'
 
-def register(name, **kwargs):
+def register(slug, **kwargs):
     """Called by definition files: adds a boundary definition to our list
     during the loadshapefiles command."""
     kwargs['file'] = os.path.join(_basepath, kwargs.get('file', ''))
-    registry[name] = kwargs
+    registry[slug] = kwargs
 
 def autodiscover(base_dir):
     """Walk the directory tree and load all definition files present.
