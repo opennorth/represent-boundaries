@@ -38,4 +38,13 @@ boundaries.register('federal-electoral-districts', # The slug of the boundary se
     notes='',
     # Encoding of the text fields in the shapefile, e.g. 'utf-8'. Default: 'ascii'
     encoding='iso-8859-1',
+    
+    # For maps...
+    
+    # optional. A function from a feature object to a Point where to display the label.
+    label_func = lambda feature : None,
+    
+    # optional. The color to fill the boundary in with, an RGB tuple using integer values from 0-255.
+    color_func = lambda feature : (255,0,0),
 )
+

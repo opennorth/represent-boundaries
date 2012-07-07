@@ -5,6 +5,7 @@ log = logging.getLogger(__name__)
 from optparse import make_option
 import os, os.path
 import sys
+import random
 
 from zipfile import ZipFile
 from tempfile import mkdtemp
@@ -34,6 +35,8 @@ class Command(BaseCommand):
             default=False, help='Only load these kinds of Areas, comma-delimited.'),
         make_option('-u', '--database', action='store', dest='database',
             default=DEFAULT_DB_ALIAS, help='Specify a database to load shape data into.'),
+        make_option('-c', '--color', action='store_true', dest='color',
+            default=False, help='Automatically set colors to the boundaries.'),
     )
 
     def get_version(self):
@@ -107,6 +110,30 @@ class Command(BaseCommand):
             layer = datasource[0]
             self.add_boundaries_for_layer(config, layer, bset, options['database'])
 
+        if options["color"]:
+            # For each boundary in the set, assign a color such that it does not have the same
+            # color as any other boundary it touches. Use the main colors from the Brewer spectrum,
+            # based on http://colorbrewer2.org. This is done in a pretty dumb way: loop through
+            # each boundary, query for each boundary it touches, look for a remaining color, and
+            # then continue.
+            color_choices = [ (44,162,95), (136,86,167), (67,162,202), (227,74,51), (153,216,201), (158,188,218), (253,187,132), (166,189,219), (201,148,199) ]
+            bset.boundaries.all().update(color=None)
+            for bdry in bset.boundaries.all().only("shape"):
+                used_colors = set()
+                for b2 in bset.boundaries.objects.filter(shape__touches=bdry.shape).exclude(color=None).only("name", "color"):
+                    used_colors.add(tuple(b2.color))
+                # Choose the first available color. We prefer not to randomize so that a) this process
+                # is relatively stable from run to run, and b) we can prioritize the colors we'd rather
+                # use. The colors above are roughly from stronger to weaker.
+                for c in color_choices:
+                    if c not in used_colors:
+                        bdry.color = c
+                        break
+                else:
+                    # We ran out of colors. Just choose one at random.
+                    bdry.color = random.choice(color_choices)
+                bdry.save()
+
         log.info('%s count: %i' % (kind, Boundary.objects.filter(set=bset).count()))
 
     def polygon_to_multipolygon(self, geom):
@@ -172,7 +199,10 @@ class Command(BaseCommand):
                 metadata=metadata,
                 shape=geometry.wkt,
                 simple_shape=simple_geometry.wkt,
-                centroid=geometry.geos.centroid)
+                centroid=geometry.geos.centroid,
+                label_point=config.get("label_point_func", lambda x : None)(feature),
+                color=config.get("color_func", lambda x : None)(feature),
+                )
         
 def create_datasources(path):
     if path.endswith('.zip'):

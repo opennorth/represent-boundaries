@@ -56,6 +56,7 @@ class BoundarySet(models.Model):
         r = {
             'related': {
                 'boundaries_url': urlresolvers.reverse('boundaries_boundary_list', kwargs={'set_slug': self.slug}),
+                'map_url': urlresolvers.reverse('boundaries_map', kwargs={'set_slug': self.slug}),
             },
             'last_updated': unicode(self.last_updated),
         }
@@ -97,6 +98,11 @@ class Boundary(models.Model):
     centroid = models.PointField(
         null=True,
         help_text='The centroid (weighted center) of this boundary in EPSG:4326 projection.')
+    label_point = models.PointField(
+        blank=True, null=True,
+        help_text='The location to label this boundary in EPSG:4326 projection.')
+    color = JSONField(blank=True, null=True,
+        help_text='The color to draw this boundary, a (R,G,B) tuple where the values range from 0 to 255.')
     
     objects = models.GeoManager()
 

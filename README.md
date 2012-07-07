@@ -10,6 +10,12 @@ API documentation is available at [represent.opennorth.ca/api/](http://represent
 
 ## Installation
 
+Install dependencies:
+
+    pip install django-appconf django-jsonfield django-tastypie
+    
+(Only some utility classes are used from Tastypie.)
+
 Install the package:
 
     python setup.py install
@@ -33,6 +39,28 @@ To load data, run
 This command loads every file for which it can find a definition. It looks for definitions in files ending with `definition.py` or `definitions.py` in `BOUNDARIES_SHAPEFILE_DIR` or its subdirectories.
 
 See the sample definition in [definition.example.py](http://github.com/rhymeswithcycle/represent-boundaries/blob/master/definition.example.py).
+
+An example for U.S. Congressional districts is already present. See the definitions file for where to get the shapefile.
+
+Note that it's a good idea to keep DEBUG off during this process or Django will try to remember every SQL command.
+
+## API starting point
+
+The starting point for exploring the API resources is /boundary-sets. From there you'll see references to additional URLs to look at.
+
+## Maps
+
+This app can also generate colorful map layers for Google Maps API. When loading shapefiles, use the -c option to automatically compute colors for each boundary. This adds some extra processing time:
+
+   python manage.py loadshapefiles -c
+   
+Because the maps are not cached within the app (that's your responsibility) and they require a significant amount of computer resources to generate, the map URLs are disabled by default. To enable, place in your urls.py:
+
+   (r'', include('boundaries.map_urls')),
+   
+Then view a map example at:
+
+   /map/[your-boundary-set-slug]/
 
 ## Contact
 
