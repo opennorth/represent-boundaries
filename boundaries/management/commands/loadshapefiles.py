@@ -64,7 +64,7 @@ class Command(BaseCommand):
                 log.debug('Skipping %s.' % kind)
                 continue
 
-            if (not options['reload']) and BoundarySet.objects.filter(name=kind).exists():
+            if (not options['reload']) and BoundarySet.objects.filter(slug=kind).exists():
                 log.info('Already loaded %s, skipping.' % kind)
                 continue
 
