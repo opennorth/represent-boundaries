@@ -119,14 +119,15 @@ class BoundaryGeoDetailView(ModelGeoDetailView, BoundaryObjectGetterMixin):
 
     allowed_geo_fields = ('shape', 'simple_shape', 'centroid')
 
-def boundaries_map(request, set_slug):
+def boundaries_map(request, set_slug, boundary_slug):
     bs = get_object_or_404(BoundarySet, slug=set_slug)
+    bb = get_object_or_404(Boundary, set=bs, slug=boundary_slug) if boundary_slug else None
     return render_to_response('boundaries/map_test.html',
-    { "boundaryset": bs },
+      { "boundaryset": bs, "boundary": bb },
       context_instance=RequestContext(request))
 
 @cache_control(public=True, max_age=60*60*24*3) # ask to be cached for 3 days
-def boundaries_map_tiles(request, set_slug):
+def boundaries_map_tiles(request, set_slug, boundary_slug):
     if not has_imaging_library: raise Http404("Cairo is not available.")
     
     # Load basic parameters.
@@ -210,8 +211,10 @@ def boundaries_map_tiles(request, set_slug):
 
     # Query for any boundaries that intersect the bounding box.
     
-    boundaries = list(Boundary.objects.filter(set__slug=set_slug, shape__intersects=db_bbox)\
-        .values("name", "label_point", "color", shape_field))
+    boundaries = Boundary.objects.filter(set__slug=set_slug, shape__intersects=db_bbox)\
+        .values("name", "label_point", "color", shape_field)
+    if boundary_slug: boundaries = boundaries.filter(slug=boundary_slug)
+    
     if len(boundaries) == 0:
         if False:
             # Google is OK getting 404s but OpenLayers isn't.

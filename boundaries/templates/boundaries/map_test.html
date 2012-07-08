@@ -51,7 +51,7 @@
 			// Add a tile overlay for this boundaryset.
 			overlay = new google.maps.ImageMapType({
 			  getTileUrl: function(coord, zoom) {
-				  return "/map/{{boundaryset.slug}}/tiles?tile_x=" + coord.x + "&tile_y=" + coord.y + "&tile_zoom=" + zoom;	
+				  return "/map-tiles/{{boundaryset.slug|escapejs}}{% if boundary %}/{{boundary.slug|escapejs}}{% endif %}?tile_x=" + coord.x + "&tile_y=" + coord.y + "&tile_zoom=" + zoom;	
 			  },
 			  tileSize: new google.maps.Size(256, 256),
 			  isPng: true,
@@ -86,7 +86,7 @@
 			
 			var overlay = new OpenLayers.Layer.XYZ(
 				"{{boundaryset.name|escapejs}}", 
-				[ "/map/{{boundaryset.slug}}/tiles?tile_x=${x}&tile_y=${y}&tile_zoom=${z}" ],
+				[ "/map-tiles/{{boundaryset.slug|escapejs}}{% if boundary %}/{{boundary.slug|escapejs}}{% endif %}?tile_x=${x}&tile_y=${y}&tile_zoom=${z}" ],
 				{
 					attribution: "{{boundaryset.authority}}",
 					sphericalMercator: true,
