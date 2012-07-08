@@ -9,6 +9,7 @@ import random
 
 from zipfile import ZipFile
 from tempfile import mkdtemp
+from shutil import rmtree
 
 from django.conf import settings
 from django.contrib.gis.gdal import CoordTransform, DataSource, OGRGeometry, OGRGeomType
@@ -77,8 +78,15 @@ class Command(BaseCommand):
         BoundarySet.objects.filter(slug=kind).delete()
 
         path = config['file']
-        datasources = create_datasources(path)
+        datasources, tmpdirs = create_datasources(path)
 
+        try:
+            self.load_set_2(kind, config, options, datasources)
+        finally:
+            for path in tmpdirs:
+                rmtree(path)
+            
+    def load_set_2(self, kind, config, options, datasources):
         layer = datasources[0][0]
 
         # Add some default values
@@ -232,8 +240,12 @@ class Command(BaseCommand):
             bdry.save()
 
 def create_datasources(path):
+    tmpdirs = []
+    
     if path.endswith('.zip'):
-        path = temp_shapefile_from_zip(path)
+        tmpdir, path = temp_shapefile_from_zip(path)
+        tmpdirs.append(tmpdir)
+        if not path: return
 
     if path.endswith('.shp'):
         return [DataSource(path)]
@@ -243,11 +255,12 @@ def create_datasources(path):
     for fn in os.listdir(path):
         fn = os.path.join(path,fn)
         if fn.endswith('.zip'):
-            fn = temp_shapefile_from_zip(fn)
-        if fn.endswith('.shp'):
+            tmpdir, fn = temp_shapefile_from_zip(fn)
+            tmpdirs.append(tmpdir)
+        if fn and fn.endswith('.shp'):
             sources.append(DataSource(fn))
             
-    return sources
+    return sources, tmpdirs
 
 class UnicodeFeature(object):
 
@@ -282,12 +295,4 @@ def temp_shapefile_from_zip(zip_path):
         f.write(data)
         f.close()
 
-    if shape_path is None:
-        log.warn("No shapefile, cleaning up")
-        # Clean up after ourselves.
-        for file in os.listdir(tempdir):
-            os.unlink(os.path.join(tempdir, file))
-        os.rmdir(tempdir)
-        raise ValueError("No shapefile found in zip")
-    
-    return shape_path
+    return tempdir, shape_path
