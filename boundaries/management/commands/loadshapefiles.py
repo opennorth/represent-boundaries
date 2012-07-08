@@ -116,6 +116,7 @@ class Command(BaseCommand):
             if datasource.layer_count > 1:
                 log.warn('%s shapefile [%s] has multiple layers, using first.' % (datasource.name, kind))
             layer = datasource[0]
+            layer.source = datasource # add additional attribute so definition file can trace back to filename
             self.add_boundaries_for_layer(config, layer, bset, options['database'])
 
         if options["color"]:
@@ -155,6 +156,7 @@ class Command(BaseCommand):
             geometry = feature.geom
             
             feature = UnicodeFeature(feature, encoding=config.get('encoding', 'ascii'))
+            feature.layer = layer # add additional attribute so definition file can trace back to filename
 
             if config.get('is_valid_func', lambda feature : True)(feature) == False:
                 continue
@@ -253,12 +255,18 @@ def create_datasources(path):
     # assume it's a directory...
     sources = []
     for fn in os.listdir(path):
+        zipfilename = None
         fn = os.path.join(path,fn)
         if fn.endswith('.zip'):
+            zipfilename = fn
             tmpdir, fn = temp_shapefile_from_zip(fn)
             tmpdirs.append(tmpdir)
         if fn and fn.endswith('.shp'):
-            sources.append(DataSource(fn))
+            d = DataSource(fn)
+            if zipfilename:
+                # add additional attribute so definition file can trace back to filename
+                d.zipfile = zipfilename
+            sources.append(d)
             
     return sources, tmpdirs
 
