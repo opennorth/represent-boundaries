@@ -6,6 +6,7 @@ from optparse import make_option
 import os, os.path
 import sys
 import random
+import subprocess
 
 from zipfile import ZipFile
 from tempfile import mkdtemp
@@ -262,6 +263,7 @@ def create_datasources(path):
             tmpdir, fn = temp_shapefile_from_zip(fn)
             tmpdirs.append(tmpdir)
         if fn and fn.endswith('.shp'):
+            fn = preprocess_shp(fn)
             d = DataSource(fn)
             if zipfilename:
                 # add additional attribute so definition file can trace back to filename
@@ -304,3 +306,11 @@ def temp_shapefile_from_zip(zip_path):
         f.close()
 
     return tempdir, shape_path
+    
+def preprocess_shp(shpfile):
+    # Run this command to sanitize the input, removing 3D shapes which causes trouble for
+    # us later.
+    newfile = shpfile.replace(".shp", ".new.shp")
+    subprocess.call(["ogr2ogr", "-f", "ESRI Shapefile", newfile, shpfile, "-nlt", "POLYGON"])
+    return newfile
+
