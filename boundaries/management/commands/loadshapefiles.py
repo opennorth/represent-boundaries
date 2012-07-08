@@ -111,34 +111,12 @@ class Command(BaseCommand):
             self.add_boundaries_for_layer(config, layer, bset, options['database'])
 
         if options["color"]:
-            # For each boundary in the set, assign a color such that it does not have the same
-            # color as any other boundary it touches. Use the main colors from the Brewer spectrum,
-            # based on http://colorbrewer2.org. This is done in a pretty dumb way: loop through
-            # each boundary, query for each boundary it touches, look for a remaining color, and
-            # then continue. In principle only four colors should be needed (the Four Color Theorem),
-            # but finding a coloring that only uses four colors is algorithmically difficult. In practice,
-            # around 8 is enough, and if we get stuck we just reuse a neighboring color --- oh well.
-            color_choices = [ (44,162,95), (136,86,167), (67,162,202), (227,74,51), (153,216,201), (158,188,218), (253,187,132), (166,189,219), (201,148,199) ]
-            bset.boundaries.all().update(color=None)
-            for bdry in bset.boundaries.all().only("shape"):
-                used_colors = set()
-                for b2 in bset.boundaries.filter(shape__touches=bdry.shape).exclude(color=None).only("name", "color"):
-                    used_colors.add(tuple(b2.color))
-                # Choose the first available color. We prefer not to randomize so that a) this process
-                # is relatively stable from run to run, and b) we can prioritize the colors we'd rather
-                # use. The colors above are roughly from stronger to weaker.
-                for c in color_choices:
-                    if c not in used_colors:
-                        bdry.color = c
-                        break
-                else:
-                    # We ran out of colors. Just choose one at random.
-                    bdry.color = random.choice(color_choices)
-                bdry.save()
+            self.assign_colors(bset)
 
         log.info('%s count: %i' % (kind, Boundary.objects.filter(set=bset).count()))
 
-    def polygon_to_multipolygon(self, geom):
+    @staticmethod
+    def polygon_to_multipolygon(geom):
         """
         Convert polygons to multipolygons so all features are homogenous in the database.
         """
@@ -166,8 +144,15 @@ class Command(BaseCommand):
         transformer = CoordTransform(layer_srs, db_srs)
 
         for feature in layer:
+            geometry = feature.geom
+            
+            feature = UnicodeFeature(feature, encoding=config.get('encoding', 'ascii'))
+
+            if config.get('is_valid_func', lambda feature : True)(feature) == False:
+                continue
+
             # Transform the geometry to the correct SRS
-            geometry = self.polygon_to_multipolygon(feature.geom)
+            geometry = self.polygon_to_multipolygon(geometry)
             geometry.transform(transformer)
 
             # Create simplified geometry field by collapsing points within 1/1000th of a degree.
@@ -179,8 +164,6 @@ class Command(BaseCommand):
             # Conversion may force multipolygons back to being polygons
             simple_geometry = self.polygon_to_multipolygon(simple_geometry.ogr)
 
-            feature = UnicodeFeature(feature, encoding=config.get('encoding', 'ascii'))
-
             # Extract metadata into a dictionary
             metadata = dict(
                 ( (field, feature.get(field)) for field in layer.fields )
@@ -191,7 +174,7 @@ class Command(BaseCommand):
             feature_slug = unicode(slugify(config['slug_func'](feature)).replace(u'—', '-'))
             
             log.info('%s...' % feature_slug)
-
+            
             Boundary.objects.create(
                 set=bset,
                 set_name=bset.singular,
@@ -205,7 +188,49 @@ class Command(BaseCommand):
                 label_point=config.get("label_point_func", lambda x : None)(feature),
                 color=config.get("color_func", lambda x : None)(feature),
                 )
-        
+
+    @staticmethod
+    def assign_colors(bset):
+        # For each boundary in the set, assign a color such that it does not have the same
+        # color as any other boundary it touches. Use the main colors from the Brewer spectrum,
+        # based on http://colorbrewer2.org. This is done in a pretty dumb way: loop through
+        # each boundary, query for each boundary it touches, look for a remaining color, and
+        # then continue. In principle only four colors should be needed (the Four Color Theorem),
+        # but finding a coloring that only uses four colors is algorithmically difficult. In practice,
+        # around 8 is enough, and if we get stuck we just reuse a neighboring color --- oh well.
+        color_choices = [ (44,162,95), (136,86,167), (67,162,202), (255, 237, 160), (240,59,32), (153,216,201), (158,188,218), (253,187,132), (166,189,219), (201,148,199) ]
+        bset.boundaries.all().update(color=None)
+        for bdry in bset.boundaries.all().only("shape"):
+            used_colors = set()
+            
+            # What shapes are neighbors? 'Touches' is the right operator, but to be flexible
+            # we use intersects, which will allow some overlap for poorly defined geometry.
+            # Sometimes __intersects throws an error ("django.db.utils.DatabaseError: GEOS
+            # intersects() threw an error!") and we'll just try to pass over those.
+            try:
+                # Looping over the polygons w/in the multipolygon isn't necessary.
+                for part in (bdry.shape if bdry.shape.geom_type == "MultiPolygon" else [bdry.shape]):
+                    qs = bset.boundaries.filter(shape__intersects=part).exclude(color=None).only("name", "color")
+                    for b2 in qs:
+                        used_colors.add(tuple(b2.color))
+            except:
+                print '%s had a problem looking for intersecting boundaries...' % bdry.slug
+                bdry.color = random.choice(color_choices)
+                bdry.save()
+                continue
+            
+            # Choose the first available color. We prefer not to randomize so that a) this process
+            # is relatively stable from run to run, and b) we can prioritize the colors we'd rather
+            # use. The colors above are roughly from stronger to weaker.
+            for c in color_choices:
+                if c not in used_colors:
+                    bdry.color = c
+                    break
+            else:
+                # We ran out of colors. Just choose one at random.
+                bdry.color = random.choice(color_choices)
+            bdry.save()
+
 def create_datasources(path):
     if path.endswith('.zip'):
         path = temp_shapefile_from_zip(path)
@@ -221,6 +246,7 @@ def create_datasources(path):
             fn = temp_shapefile_from_zip(fn)
         if fn.endswith('.shp'):
             sources.append(DataSource(fn))
+            
     return sources
 
 class UnicodeFeature(object):
@@ -247,8 +273,9 @@ def temp_shapefile_from_zip(zip_path):
     shape_path = None
     # Copy the zipped files to a temporary directory, preserving names.
     for name in zf.namelist():
+        if name.endswith("/"): continue
         data = zf.read(name)
-        outfile = os.path.join(tempdir, name)
+        outfile = os.path.join(tempdir, os.path.basename(name))
         if name.endswith('.shp'):
             shape_path = outfile
         f = open(outfile, 'w')

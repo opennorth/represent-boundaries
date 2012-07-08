@@ -46,5 +46,11 @@ boundaries.register('federal-electoral-districts', # The slug of the boundary se
     
     # optional. The color to fill the boundary in with, an RGB tuple using integer values from 0-255.
     color_func = lambda feature : (255,0,0),
+    
+    # Other utilities...
+    
+    # optional. A function from a feature object to a boolean indicating
+    # whether it should be loaded into the database.
+    #is_valid_func = lambda feature : True
 )
 
