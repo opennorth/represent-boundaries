@@ -12,6 +12,7 @@ class MyAppConf(AppConf):
                         # number of resources are matched, throw an error
     SHAPEFILES_DIR = './data/shapefiles'
     SIMPLE_SHAPE_TOLERANCE = 0.0002
+    MAP_LABEL_FONT = "Ubuntu"
 
 app_settings = MyAppConf()
 

@@ -230,7 +230,7 @@ def boundaries_map_tiles(request, set_slug):
     # Create the image buffer.
     im = cairo.ImageSurface(cairo.FORMAT_ARGB32, size, size)
     ctx = cairo.Context(im)
-    ctx.select_font_face("Ubuntu", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+    ctx.select_font_face(app_settings.MAP_LABEL_FONT, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
     
     def max_extent(shape):
         a, b, c, d = shape.extent
@@ -307,8 +307,12 @@ def boundaries_map_tiles(request, set_slug):
             try:
                 pt = bbox.intersection(shape).point_on_surface
             except:
-                # Don't know why this would fail.
-                continue
+                # Don't know why this would fail. Bad geometry of some sort.
+                # But we really don't want to leave anything unlabeled so
+                # try the center of the bounding box.
+                pt = bbox.centroid
+                if not shape.contains(pt):
+                	continue
         
         # Transform to world coordinates and ensure it is within the bounding box.
         if not bbox.contains(pt):
@@ -331,19 +335,28 @@ def boundaries_map_tiles(request, set_slug):
         
         # Is it within the rough bounds of the shape and definitely the bounds of this tile?
         if tw < ext_dim/pixel_width/5 and th < ext_dim/pixel_width/5 \
-            and pt[0]-x_off-tw/2-4 > 0 and pt[1]-y_off-th/2-4 > 0 and pt[0]-x_off+tw/2+5 < size and pt[1]-y_off+th/2+4 < size:
+            and pt[0]-x_off-tw/2-4 > 0 and pt[1]-th-4 > 0 and pt[0]-x_off+tw/2+7 < size and pt[1]+6 < size:
             # Draw the background rectangle behind the text.
-            ctx.set_source_rgba(0,0,0,.6)  # black, some transparency
+            ctx.set_source_rgba(0,0,0,.55)  # black, some transparency
             ctx.new_path()
-            ctx.line_to(pt[0]-x_off-tw/2-4,pt[1]-y_off+th/2+4)
+            ctx.line_to(pt[0]-x_off-tw/2-4,pt[1]-th-4)
             ctx.rel_line_to(tw+9, 0)
-            ctx.rel_line_to(0, -th-8)
+            ctx.rel_line_to(0, +th+8)
             ctx.rel_line_to(-tw-9, 0)
+            ctx.fill()
+            
+            # Now a drop shadow (also is partially behind the first rectangle).
+            ctx.set_source_rgba(0,0,0,.3)  # black, some transparency
+            ctx.new_path()
+            ctx.line_to(pt[0]-x_off-tw/2-4,pt[1]-th-4)
+            ctx.rel_line_to(tw+11, 0)
+            ctx.rel_line_to(0, +th+10)
+            ctx.rel_line_to(-tw-11, 0)
             ctx.fill()
             
             # Draw the text.
             ctx.set_source_rgba(1,1,1,1)  # white
-            ctx.move_to(pt[0]-x_off-tw/2,pt[1]-y_off+th/2)
+            ctx.move_to(pt[0]-x_off-tw/2,pt[1])
             ctx.show_text(txt)
                 
 
