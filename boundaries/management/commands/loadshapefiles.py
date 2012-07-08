@@ -115,12 +115,14 @@ class Command(BaseCommand):
             # color as any other boundary it touches. Use the main colors from the Brewer spectrum,
             # based on http://colorbrewer2.org. This is done in a pretty dumb way: loop through
             # each boundary, query for each boundary it touches, look for a remaining color, and
-            # then continue.
+            # then continue. In principle only four colors should be needed (the Four Color Theorem),
+            # but finding a coloring that only uses four colors is algorithmically difficult. In practice,
+            # around 8 is enough, and if we get stuck we just reuse a neighboring color --- oh well.
             color_choices = [ (44,162,95), (136,86,167), (67,162,202), (227,74,51), (153,216,201), (158,188,218), (253,187,132), (166,189,219), (201,148,199) ]
             bset.boundaries.all().update(color=None)
             for bdry in bset.boundaries.all().only("shape"):
                 used_colors = set()
-                for b2 in bset.boundaries.objects.filter(shape__touches=bdry.shape).exclude(color=None).only("name", "color"):
+                for b2 in bset.boundaries.filter(shape__touches=bdry.shape).exclude(color=None).only("name", "color"):
                     used_colors.add(tuple(b2.color))
                 # Choose the first available color. We prefer not to randomize so that a) this process
                 # is relatively stable from run to run, and b) we can prioritize the colors we'd rather

@@ -12,9 +12,9 @@ API documentation is available at [represent.opennorth.ca/api/](http://represent
 
 Install dependencies:
 
-    pip install django-appconf django-jsonfield django-tastypie
+    pip install django-appconf django-jsonfield django-tastypie pycairo
     
-(Only some utility classes are used from Tastypie.)
+(Only some utility classes are used from Tastypie. pycairo is used for maps only and is otherwise optional.)
 
 Install the package:
 
@@ -39,8 +39,6 @@ To load data, run
 This command loads every file for which it can find a definition. It looks for definitions in files ending with `definition.py` or `definitions.py` in `BOUNDARIES_SHAPEFILE_DIR` or its subdirectories.
 
 See the sample definition in [definition.example.py](http://github.com/rhymeswithcycle/represent-boundaries/blob/master/definition.example.py).
-
-An example for U.S. Congressional districts is already present. See the definitions file for where to get the shapefile.
 
 Note that it's a good idea to keep DEBUG off during this process or Django will try to remember every SQL command.
 

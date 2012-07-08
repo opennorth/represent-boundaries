@@ -322,15 +322,15 @@ def boundaries_map_tiles(request, set_slug):
             # Draw the background rectangle behind the text.
             ctx.set_source_rgba(0,0,0,.6)  # black, some transparency
             ctx.new_path()
-            ctx.line_to(pt[0]-x_off-tw/2-4,pt[1]-y_off-th/2+4)
+            ctx.line_to(pt[0]-x_off-tw/2-4,pt[1]-y_off+th/2+4)
             ctx.rel_line_to(tw+9, 0)
             ctx.rel_line_to(0, -th-8)
-            ctx.rel_line_to(-tw-8, 0)
+            ctx.rel_line_to(-tw-9, 0)
             ctx.fill()
             
             # Draw the text.
             ctx.set_source_rgba(1,1,1,1)  # white
-            ctx.move_to(pt[0]-x_off-tw/2,pt[1]-y_off-th/2)
+            ctx.move_to(pt[0]-x_off-tw/2,pt[1]-y_off+th/2)
             ctx.show_text(txt)
                 
 
