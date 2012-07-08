@@ -9,7 +9,7 @@ from boundaries.models import BoundarySet, Boundary, app_settings
 from django.contrib.gis.geos import Point, Polygon, MultiPolygon
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
 from django.db import connections
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.views.decorators.cache import cache_control
 import math
@@ -120,8 +120,9 @@ class BoundaryGeoDetailView(ModelGeoDetailView, BoundaryObjectGetterMixin):
     allowed_geo_fields = ('shape', 'simple_shape', 'centroid')
 
 def boundaries_map(request, set_slug):
+    bs = get_object_or_404(BoundarySet, slug=set_slug)
     return render_to_response('boundaries/map_test.html',
-	{ "boundaryset": set_slug },
+    { "boundaryset": bs },
       context_instance=RequestContext(request))
 
 @cache_control(public=True, max_age=60*60*24*3) # ask to be cached for 3 days
@@ -212,8 +213,20 @@ def boundaries_map_tiles(request, set_slug):
     boundaries = list(Boundary.objects.filter(set__slug=set_slug, shape__intersects=db_bbox)\
         .values("name", "label_point", "color", shape_field))
     if len(boundaries) == 0:
-        raise Http404("No boundaries here.")
-
+        if False:
+            # Google is OK getting 404s but OpenLayers isn't.
+            raise Http404("No boundaries here.")
+        else:
+            # Send a 1x1 transparent PNG.
+            im = cairo.ImageSurface(cairo.FORMAT_ARGB32, 1, 1)
+            ctx = cairo.Context(im)
+            buf = StringIO()
+            im.write_to_png(buf)
+            v = buf.getvalue()
+            r = HttpResponse(v, content_type='image/png')
+            r["Content-Length"] = len(v)
+            return r
+    
     # Create the image buffer.
     im = cairo.ImageSurface(cairo.FORMAT_ARGB32, size, size)
     ctx = cairo.Context(im)
@@ -256,8 +269,8 @@ def boundaries_map_tiles(request, set_slug):
         if not bdry["color"]: continue
         for polygon in shape:
             for ring in polygon: # should just be one since no shape should have holes?
-            	# We have to 'eval' the color because we used .values() to pull the
-            	# value, so the JSON field won't decode it for us.
+                # We have to 'eval' the color because we used .values() to pull the
+                # value, so the JSON field won't decode it for us.
                 ctx.set_source_rgba(*[f/255.0 for f in (eval(bdry["color"]) + [60])])
                 ctx.new_path()
                 for pt in ring.coords:
@@ -286,8 +299,8 @@ def boundaries_map_tiles(request, set_slug):
         # Get the location of the label stored in the database, or fall back to
         # GDAL routine point_on_surface to get a point quickly.
         if bdry["label_point"]:
-        	# Override the SRS on the point (for Google, see above). Then transform
-        	# it to world coordinates.
+            # Override the SRS on the point (for Google, see above). Then transform
+            # it to world coordinates.
             pt = Point(tuple(bdry["label_point"]), srid=db_srs.srid)
             pt.transform(out_srs)
         else:
@@ -318,7 +331,7 @@ def boundaries_map_tiles(request, set_slug):
         
         # Is it within the rough bounds of the shape and definitely the bounds of this tile?
         if tw < ext_dim/pixel_width/5 and th < ext_dim/pixel_width/5 \
-            and pt[0]-x_off-tw/2 > 0 and pt[1]-y_off-th/2 > 0 and pt[0]-x_off+tw/2 < size and pt[1]-y_off+th/2 < size:
+            and pt[0]-x_off-tw/2-4 > 0 and pt[1]-y_off-th/2-4 > 0 and pt[0]-x_off+tw/2+5 < size and pt[1]-y_off+th/2+4 < size:
             # Draw the background rectangle behind the text.
             ctx.set_source_rgba(0,0,0,.6)  # black, some transparency
             ctx.new_path()
