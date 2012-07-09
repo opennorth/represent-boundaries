@@ -196,6 +196,7 @@ class Command(BaseCommand):
                 shape=geometry.wkt,
                 simple_shape=simple_geometry.wkt,
                 centroid=geometry.geos.centroid,
+                extent=geometry.extent,
                 label_point=config.get("label_point_func", lambda x : None)(feature),
                 color=config.get("color_func", lambda x : None)(feature),
                 )

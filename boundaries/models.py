@@ -99,6 +99,8 @@ class Boundary(models.Model):
     centroid = models.PointField(
         null=True,
         help_text='The centroid (weighted center) of this boundary in EPSG:4326 projection.')
+    extent = JSONField(blank=True, null=True,
+        help_text='The bounding box of the boundary in EPSG:4326 projection, as a list such as [xmin, ymin, xmax, ymax].')
     label_point = models.PointField(
         blank=True, null=True,
         help_text='The location to label this boundary in EPSG:4326 projection.')

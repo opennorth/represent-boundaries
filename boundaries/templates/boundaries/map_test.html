@@ -63,6 +63,18 @@
 			});
 			map.overlayMapTypes.insertAt(0, overlay);
 
+			{% if boundary %}
+			$.ajax("/boundaries/{{boundaryset.slug|escapejs}}/{{boundary.slug|escapejs}}/extent",
+				{
+					success: function(res) {
+						if (res) {
+							var b = new google.maps.LatLngBounds(new google.maps.LatLng(res[1], res[0]), new google.maps.LatLng(res[3], res[2]));
+							map.fitBounds(b);
+						}
+					}
+				});
+			{% endif %}
+			
 			// Create a click handler.			
 			google.maps.event.addListener(map, "click", function(e) {
 				onclick(e.latLng.lat(), e.latLng.lng());
@@ -90,8 +102,7 @@
 				{
 					attribution: "{{boundaryset.authority}}",
 					sphericalMercator: true,
-					isBaseLayer: false,
-					transitionEffect: "resize"
+					isBaseLayer: false
 				});
 			map.addLayer(overlay);
 			
@@ -99,6 +110,17 @@
 			var toProjection   = new OpenLayers.Projection("EPSG:900913"); // to Spherical Mercator Projection
 			var position       = new OpenLayers.LonLat(-96, 38).transform( fromProjection, toProjection);
 			map.setCenter(position, 4);
+
+			{% if boundary %}
+			$.ajax("/boundaries/{{boundaryset.slug|escapejs}}/{{boundary.slug|escapejs}}/extent",
+				{
+					success: function(res) {
+						if (res) {
+							map.zoomToExtent(new OpenLayers.Bounds(res).transform(fromProjection, toProjection).toArray(), false);
+						}
+					}
+				});
+			{% endif %}
 			
 			// Create a click handler.
 			OpenLayers.Control.Click = OpenLayers.Class(OpenLayers.Control, {                

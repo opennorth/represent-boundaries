@@ -112,12 +112,12 @@ class BoundaryDetailView(ModelDetailView, BoundaryObjectGetterMixin):
 
     def __init__(self):
         super(BoundaryDetailView, self).__init__()
-        self.base_qs = self.base_qs.defer('shape', 'simple_shape', 'centroid')
+        self.base_qs = self.base_qs.defer('shape', 'simple_shape', 'centroid', 'extent')
 
 class BoundaryGeoDetailView(ModelGeoDetailView, BoundaryObjectGetterMixin):
     """ e.g /boundary/federal-electoral-districts/outremont/shape """
 
-    allowed_geo_fields = ('shape', 'simple_shape', 'centroid')
+    allowed_geo_fields = ('shape', 'simple_shape', 'centroid', 'extent')
 
 def boundaries_map(request, set_slug, boundary_slug):
     bs = get_object_or_404(BoundarySet, slug=set_slug)
