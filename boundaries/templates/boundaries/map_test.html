@@ -179,13 +179,22 @@
 	</script>
 </head>
 <body onload="initialize()">
-	<h1>Map Test Page</h1>
+	<h1>{{boundaryset.name}}</h1>
 	
 	<div style="float: left; width: 50%;">
 		<div style="padding: 1em">
+			<h2>Map Test Page</h2>
 			<p>This page demonstrates how to display colorful map layers using either Google Maps API v3 or OpenLayers with Open Street Map.</p>
 			<p><a href="#" onclick="$('.map').toggle(); initialize(); return false;">Toggle Google/OSM</a></p>
 			<p id="click">Click on the map to see what&rsquo;s there.</p>
+			
+			<h2>About This Layer</h2>
+			<p>Authority: {{boundaryset.authority}}</p>
+			<p>Domain: {{boundaryset.domain}}</p>
+			<p>Last Updated: {{boundaryset.last_updated}}</p>
+			<p>Source URL: {{boundaryset.source_url}}</p>
+			<p>Notes: {{boundaryset.notes}}</p>
+			<p>License URL: {{boundaryset.licence_url}}</p>
 		</div>
 	</div>
 	

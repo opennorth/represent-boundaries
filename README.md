@@ -12,7 +12,8 @@ API documentation is available at [represent.opennorth.ca/api/](http://represent
 
 Install dependencies:
 
-    pip install django-appconf django-jsonfield django-tastypie pycairo
+    pip install django-appconf django-jsonfield django-tastypie south
+    apt-get install python-cairo # (there's no PIP for Python 2?)
     
 (Only some utility classes are used from Tastypie. pycairo is used for maps only and is otherwise optional.)
 
