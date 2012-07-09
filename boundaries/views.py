@@ -133,6 +133,8 @@ def boundaries_map_tiles(request, set_slug, boundary_slug):
     # Load basic parameters.
     try:
         size = int(request.GET.get('size', '256'))
+        if size not in (256, 512, 1024): raise ValueError()
+        
         srs = int(request.GET.get('srs', '3857'))
     except ValueError:
         raise Http404("Invalid parameter.")

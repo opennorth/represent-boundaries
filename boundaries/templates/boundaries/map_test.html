@@ -51,9 +51,14 @@
 			// Add a tile overlay for this boundaryset.
 			overlay = new google.maps.ImageMapType({
 			  getTileUrl: function(coord, zoom) {
-				  return "/map-tiles/{{boundaryset.slug|escapejs}}{% if boundary %}/{{boundary.slug|escapejs}}{% endif %}?tile_x=" + coord.x + "&tile_y=" + coord.y + "&tile_zoom=" + zoom;	
+			  	  // We can serve tiles larger than the default of 256, which might improve performance,
+			  	  // since fewer HTTP requests will need to be made in a typical page load. To demonstrate,
+			  	  // the tileSize is set to 512 below, the size is passed to the server, and since the
+			  	  // size is double what Google will be using for its own tiles, we pass a one-lower zoom
+			  	  // level to our tile server.
+				  return "/map-tiles/{{boundaryset.slug|escapejs}}{% if boundary %}/{{boundary.slug|escapejs}}{% endif %}?tile_x=" + coord.x + "&tile_y=" + coord.y + "&tile_zoom=" + (zoom-1) + "&size=512";	
 			  },
-			  tileSize: new google.maps.Size(256, 256),
+			  tileSize: new google.maps.Size(512, 512),
 			  isPng: true,
 			  
 			  /* You can play with these settings. */
