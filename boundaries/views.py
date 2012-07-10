@@ -276,7 +276,33 @@ def boundaries_map_tiles(request, set_slug, boundary_slug):
             for ring in polygon: # should just be one since no shape should have holes?
                 # We have to 'eval' the color because we used .values() to pull the
                 # value, so the JSON field won't decode it for us.
-                ctx.set_source_rgba(*[f/255.0 for f in (eval(bdry["color"]) + [60])])
+                color = eval(bdry["color"])
+                if isinstance(color, (tuple, list)):
+                    # Specify a 3-tuple (or list) for a solid RGB color w/ default
+                    # alpha. RGB are in the range 0-255.
+                    if len(color) == 3:
+                        ctx.set_source_rgba(*[f/255.0 for f in (color + [60])])
+                        
+                    # Specify a 4-tuple (or list) for a solid RGB color with alpha
+                    # specified as the fourth component. Values in range 0-255.
+                    elif len(color) == 4:
+                        ctx.set_source_rgba(*[f/255.0 for f in color])
+                        
+                    else:
+                        continue # Invalid length.
+                        
+                elif isinstance(color, dict):
+                    # Specify a dict of the form { "color1": (R,G,B), "color2": (R,G,B) } to
+                    # create a solid fill of color1 plus smaller stripes of color2.
+                    pat = cairo.LinearGradient(0.0, 0.0, size, size)
+                    for x in xrange(0,size, 32): # divisor of the size so gradient ends at the end
+                        pat.add_color_stop_rgba(*([float(x)/size] + [f/255.0 for f in color["color1"]] + [.3]))
+                        pat.add_color_stop_rgba(*([float(x+28)/size] + [f/255.0 for f in color["color1"]] + [.3]))
+                        pat.add_color_stop_rgba(*([float(x+28)/size] + [f/255.0 for f in color["color2"]] + [.4]))
+                        pat.add_color_stop_rgba(*([float(x+32)/size] + [f/255.0 for f in color["color2"]] + [.4]))
+                    ctx.set_source(pat)
+                else:
+                    continue # Unknown color data structure.
                 ctx.new_path()
                 for pt in ring.coords:
                     ctx.line_to(*viewport(pt))
@@ -317,7 +343,7 @@ def boundaries_map_tiles(request, set_slug, boundary_slug):
                 # try the center of the bounding box.
                 pt = bbox.centroid
                 if not shape.contains(pt):
-                	continue
+                    continue
         
         # Transform to world coordinates and ensure it is within the bounding box.
         if not bbox.contains(pt):
