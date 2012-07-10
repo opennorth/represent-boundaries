@@ -12,7 +12,7 @@ from django.db import connections
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.views.decorators.cache import cache_control
-import math
+import math, json
 try:
     import cairo 
     from StringIO import StringIO
@@ -274,9 +274,9 @@ def boundaries_map_tiles(request, set_slug, boundary_slug):
         if not bdry["color"]: continue
         for polygon in shape:
             for ring in polygon: # should just be one since no shape should have holes?
-                # We have to 'eval' the color because we used .values() to pull the
+                # We have to parse the color because we used .values() to pull the
                 # value, so the JSON field won't decode it for us.
-                color = eval(bdry["color"])
+                color = json.loads(bdry["color"])
                 if isinstance(color, (tuple, list)):
                     # Specify a 3-tuple (or list) for a solid RGB color w/ default
                     # alpha. RGB are in the range 0-255.
