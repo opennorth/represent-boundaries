@@ -41,11 +41,8 @@ boundaries.register('federal-electoral-districts', # The slug of the boundary se
     
     # For maps...
     
-    # optional. A function from a feature object to a Point where to display the label.
-    label_func = lambda feature : None,
-    
-    # optional. The color to fill the boundary in with, an RGB tuple using integer values from 0-255.
-    color_func = lambda feature : (255,0,0),
+    # optional. A function from a feature object to a Point where to display a label for feature on a map.
+    label_point_func = lambda feature : None,
     
     # Other utilities...
     

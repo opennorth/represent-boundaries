@@ -12,7 +12,6 @@ class MyAppConf(AppConf):
                         # number of resources are matched, throw an error
     SHAPEFILES_DIR = './data/shapefiles'
     SIMPLE_SHAPE_TOLERANCE = 0.0002
-    MAP_LABEL_FONT = "Ubuntu"
 
 app_settings = MyAppConf()
 
@@ -57,7 +56,6 @@ class BoundarySet(models.Model):
         r = {
             'related': {
                 'boundaries_url': urlresolvers.reverse('boundaries_boundary_list', kwargs={'set_slug': self.slug}),
-                'map_url': urlresolvers.reverse('boundaries_map', kwargs={'set_slug': self.slug}),
             },
             'last_updated': unicode(self.last_updated),
         }
@@ -103,9 +101,7 @@ class Boundary(models.Model):
         help_text='The bounding box of the boundary in EPSG:4326 projection, as a list such as [xmin, ymin, xmax, ymax].')
     label_point = models.PointField(
         blank=True, null=True,
-        help_text='The location to label this boundary in EPSG:4326 projection.')
-    color = JSONField(blank=True, null=True,
-        help_text='The color to draw this boundary, a (R,G,B) tuple where the values range from 0 to 255.')
+        help_text='The suggested location to label this boundary in EPSG:4326 projection.')
     
     objects = models.GeoManager()
 
@@ -137,11 +133,12 @@ class Boundary(models.Model):
             'name': self.name,
             'metadata': self.metadata,
             'external_id': self.external_id,
+            'extent': self.extent,
         }
 
     @staticmethod
     def prepare_queryset_for_get_dicts(qs):
-        return qs.values_list('slug', 'set', 'name', 'set_name', 'external_id')
+        return qs.values_list('slug', 'set', 'name', 'set_name', 'external_id', 'extent')
 
     @staticmethod
     def get_dicts(boundaries):
@@ -154,6 +151,7 @@ class Boundary(models.Model):
                 },
                 'boundary_set_name': b[3],
                 'external_id': b[4],
+                'extent': b[5],
             } for b in boundaries
         ]
 

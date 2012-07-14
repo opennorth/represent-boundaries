@@ -250,9 +250,7 @@ class ModelGeoDetailView(ModelDetailView):
         geom = getattr(obj, field)
         name = getattr(obj, self.name_field)
         format = request.GET.get('format', 'json')
-        if isinstance(geom, (type(None), tuple, list, dict)):
-            return RawJSONResponse(json.dumps(geom))
-        elif format in ('json', 'apibrowser'):
+        if format in ('json', 'apibrowser'):
             return RawJSONResponse(geom.geojson)
         elif format == 'wkt':
             return HttpResponse(geom.wkt, mimetype="text/plain")

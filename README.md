@@ -13,9 +13,8 @@ API documentation is available at [represent.opennorth.ca/api/](http://represent
 Install dependencies:
 
     pip install django-appconf django-jsonfield django-tastypie south
-    apt-get install python-cairo # (there's no PIP for Python 2?)
     
-(Only some utility classes are used from Tastypie. pycairo is used for maps only and is otherwise optional.)
+(Only some utility classes are used from Tastypie.)
 
 Install the package:
 
@@ -46,20 +45,6 @@ Note that it's a good idea to keep DEBUG off during this process or Django will 
 ## API starting point
 
 The starting point for exploring the API resources is /boundary-sets. From there you'll see references to additional URLs to look at.
-
-## Maps
-
-This app can also generate colorful map layers for Google Maps API. When loading shapefiles, use the -c option to automatically compute colors for each boundary. This adds some extra processing time:
-
-   python manage.py loadshapefiles -c
-   
-Because the maps are not cached within the app (that's your responsibility) and they require a significant amount of computer resources to generate, the map URLs are disabled by default. To enable, place in your urls.py:
-
-   (r'', include('boundaries.map_urls')),
-   
-Then view a map example at:
-
-   /map/[your-boundary-set-slug]/
 
 ## Contact
 

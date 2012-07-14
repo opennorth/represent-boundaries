@@ -37,8 +37,6 @@ class Command(BaseCommand):
             default=False, help='Only load these kinds of Areas, comma-delimited.'),
         make_option('-u', '--database', action='store', dest='database',
             default=DEFAULT_DB_ALIAS, help='Specify a database to load shape data into.'),
-        make_option('-c', '--color', action='store_true', dest='color',
-            default=False, help='Automatically set colors to the boundaries.'),
     )
 
     def get_version(self):
@@ -120,9 +118,6 @@ class Command(BaseCommand):
             layer.source = datasource # add additional attribute so definition file can trace back to filename
             self.add_boundaries_for_layer(config, layer, bset, options['database'])
 
-        if options["color"]:
-            self.assign_colors(bset)
-
         log.info('%s count: %i' % (kind, Boundary.objects.filter(set=bset).count()))
 
     @staticmethod
@@ -197,51 +192,8 @@ class Command(BaseCommand):
                 simple_shape=simple_geometry.wkt,
                 centroid=geometry.geos.centroid,
                 extent=geometry.extent,
-                label_point=config.get("label_point_func", lambda x : None)(feature),
-                color=config.get("color_func", lambda x : None)(feature),
+                label_point=config.get("label_point_func", lambda x : None)(feature)
                 )
-
-    @staticmethod
-    def assign_colors(bset):
-        # For each boundary in the set, assign a color such that it does not have the same
-        # color as any other boundary it touches. Use the main colors from the Brewer spectrum,
-        # based on http://colorbrewer2.org. This is done in a pretty dumb way: loop through
-        # each boundary, query for each boundary it touches, look for a remaining color, and
-        # then continue. In principle only four colors should be needed (the Four Color Theorem),
-        # but finding a coloring that only uses four colors is algorithmically difficult. In practice,
-        # around 8 is enough, and if we get stuck we just reuse a neighboring color --- oh well.
-        color_choices = [ (44,162,95), (136,86,167), (67,162,202), (255, 237, 160), (240,59,32), (153,216,201), (158,188,218), (253,187,132), (166,189,219), (201,148,199) ]
-        bset.boundaries.all().update(color=None)
-        for bdry in bset.boundaries.all().only("shape"):
-            used_colors = set()
-            
-            # What shapes are neighbors? 'Touches' is the right operator, but to be flexible
-            # we use intersects, which will allow some overlap for poorly defined geometry.
-            # Sometimes __intersects throws an error ("django.db.utils.DatabaseError: GEOS
-            # intersects() threw an error!") and we'll just try to pass over those.
-            try:
-                # Looping over the polygons w/in the multipolygon isn't necessary.
-                for part in (bdry.shape if bdry.shape.geom_type == "MultiPolygon" else [bdry.shape]):
-                    qs = bset.boundaries.filter(shape__intersects=part).exclude(color=None).only("name", "color")
-                    for b2 in qs:
-                        used_colors.add(tuple(b2.color))
-            except:
-                print '%s had a problem looking for intersecting boundaries...' % bdry.slug
-                bdry.color = random.choice(color_choices)
-                bdry.save()
-                continue
-            
-            # Choose the first available color. We prefer not to randomize so that a) this process
-            # is relatively stable from run to run, and b) we can prioritize the colors we'd rather
-            # use. The colors above are roughly from stronger to weaker.
-            for c in color_choices:
-                if c not in used_colors:
-                    bdry.color = c
-                    break
-            else:
-                # We ran out of colors. Just choose one at random.
-                bdry.color = random.choice(color_choices)
-            bdry.save()
 
 def create_datasources(path):
     tmpdirs = []
