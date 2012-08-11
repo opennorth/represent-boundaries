@@ -10,6 +10,12 @@ API documentation is available at [represent.opennorth.ca/api/](http://represent
 
 ## Installation
 
+Install dependencies:
+
+    pip install django-appconf django-jsonfield django-tastypie south
+    
+(Only some utility classes are used from Tastypie.)
+
 Install the package:
 
     python setup.py install
@@ -33,6 +39,12 @@ To load data, run
 This command loads every file for which it can find a definition. It looks for definitions in files ending with `definition.py` or `definitions.py` in `BOUNDARIES_SHAPEFILE_DIR` or its subdirectories.
 
 See the sample definition in [definition.example.py](http://github.com/rhymeswithcycle/represent-boundaries/blob/master/definition.example.py).
+
+Note that it's a good idea to keep DEBUG off during this process or Django will try to remember every SQL command.
+
+## API starting point
+
+The starting point for exploring the API resources is /boundary-sets. From there you'll see references to additional URLs to look at.
 
 ## Contact
 

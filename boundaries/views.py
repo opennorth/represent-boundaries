@@ -104,7 +104,3 @@ class BoundaryGeoDetailView(ModelGeoDetailView, BoundaryObjectGetterMixin):
 
     allowed_geo_fields = ('shape', 'simple_shape', 'centroid')
 
-
-
-
-
