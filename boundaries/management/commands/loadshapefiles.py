@@ -37,6 +37,8 @@ class Command(BaseCommand):
             default=False, help='Only load these kinds of Areas, comma-delimited.'),
         make_option('-u', '--database', action='store', dest='database',
             default=DEFAULT_DB_ALIAS, help='Specify a database to load shape data into.'),
+        make_option('-c', '--clean', action='store', dest='clean',
+            default=False, help='Clean shapefiles first with ogr2ogr.'),
     )
 
     def get_version(self):
@@ -77,7 +79,7 @@ class Command(BaseCommand):
         BoundarySet.objects.filter(slug=kind).delete()
 
         path = config['file']
-        datasources, tmpdirs = create_datasources(path)
+        datasources, tmpdirs = create_datasources(path, options["clean"])
 
         try:
             self.load_set_2(kind, config, options, datasources)
@@ -195,7 +197,7 @@ class Command(BaseCommand):
                 label_point=config.get("label_point_func", lambda x : None)(feature)
                 )
 
-def create_datasources(path):
+def create_datasources(path, clean_shp):
     tmpdirs = []
     
     if path.endswith('.zip'):
@@ -216,7 +218,7 @@ def create_datasources(path):
             tmpdir, fn = temp_shapefile_from_zip(fn)
             tmpdirs.append(tmpdir)
         if fn and fn.endswith('.shp'):
-            fn = preprocess_shp(fn)
+            if clean_shp: fn = preprocess_shp(fn)
             d = DataSource(fn)
             if zipfilename:
                 # add additional attribute so definition file can trace back to filename
