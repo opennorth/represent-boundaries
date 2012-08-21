@@ -23,6 +23,9 @@ boundaries.register('Federal electoral districts', # The name of the boundary se
     # If not provided, uses the name to generate the slug; this is usually
     # what you want.
     #slug_func=boundaries.attr('FEDUID'),
+    # Function that returns true/false to determine whether a given feature should be included
+    # By default, all features are included.
+    #is_valid_func=lambda f: True,
     # Authority that is responsible for the accuracy of this data
     authority='H.R.M. Queen Elizabeth II',
     # A URL to the source of this data

@@ -136,8 +136,16 @@ class Command(BaseCommand):
         transformer = CoordTransform(layer_srs, db_srs)
 
         for feature in layer:
+            geometry = feature.geom
+
+            feature = UnicodeFeature(feature, encoding=config.get('encoding', 'ascii'))
+            feature.layer = layer # add additional attribute so definition file can trace back to filename
+
+            if not config.get('is_valid_func', lambda feature : True)(feature):
+                continue
+
             # Transform the geometry to the correct SRS
-            geometry = self.polygon_to_multipolygon(feature.geom)
+            geometry = self.polygon_to_multipolygon(geometry)
             geometry.transform(transformer)
 
             # Create simplified geometry field by collapsing points within 1/1000th of a degree.
@@ -149,7 +157,6 @@ class Command(BaseCommand):
             # Conversion may force multipolygons back to being polygons
             simple_geometry = self.polygon_to_multipolygon(simple_geometry.ogr)
 
-            feature = UnicodeFeature(feature, encoding=config.get('encoding', 'ascii'))
 
             # Extract metadata into a dictionary
             metadata = dict(
