@@ -36,7 +36,7 @@ function formatJSON(content) {
                             && /^"(h|\/)/.test(match[3])) {
                         var url = match[3].substr(1, match[3].length - 2);
                         url = url.replace(/[?&]format=apibrowser$/, '');
-                        url = url.replace(/([?&])format=apibrowser&/, '\1');
+                        url = url.replace(/([?&])format=apibrowser&/, '$1');
                         val += '"<a href="' + url;
                         if (url.substr(0, 1) === '/') {
                             if (url.indexOf('?') === -1) {
