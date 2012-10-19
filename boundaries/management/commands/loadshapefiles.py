@@ -110,6 +110,8 @@ class Command(BaseCommand):
             notes=config.get('notes', ''),
             licence_url=config.get('licence_url', ''),
         )
+        
+        bset.extent = [None, None, None, None] # [xmin, ymin, xmax, ymax]
 
         for datasource in datasources:
             log.info("Loading %s from %s" % (kind, datasource.name))
@@ -119,6 +121,12 @@ class Command(BaseCommand):
             layer = datasource[0]
             layer.source = datasource # add additional attribute so definition file can trace back to filename
             self.add_boundaries_for_layer(config, layer, bset, options['database'])
+            
+        if None in bset.extent:
+            bset.extent = None
+        else:
+            # save the extents
+            bset.save()
 
         log.info('%s count: %i' % (kind, Boundary.objects.filter(set=bset).count()))
 
@@ -183,7 +191,7 @@ class Command(BaseCommand):
             
             log.info('%s...' % feature_slug)
             
-            Boundary.objects.create(
+            bdry = Boundary.objects.create(
                 set=bset,
                 set_name=bset.singular,
                 external_id=external_id,
@@ -196,6 +204,11 @@ class Command(BaseCommand):
                 extent=geometry.extent,
                 label_point=config.get("label_point_func", lambda x : None)(feature)
                 )
+            
+            if bset.extent[0] == None or bdry.extent[0] < bset.extent[0]: bset.extent[0] = bdry.extent[0]
+            if bset.extent[1] == None or bdry.extent[1] < bset.extent[1]: bset.extent[1] = bdry.extent[1]
+            if bset.extent[2] == None or bdry.extent[2] > bset.extent[2]: bset.extent[2] = bdry.extent[2]
+            if bset.extent[3] == None or bdry.extent[3] > bset.extent[3]: bset.extent[3] = bdry.extent[3]
 
 def create_datasources(path, clean_shp):
     tmpdirs = []

@@ -37,6 +37,8 @@ class BoundarySet(models.Model):
         help_text='Notes about loading this data, including any transformations that were applied to it.')
     licence_url = models.URLField(blank=True,
         help_text='The URL to the text of the licence this data is distributed under')
+    extent = JSONField(blank=True, null=True,
+        help_text='The bounding box of the boundaries in EPSG:4326 projection, as a list such as [xmin, ymin, xmax, ymax].')
 
     class Meta:
         ordering = ('name',)
