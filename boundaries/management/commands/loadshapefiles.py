@@ -14,6 +14,7 @@ from shutil import rmtree
 
 from django.conf import settings
 from django.contrib.gis.gdal import CoordTransform, DataSource, OGRGeometry, OGRGeomType
+from django.contrib.gis.geos import MultiPolygon
 from django.core.management.base import BaseCommand
 from django.db import connections, DEFAULT_DB_ALIAS, transaction
 from django.template.defaultfilters import slugify
@@ -37,8 +38,10 @@ class Command(BaseCommand):
             default=False, help='Only load these kinds of Areas, comma-delimited.'),
         make_option('-u', '--database', action='store', dest='database',
             default=DEFAULT_DB_ALIAS, help='Specify a database to load shape data into.'),
-        make_option('-c', '--clean', action='store', dest='clean',
+        make_option('-c', '--clean', action='store_true', dest='clean',
             default=False, help='Clean shapefiles first with ogr2ogr.'),
+        make_option('-m', '--merge', action='store', dest='merge',
+            default=None, help='Merge method when there are duplicate slugs, either "combine" (preserve as a MultiPolygon) or "union" (union the polygons).'),
     )
 
     def get_version(self):
@@ -120,7 +123,7 @@ class Command(BaseCommand):
                 log.warn('%s shapefile [%s] has multiple layers, using first.' % (datasource.name, kind))
             layer = datasource[0]
             layer.source = datasource # add additional attribute so definition file can trace back to filename
-            self.add_boundaries_for_layer(config, layer, bset, options['database'])
+            self.add_boundaries_for_layer(config, layer, bset, options)
             
         if None in bset.extent:
             bset.extent = None
@@ -144,11 +147,11 @@ class Command(BaseCommand):
         else:
             raise ValueError('Geom is neither Polygon nor MultiPolygon.')
 
-    def add_boundaries_for_layer(self, config, layer, bset, database):
+    def add_boundaries_for_layer(self, config, layer, bset, options):
         # Get spatial reference system for the postgis geometry field
         geometry_field = Boundary._meta.get_field_by_name(GEOMETRY_COLUMN)[0]
-        SpatialRefSys = connections[database].ops.spatial_ref_sys()
-        db_srs = SpatialRefSys.objects.using(database).get(srid=geometry_field.srid).srs
+        SpatialRefSys = connections[options["database"]].ops.spatial_ref_sys()
+        db_srs = SpatialRefSys.objects.using(options["database"]).get(srid=geometry_field.srid).srs
 
         if 'srid' in config and config['srid']:
             layer_srs = SpatialRefSys.objects.get(srid=config['srid']).srs
@@ -191,6 +194,32 @@ class Command(BaseCommand):
             
             log.info('%s...' % feature_slug)
             
+            if options["merge"]:
+                try:
+                    b0 = Boundary.objects.get(set=bset, slug=feature_slug)
+                    
+                    g = OGRGeometry(OGRGeomType('MultiPolygon'))
+                    for p in b0.shape: g.add(p.ogr)
+                    for p in geometry: g.add(p)
+                    b0.shape = g.wkt
+                    
+                    g = OGRGeometry(OGRGeomType('MultiPolygon'))
+                    for p in b0.simple_shape: g.add(p.ogr)
+                    for p in simple_geometry: g.add(p)
+                    b0.simple_shape = g.wkt
+                    
+                    if options["merge"] == "union":
+                        b0.shape = self.polygon_to_multipolygon(b0.shape.cascaded_union.ogr).wkt
+                        b0.simple_shape = self.polygon_to_multipolygon(b0.simple_shape.cascaded_union.ogr).wkt
+                    elif options["merge"] == "combine":
+                        pass
+                    else:
+                        raise ValueError("Invalid value for merge option.")
+                    b0.save()
+                    continue
+                except Boundary.DoesNotExist:
+                    pass
+            
             bdry = Boundary.objects.create(
                 set=bset,
                 set_name=bset.singular,
@@ -230,7 +259,7 @@ def create_datasources(path, clean_shp):
             zipfilename = fn
             tmpdir, fn = temp_shapefile_from_zip(fn)
             tmpdirs.append(tmpdir)
-        if fn and fn.endswith('.shp'):
+        if fn and fn.endswith('.shp') and not "_cleaned_" in fn:
             if clean_shp: fn = preprocess_shp(fn)
             d = DataSource(fn)
             if zipfilename:
@@ -278,7 +307,7 @@ def temp_shapefile_from_zip(zip_path):
 def preprocess_shp(shpfile):
     # Run this command to sanitize the input, removing 3D shapes which causes trouble for
     # us later.
-    newfile = shpfile.replace(".shp", ".new.shp")
+    newfile = shpfile.replace(".shp", "._cleaned_.shp")
     subprocess.call(["ogr2ogr", "-f", "ESRI Shapefile", newfile, shpfile, "-nlt", "POLYGON"])
     return newfile
 
