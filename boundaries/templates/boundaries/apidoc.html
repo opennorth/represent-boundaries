@@ -1,0 +1,65 @@
+<h3>BoundarySet</h3>
+
+<p>A BoundarySet is a group of geographic regions, like districts or wards.</p>
+
+<dl class="api_points">
+	<dt><a href="/boundary-sets?format=apibrowser">/boundary-sets</a></dt>
+	<dd>Get metadata for all BoundarySets.</dd>
+	
+	<dt><a href="/boundary-sets/{{boundaryset.slug|urlencode}}?format=apibrowser">/boundary-sets/{{boundaryset.slug|urlencode}}</a></dt>
+	<dd>Get metadata for one BoundarySet, the one named <tt>{{boundaryset.slug|urlencode}}</tt>.</dd>
+</dl>
+
+<p>The metadata fields of a BoundarySet are largely user-supplied strings.</p>
+
+<table class="api_fields">
+{% for name, field in models.BoundarySet %}
+	<tr valign="top">
+		<th scope="row">{{name}}</th>
+		<td>{{field.help_text}} {% if field.null %}(Optional.){% endif %}</td>
+	</tr>
+{% endfor %}
+</table>
+
+<h3>Boundary</h3>
+
+<p>A Boundary is a single district. It is stored as a MultiPolygon internally, which means the district may be made up of multiple geographically disjoint parts.</p>
+
+<dl class="api_points">
+	<dt><a href="/boundaries?format=apibrowser">/boundaries</a></dt>
+	<dd>Get metadata for all Boundary records, in all BoundarySets.</dd>
+	
+	<dt><a href="/boundaries/{{boundaryset.slug|urlencode}}?format=apibrowser">/boundaries/{{boundaryset.slug|urlencode}}</a></dt>
+	<dd>Get metadata for all Boundary records in a particular BoundarySet, here the <tt>{{boundaryset.slug}}</tt> BoundarySet.</dd>
+	
+	<dt><a href="/boundaries/{{boundaryset.slug|urlencode}}/{{boundary.slug|urlencode}}?format=apibrowser">/boundaries/{{boundaryset.slug|urlencode}}/{{boundary.slug|urlencode}}</a></dt>
+	<dd>Get metadata for a particular Boundary &mdash; here the <tt>{{boundary.slug}}</tt> Boundary in the <tt>{{boundaryset.slug}}</tt> BoundarySet.</dd>
+
+	<dt><a href="/boundaries/{{boundaryset.slug|urlencode}}/?contains={{boundary.centroid.coords.1|floatformat:-3}},{{boundary.centroid.coords.0|floatformat:-3}}&format=apibrowser">/boundaries/{{boundaryset.slug|urlencode}}/?contains={{boundary.centroid.coords.1|floatformat:-3}},{{boundary.centroid.coords.0|floatformat:-3}}</a></dt>
+	<dd>Find Boundaries that contain a given lat/lng coordiate.</dd>
+	
+	<dt><a href="/boundaries/{{boundaryset.slug|urlencode}}/?touches={{boundaryset.slug|urlencode}}/{{boundary.slug|urlencode}}&format=apibrowser">/boundaries/{{boundaryset.slug|urlencode}}/?touches={{boundaryset.slug|urlencode}}/{{boundary.slug|urlencode}}</a></dt>
+	<dd>Find Boundaries in a particular BoundarySet that touch a given Boundary (named by the BoundarySet and Boundary slugs). Leave out the BoundarySet in the path part of the URL (see the intersects example next) to search across all BoundarySets.</dd>
+	
+	<dt><a href="/boundaries/?intersects={{boundaryset.slug|urlencode}}/{{boundary.slug|urlencode}}&format=apibrowser">/boundaries/?intersects={{boundaryset.slug|urlencode}}/{{boundary.slug|urlencode}}</a></dt>
+	<dd>Find Boundaries across the whole database that intersects a given Boundary (named by the BoundarySet and Boundary slugs). Specify a BoundarySet slug in the path part of the URL (see the touches example above) to search in a particular BoundarySet.</dd>
+
+	<dt><a href="/boundaries/{{boundaryset.slug|urlencode}}/{{boundary.slug|urlencode}}/shape?format=wkt">/boundaries/{{boundaryset.slug|urlencode}}/{{boundary.slug|urlencode}}/shape?format=wkt</a></dt>
+	<dd>Get the actual shape of a Boundary &mdash; here in WTK format for the <tt>{{boundary.slug}}</tt> Boundary in the <tt>{{boundaryset.slug}}</tt> BoundarySet. You will always get back a MultiPolygon. You may also specify <tt>format=json</tt> or <tt>format=kml</tt>.</dd>
+	
+	<dt><a href="/boundaries/{{boundaryset.slug|urlencode}}/{{boundary.slug|urlencode}}/simple_shape?format=wkt">/boundaries/{{boundaryset.slug|urlencode}}/{{boundary.slug|urlencode}}/simple_shape?format=wkt</a></dt>
+	<dd>Same as above but retrieves simplified geometry. The degree of simplification depends on site settings but the default is to eliminate features smaller than 0.0002 of a degree.</dd>
+	
+</dl>
+
+<p>The metadata fields of a Boundary are:</p>
+
+<table class="api_fields">
+{% for name, field in models.Boundary %}
+	<tr valign="top">
+		<th scope="row">{{name}}</th>
+		<td>{{field.help_text}} {% if field.null %}(Optional.){% endif %}</td>
+	</tr>
+{% endfor %}
+</table>
+

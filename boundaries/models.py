@@ -3,6 +3,7 @@ import re
 from django.contrib.gis.db import models
 from django.core import urlresolvers
 from django.template.defaultfilters import slugify
+from django.contrib.gis.geos import GEOSGeometry
 
 from appconf import AppConf
 from jsonfield import JSONField
@@ -19,7 +20,8 @@ class BoundarySet(models.Model):
     """
     A set of related boundaries, such as all Wards or Neighborhoods.
     """
-    slug = models.SlugField(max_length=200, primary_key=True, editable=False)
+    slug = models.SlugField(max_length=200, primary_key=True, editable=False,
+        help_text="The name of this BoundarySet used in API URLs.")
 
     name = models.CharField(max_length=100, unique=True,
         help_text='Category of boundaries, e.g. "Community Areas".')
@@ -53,16 +55,19 @@ class BoundarySet(models.Model):
 
     name_plural = property(lambda s: s.name)
     name_singular = property(lambda s: s.singular)
+    
+    api_fields = ('name_plural', 'name_singular', 'authority', 'domain', 'source_url', 'notes', 'licence_url', 'last_updated', 'extent')
+    api_fields_doc_from = { 'name_plural': 'name', 'name_singular': 'singular' }
 
     def as_dict(self):
         r = {
             'related': {
                 'boundaries_url': urlresolvers.reverse('boundaries_boundary_list', kwargs={'set_slug': self.slug}),
             },
-            'last_updated': unicode(self.last_updated),
         }
-        for f in ('name_plural', 'name_singular', 'authority', 'domain', 'source_url', 'notes', 'licence_url'):
+        for f in self.api_fields:
             r[f] = getattr(self, f)
+            if not isinstance(r[f], (str, unicode, int, list, tuple, dict)) and r[f] != None: r[f] = unicode(r[f])
         return r
 
     @staticmethod
@@ -84,8 +89,10 @@ class Boundary(models.Model):
     """
     set = models.ForeignKey(BoundarySet, related_name='boundaries',
         help_text='Category of boundaries that this boundary belongs, e.g. "Community Areas".')
-    set_name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=200, db_index=True)
+    set_name = models.CharField(max_length=100,
+        help_text='Category of boundaries that this boundary belongs, e.g. "Community Areas".')
+    slug = models.SlugField(max_length=200, db_index=True,
+        help_text="The name of this BoundarySet used in API URLs.")
     external_id = models.CharField(max_length=64,
         help_text='The boundaries\' unique id in the source dataset, or a generated one.')
     name = models.CharField(max_length=192, db_index=True,
@@ -121,39 +128,51 @@ class Boundary(models.Model):
     def get_absolute_url(self):
         return 'boundaries_boundary_detail', [], {'set_slug': self.set_id, 'slug': self.slug}
 
+    api_fields = ('slug', 'boundary_set', 'boundary_set_name', 'name', 'metadata', 'external_id', 'extent', 'centroid', 'label_point')
+    api_fields_doc_from = { 'boundary_set': 'set', 'boundary_set_name': 'set_name' }
+    
+    @property
+    def boundary_set(self): return self.set.slug
+    
+    @property
+    def boundary_set_name(self): return self.set_name
+
     def as_dict(self):
         my_url = self.get_absolute_url()
-        return {
+        r = {
             'related': {
                 'boundary_set_url': urlresolvers.reverse('boundaries_set_detail', kwargs={'slug': self.set_id}),
                 'shape_url': my_url + 'shape',
-                'centroid_url': my_url + 'centroid',
                 'simple_shape_url': my_url + 'simple_shape',
                 'boundaries_url': urlresolvers.reverse('boundaries_boundary_list', kwargs={'set_slug': self.set_id}),
-            },
-            'boundary_set_name': self.set_name,
-            'name': self.name,
-            'metadata': self.metadata,
-            'external_id': self.external_id,
-            'extent': self.extent,
+            }
         }
+        for f in self.api_fields:
+            r[f] = getattr(self, f)
+            if isinstance(r[f], GEOSGeometry): r[f] = r[f].coords
+            if not isinstance(r[f], (str, unicode, int, list, tuple, dict)) and r[f] != None: r[f] = unicode(r[f])
+        return r
+        
 
     @staticmethod
     def prepare_queryset_for_get_dicts(qs):
-        return qs.values_list('slug', 'set', 'name', 'set_name', 'external_id', 'extent')
+        return qs.values_list('slug', 'set', 'name', 'set_name', 'external_id', 'extent', 'set__slug')
 
     @staticmethod
     def get_dicts(boundaries):
         return [
             {
+            	'slug': b[0],
                 'url': urlresolvers.reverse('boundaries_boundary_detail', kwargs={'slug': b[0], 'set_slug': b[1]}),
                 'name': b[2],
                 'related': {
                     'boundary_set_url': urlresolvers.reverse('boundaries_set_detail', kwargs={'slug': b[1]}),
                 },
+                'boundary_set': b[1],
                 'boundary_set_name': b[3],
                 'external_id': b[4],
                 'extent': b[5],
             } for b in boundaries
         ]
+
 
