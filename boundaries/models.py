@@ -129,14 +129,16 @@ class Boundary(models.Model):
     def get_absolute_url(self):
         return 'boundaries_boundary_detail', [], {'set_slug': self.set_id, 'slug': self.slug}
 
-    api_fields = ('slug', 'boundary_set', 'boundary_set_name', 'name', 'metadata', 'external_id', 'extent', 'centroid', 'label_point')
+    api_fields = ['slug', 'boundary_set', 'boundary_set_name', 'name', 'metadata', 'external_id', 'extent']
     api_fields_doc_from = { 'boundary_set': 'set', 'boundary_set_name': 'set_name' }
     
     @property
-    def boundary_set(self): return self.set.slug
+    def boundary_set(self):
+        return self.set.slug
     
     @property
-    def boundary_set_name(self): return self.set_name
+    def boundary_set_name(self):
+        return self.set_name
 
     def as_dict(self):
         my_url = self.get_absolute_url()
@@ -145,13 +147,16 @@ class Boundary(models.Model):
                 'boundary_set_url': urlresolvers.reverse('boundaries_set_detail', kwargs={'slug': self.set_id}),
                 'shape_url': my_url + 'shape',
                 'simple_shape_url': my_url + 'simple_shape',
+                'centroid_url': my_url + 'centroid',
                 'boundaries_url': urlresolvers.reverse('boundaries_boundary_list', kwargs={'set_slug': self.set_id}),
             }
         }
         for f in self.api_fields:
             r[f] = getattr(self, f)
-            if isinstance(r[f], GEOSGeometry): r[f] = r[f].coords
-            if not isinstance(r[f], (str, unicode, int, list, tuple, dict)) and r[f] != None: r[f] = unicode(r[f])
+            if isinstance(r[f], GEOSGeometry):
+                r[f] = r[f].coords
+            if not isinstance(r[f], (basestring, int, list, tuple, dict)) and r[f] != None:
+                r[f] = unicode(r[f])
         return r
         
 
