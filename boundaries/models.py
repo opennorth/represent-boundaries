@@ -67,7 +67,8 @@ class BoundarySet(models.Model):
         }
         for f in self.api_fields:
             r[f] = getattr(self, f)
-            if not isinstance(r[f], (str, unicode, int, list, tuple, dict)) and r[f] != None: r[f] = unicode(r[f])
+            if not isinstance(r[f], (str, unicode, int, list, tuple, dict)) and r[f] != None:
+                r[f] = unicode(r[f])
         return r
 
     @staticmethod
@@ -129,8 +130,8 @@ class Boundary(models.Model):
     def get_absolute_url(self):
         return 'boundaries_boundary_detail', [], {'set_slug': self.set_id, 'slug': self.slug}
 
-    api_fields = ['slug', 'boundary_set', 'boundary_set_name', 'name', 'metadata', 'external_id', 'extent']
-    api_fields_doc_from = { 'boundary_set': 'set', 'boundary_set_name': 'set_name' }
+    api_fields = ['boundary_set_name', 'name', 'metadata', 'external_id', 'extent']
+    api_fields_doc_from = { 'boundary_set_name': 'set_name' }
     
     @property
     def boundary_set(self):
@@ -162,22 +163,19 @@ class Boundary(models.Model):
 
     @staticmethod
     def prepare_queryset_for_get_dicts(qs):
-        return qs.values_list('slug', 'set', 'name', 'set_name', 'external_id', 'extent', 'set__slug')
+        return qs.values_list('slug', 'set', 'name', 'set_name', 'external_id')
 
     @staticmethod
     def get_dicts(boundaries):
         return [
             {
-            	'slug': b[0],
                 'url': urlresolvers.reverse('boundaries_boundary_detail', kwargs={'slug': b[0], 'set_slug': b[1]}),
                 'name': b[2],
                 'related': {
                     'boundary_set_url': urlresolvers.reverse('boundaries_set_detail', kwargs={'slug': b[1]}),
                 },
-                'boundary_set': b[1],
                 'boundary_set_name': b[3],
                 'external_id': b[4],
-                'extent': b[5],
             } for b in boundaries
         ]
 
