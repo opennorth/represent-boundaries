@@ -2,7 +2,9 @@ from datetime import date
 
 import boundaries
 
-boundaries.register('Federal electoral districts', # The name of the boundary set
+boundaries.register('federal-electoral-districts', # The slug of the boundary set
+    # The name of the boundary set for display.
+    name='Federal electoral districts',
     # Generic singular name for a boundary from this set. Optional if the
     # boundary set's name ends in "s".
     singular='Federal electoral district', # If this were omitted, the same value would be generated
@@ -39,4 +41,10 @@ boundaries.register('Federal electoral districts', # The name of the boundary se
     notes='',
     # Encoding of the text fields in the shapefile, e.g. 'utf-8'. Default: 'ascii'
     encoding='iso-8859-1',
+    
+    # For maps...
+    
+    # optional. A function from a feature object to a Point where to display a label for feature on a map.
+    label_point_func = lambda feature: None,
 )
+

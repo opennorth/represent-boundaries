@@ -5,12 +5,16 @@ log = logging.getLogger(__name__)
 from optparse import make_option
 import os, os.path
 import sys
+import random
+import subprocess
 
 from zipfile import ZipFile
 from tempfile import mkdtemp
+from shutil import rmtree
 
 from django.conf import settings
 from django.contrib.gis.gdal import CoordTransform, DataSource, OGRGeometry, OGRGeomType
+from django.contrib.gis.geos import MultiPolygon
 from django.core.management.base import BaseCommand
 from django.db import connections, DEFAULT_DB_ALIAS, transaction
 from django.template.defaultfilters import slugify
@@ -34,6 +38,10 @@ class Command(BaseCommand):
             default=False, help='Only load these kinds of Areas, comma-delimited.'),
         make_option('-u', '--database', action='store', dest='database',
             default=DEFAULT_DB_ALIAS, help='Specify a database to load shape data into.'),
+        make_option('-c', '--clean', action='store_true', dest='clean',
+            default=False, help='Clean shapefiles first with ogr2ogr.'),
+        make_option('-m', '--merge', action='store', dest='merge',
+            default=None, help='Merge method when there are duplicate slugs, either "combine" (preserve as a MultiPolygon) or "union" (union the polygons).'),
     )
 
     def get_version(self):
@@ -61,7 +69,7 @@ class Command(BaseCommand):
                 log.debug('Skipping %s.' % kind)
                 continue
 
-            if (not options['reload']) and BoundarySet.objects.filter(name=kind).exists():
+            if (not options['reload']) and BoundarySet.objects.filter(slug=kind).exists():
                 log.info('Already loaded %s, skipping.' % kind)
                 continue
 
@@ -70,12 +78,19 @@ class Command(BaseCommand):
     @transaction.commit_on_success
     def load_set(self, kind, config, options):
         log.info('Processing %s.' % kind)
-
-        BoundarySet.objects.filter(name=kind).delete()
+        
+        BoundarySet.objects.filter(slug=kind).delete()
 
         path = config['file']
-        datasources = create_datasources(path)
+        datasources, tmpdirs = create_datasources(path, options["clean"])
 
+        try:
+            self.load_set_2(kind, config, options, datasources)
+        finally:
+            for path in tmpdirs:
+                rmtree(path)
+            
+    def load_set_2(self, kind, config, options, datasources):
         layer = datasources[0][0]
 
         # Add some default values
@@ -87,8 +102,9 @@ class Command(BaseCommand):
             config['slug_func'] = config['name_func']
 
         # Create BoundarySet
-        set = BoundarySet.objects.create(
-            name=kind,
+        bset = BoundarySet.objects.create(
+            slug=kind,
+            name=config.get('name', kind),
             singular=config['singular'],
             authority=config.get('authority', ''),
             domain=config.get('domain', ''),
@@ -97,6 +113,8 @@ class Command(BaseCommand):
             notes=config.get('notes', ''),
             licence_url=config.get('licence_url', ''),
         )
+        
+        bset.extent = [None, None, None, None] # [xmin, ymin, xmax, ymax]
 
         for datasource in datasources:
             log.info("Loading %s from %s" % (kind, datasource.name))
@@ -104,11 +122,19 @@ class Command(BaseCommand):
             if datasource.layer_count > 1:
                 log.warn('%s shapefile [%s] has multiple layers, using first.' % (datasource.name, kind))
             layer = datasource[0]
-            self.add_boundaries_for_layer(config, layer, set, options['database'])
+            layer.source = datasource # add additional attribute so definition file can trace back to filename
+            self.add_boundaries_for_layer(config, layer, bset, options)
+            
+        if None in bset.extent:
+            bset.extent = None
+        else:
+            # save the extents
+            bset.save()
 
-        log.info('%s count: %i' % (kind, Boundary.objects.filter(set=set).count()))
+        log.info('%s count: %i' % (kind, Boundary.objects.filter(set=bset).count()))
 
-    def polygon_to_multipolygon(self, geom):
+    @staticmethod
+    def polygon_to_multipolygon(geom):
         """
         Convert polygons to multipolygons so all features are homogenous in the database.
         """
@@ -121,11 +147,11 @@ class Command(BaseCommand):
         else:
             raise ValueError('Geom is neither Polygon nor MultiPolygon.')
 
-    def add_boundaries_for_layer(self, config, layer, set, database):
+    def add_boundaries_for_layer(self, config, layer, bset, options):
         # Get spatial reference system for the postgis geometry field
         geometry_field = Boundary._meta.get_field_by_name(GEOMETRY_COLUMN)[0]
-        SpatialRefSys = connections[database].ops.spatial_ref_sys()
-        db_srs = SpatialRefSys.objects.using(database).get(srid=geometry_field.srid).srs
+        SpatialRefSys = connections[options["database"]].ops.spatial_ref_sys()
+        db_srs = SpatialRefSys.objects.using(options["database"]).get(srid=geometry_field.srid).srs
 
         if 'srid' in config and config['srid']:
             layer_srs = SpatialRefSys.objects.get(srid=config['srid']).srs
@@ -157,7 +183,6 @@ class Command(BaseCommand):
             # Conversion may force multipolygons back to being polygons
             simple_geometry = self.polygon_to_multipolygon(simple_geometry.ogr)
 
-
             # Extract metadata into a dictionary
             metadata = dict(
                 ( (field, feature.get(field)) for field in layer.fields )
@@ -166,21 +191,61 @@ class Command(BaseCommand):
             external_id = str(config['id_func'](feature))
             feature_name = config['name_func'](feature)
             feature_slug = unicode(slugify(config['slug_func'](feature)).replace(u'—', '-'))
-
-            Boundary.objects.create(
-                set=set,
-                set_name=set.singular,
+            
+            log.info('%s...' % feature_slug)
+            
+            if options["merge"]:
+                try:
+                    b0 = Boundary.objects.get(set=bset, slug=feature_slug)
+                    
+                    g = OGRGeometry(OGRGeomType('MultiPolygon'))
+                    for p in b0.shape: g.add(p.ogr)
+                    for p in geometry: g.add(p)
+                    b0.shape = g.wkt
+                    
+                    g = OGRGeometry(OGRGeomType('MultiPolygon'))
+                    for p in b0.simple_shape: g.add(p.ogr)
+                    for p in simple_geometry: g.add(p)
+                    b0.simple_shape = g.wkt
+                    
+                    if options["merge"] == "union":
+                        b0.shape = self.polygon_to_multipolygon(b0.shape.cascaded_union.ogr).wkt
+                        b0.simple_shape = self.polygon_to_multipolygon(b0.simple_shape.cascaded_union.ogr).wkt
+                    elif options["merge"] == "combine":
+                        pass
+                    else:
+                        raise ValueError("Invalid value for merge option.")
+                    b0.save()
+                    continue
+                except Boundary.DoesNotExist:
+                    pass
+            
+            bdry = Boundary.objects.create(
+                set=bset,
+                set_name=bset.singular,
                 external_id=external_id,
                 name=feature_name,
                 slug=feature_slug,
                 metadata=metadata,
                 shape=geometry.wkt,
                 simple_shape=simple_geometry.wkt,
-                centroid=geometry.geos.centroid)
-        
-def create_datasources(path):
+                centroid=geometry.geos.centroid,
+                extent=geometry.extent,
+                label_point=config.get("label_point_func", lambda x : None)(feature)
+                )
+            
+            if bset.extent[0] == None or bdry.extent[0] < bset.extent[0]: bset.extent[0] = bdry.extent[0]
+            if bset.extent[1] == None or bdry.extent[1] < bset.extent[1]: bset.extent[1] = bdry.extent[1]
+            if bset.extent[2] == None or bdry.extent[2] > bset.extent[2]: bset.extent[2] = bdry.extent[2]
+            if bset.extent[3] == None or bdry.extent[3] > bset.extent[3]: bset.extent[3] = bdry.extent[3]
+
+def create_datasources(path, clean_shp):
+    tmpdirs = []
+    
     if path.endswith('.zip'):
-        path = temp_shapefile_from_zip(path)
+        tmpdir, path = temp_shapefile_from_zip(path)
+        tmpdirs.append(tmpdir)
+        if not path: return
 
     if path.endswith('.shp'):
         return [DataSource(path)]
@@ -188,12 +253,21 @@ def create_datasources(path):
     # assume it's a directory...
     sources = []
     for fn in os.listdir(path):
+        zipfilename = None
         fn = os.path.join(path,fn)
         if fn.endswith('.zip'):
-            fn = temp_shapefile_from_zip(fn)
-        if fn.endswith('.shp'):
-            sources.append(DataSource(fn))
-    return sources
+            zipfilename = fn
+            tmpdir, fn = temp_shapefile_from_zip(fn)
+            tmpdirs.append(tmpdir)
+        if fn and fn.endswith('.shp') and not "_cleaned_" in fn:
+            if clean_shp: fn = preprocess_shp(fn)
+            d = DataSource(fn)
+            if zipfilename:
+                # add additional attribute so definition file can trace back to filename
+                d.zipfile = zipfilename
+            sources.append(d)
+            
+    return sources, tmpdirs
 
 class UnicodeFeature(object):
 
@@ -219,20 +293,21 @@ def temp_shapefile_from_zip(zip_path):
     shape_path = None
     # Copy the zipped files to a temporary directory, preserving names.
     for name in zf.namelist():
+        if name.endswith("/"): continue
         data = zf.read(name)
-        outfile = os.path.join(tempdir, name)
+        outfile = os.path.join(tempdir, os.path.basename(name))
         if name.endswith('.shp'):
             shape_path = outfile
         f = open(outfile, 'w')
         f.write(data)
         f.close()
 
-    if shape_path is None:
-        log.warn("No shapefile, cleaning up")
-        # Clean up after ourselves.
-        for file in os.listdir(tempdir):
-            os.unlink(os.path.join(tempdir, file))
-        os.rmdir(tempdir)
-        raise ValueError("No shapefile found in zip")
+    return tempdir, shape_path
     
-    return shape_path
+def preprocess_shp(shpfile):
+    # Run this command to sanitize the input, removing 3D shapes which causes trouble for
+    # us later.
+    newfile = shpfile.replace(".shp", "._cleaned_.shp")
+    subprocess.call(["ogr2ogr", "-f", "ESRI Shapefile", newfile, shpfile, "-nlt", "POLYGON"])
+    return newfile
+

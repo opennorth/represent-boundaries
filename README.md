@@ -34,6 +34,12 @@ This command loads every file for which it can find a definition. It looks for d
 
 See the sample definition in [definition.example.py](http://github.com/rhymeswithcycle/represent-boundaries/blob/master/definition.example.py).
 
+Note that it's a good idea to keep DEBUG off during this process or Django will try to remember every SQL command.
+
+## API starting point
+
+The starting point for exploring the API resources is /boundary-sets. From there you'll see references to additional URLs to look at.
+
 ## Contact
 
-Please use [GitHub Issues](http://github.com/rhymeswithcycle/represent-boundaries/issues) for bug reports. You can also contact represent@opennorth.ca.
+Please use [GitHub Issues](http://github.com/opennorth/represent-canada/issues) for bug reports. You can also contact represent@opennorth.ca.
