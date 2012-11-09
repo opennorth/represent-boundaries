@@ -64,38 +64,44 @@ class Command(BaseCommand):
         else:
             sources = [s for s in all_sources]
         
-        for kind, config in all_sources.items():
-            if kind not in sources:
-                log.debug('Skipping %s.' % kind)
+        for slug, config in all_sources.items():
+
+            # Backwards compatibility with specifying the name, rather than the slug,
+            # as the first arg in the definition
+            config.setdefault('name', slug)
+            slug = slugify(slug)
+
+            if slug not in sources:
+                log.debug('Skipping %s.' % slug)
                 continue
 
-            if (not options['reload']) and BoundarySet.objects.filter(slug=kind).exists():
-                log.info('Already loaded %s, skipping.' % kind)
+            if (not options['reload']) and BoundarySet.objects.filter(slug=slug).exists():
+                log.info('Already loaded %s, skipping.' % slug)
                 continue
 
-            self.load_set(kind, config, options)
+            self.load_set(slug, config, options)
 
     @transaction.commit_on_success
-    def load_set(self, kind, config, options):
-        log.info('Processing %s.' % kind)
+    def load_set(self, slug, config, options):
+        log.info('Processing %s.' % slug)
         
-        BoundarySet.objects.filter(slug=kind).delete()
+        BoundarySet.objects.filter(slug=slug).delete()
 
         path = config['file']
         datasources, tmpdirs = create_datasources(path, options["clean"])
 
         try:
-            self.load_set_2(kind, config, options, datasources)
+            self.load_set_2(slug, config, options, datasources)
         finally:
             for path in tmpdirs:
                 rmtree(path)
             
-    def load_set_2(self, kind, config, options, datasources):
+    def load_set_2(self, slug, config, options, datasources):
         layer = datasources[0][0]
 
         # Add some default values
-        if 'singular' not in config and kind.endswith('s'):
-            config['singular'] = kind[:-1]
+        if 'singular' not in config and config['name'].endswith('s'):
+            config['singular'] = config['name'][:-1]
         if 'id_func' not in config:
             config['id_func'] = lambda f: ''
         if 'slug_func' not in config:
@@ -103,8 +109,8 @@ class Command(BaseCommand):
 
         # Create BoundarySet
         bset = BoundarySet.objects.create(
-            slug=kind,
-            name=config.get('name', kind),
+            slug=slug,
+            name=config['name'],
             singular=config['singular'],
             authority=config.get('authority', ''),
             domain=config.get('domain', ''),
@@ -117,10 +123,10 @@ class Command(BaseCommand):
         bset.extent = [None, None, None, None] # [xmin, ymin, xmax, ymax]
 
         for datasource in datasources:
-            log.info("Loading %s from %s" % (kind, datasource.name))
+            log.info("Loading %s from %s" % (slug, datasource.name))
             # Assume only a single-layer in shapefile
             if datasource.layer_count > 1:
-                log.warn('%s shapefile [%s] has multiple layers, using first.' % (datasource.name, kind))
+                log.warn('%s shapefile [%s] has multiple layers, using first.' % (datasource.name, slug))
             layer = datasource[0]
             layer.source = datasource # add additional attribute so definition file can trace back to filename
             self.add_boundaries_for_layer(config, layer, bset, options)
@@ -131,7 +137,7 @@ class Command(BaseCommand):
             # save the extents
             bset.save()
 
-        log.info('%s count: %i' % (kind, Boundary.objects.filter(set=bset).count()))
+        log.info('%s count: %i' % (slug, Boundary.objects.filter(set=bset).count()))
 
     @staticmethod
     def polygon_to_multipolygon(geom):
