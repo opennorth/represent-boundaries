@@ -102,8 +102,9 @@ class Boundary(models.Model):
     extent = JSONField(blank=True, null=True,
         help_text='The bounding box of the boundary in EPSG:4326 projection, as a list such as [xmin, ymin, xmax, ymax].')
     label_point = models.PointField(
-        blank=True, null=True,
-        help_text='The suggested location to label this boundary in EPSG:4326 projection.')
+        blank=True, null=True, spatial_index=False,
+        help_text='The suggested location to label this boundary in EPSG:4326 projection. '
+            'Used by represent-maps, but not actually used within represent-boundaries.')
     
     objects = models.GeoManager()
 

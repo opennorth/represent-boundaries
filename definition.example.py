@@ -42,9 +42,8 @@ boundaries.register('federal-electoral-districts', # The slug of the boundary se
     # Encoding of the text fields in the shapefile, e.g. 'utf-8'. Default: 'ascii'
     encoding='iso-8859-1',
     
-    # For maps...
-    
-    # optional. A function from a feature object to a Point where to display a label for feature on a map.
-    label_point_func = lambda feature: None,
+    # Used only by the represent-maps app -- if you're not using that, ignore label_point_func.
+    # A function from a feature object to a Point where to display a label for feature on a map.
+    #label_point_func = lambda feature: None,
 )
 
