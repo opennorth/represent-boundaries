@@ -53,16 +53,16 @@ class Command(BaseCommand):
 
         all_sources = boundaries.registry
 
+        all_slugs = set(slugify(s) for s in all_sources)
+
         if options['only']:
-            only = options['only'].split(',')
-            # TODO: stripping whitespace here because optparse doesn't handle it correctly
-            sources = [s for s in all_sources if s.replace(' ', '') in only]
+            only = set(options['only'].split(','))
+            sources = only.intersection(all_slugs)
         elif options['except']:
-            exceptions = options['except'].upper().split(',')
-            # See above
-            sources = [s for s in all_sources if s.replace(' ', '') not in exceptions]
+            exceptions = set(options['except'].split(','))
+            sources = all_slugs - exceptions
         else:
-            sources = [s for s in all_sources]
+            sources = all_slugs
         
         for slug, config in all_sources.items():
 
