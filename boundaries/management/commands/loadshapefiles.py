@@ -8,7 +8,7 @@ import sys
 import random
 import subprocess
 
-from zipfile import ZipFile
+from zipfile import ZipFile, BadZipfile
 from tempfile import mkdtemp
 from shutil import rmtree
 
@@ -97,7 +97,8 @@ class Command(BaseCommand):
                 rmtree(path)
 
     def load_set_2(self, slug, config, options, datasources):
-        layer = datasources[0][0]
+        if len(datasources) == 0:
+            log.error("No shapefiles found.")
 
         # Add some default values
         if 'singular' not in config and config['name'].endswith('s'):
@@ -127,6 +128,9 @@ class Command(BaseCommand):
             # Assume only a single-layer in shapefile
             if datasource.layer_count > 1:
                 log.warn('%s shapefile [%s] has multiple layers, using first.' % (datasource.name, slug))
+            if datasource.layer_count == 0:
+                log.error('%s shapefile [%s] has no layers, skipping.' % (datasource.name, slug))
+                continue
             layer = datasource[0]
             layer.source = datasource # add additional attribute so definition file can trace back to filename
             self.add_boundaries_for_layer(config, layer, bset, options)
@@ -294,7 +298,10 @@ def temp_shapefile_from_zip(zip_path):
 
        If you want to cleanup later, you can derive the temp dir from this path.
     """
-    zf = ZipFile(zip_path)
+    try:
+        zf = ZipFile(zip_path)
+    except BadZipfile as e:
+        raise BadZipfile(str(e) + ": " + zip_path)
     tempdir = mkdtemp()
     shape_path = None
     # Copy the zipped files to a temporary directory, preserving names.
