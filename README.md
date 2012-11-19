@@ -4,7 +4,7 @@
 
 This repository provides an API to geographic boundaries. It is based on the Chicago Tribune's [django-boundaryservice](http://github.com/newsapps/django-boundaryservice).
 
-The [represent-canada](http://github.com/opennorth/represent-canada) repository provides a full sample app.
+The [represent-canada](http://github.com/opennorth/represent-canada) repository provides a full sample app, and points to plugins which add representative, postcode, and map features to this boundaries API.
 
 API documentation is available at [represent.opennorth.ca/api/](http://represent.opennorth.ca/api/#boundaryset).
 
