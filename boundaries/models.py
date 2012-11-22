@@ -9,10 +9,29 @@ from appconf import AppConf
 from jsonfield import JSONField
 
 class MyAppConf(AppConf):
-    MAX_GEO_LIST_RESULTS = 350 # In a /boundary/shape query, if more than this
+    # To override any of these settings, set BOUNDARIES_<setting name>
+    # in the main Django settings.
+
+    MAX_GEO_LIST_RESULTS = 350  # In a /boundary/shape query, if more than this
                         # number of resources are matched, throw an error
     SHAPEFILES_DIR = './data/shapefiles'
     SIMPLE_SHAPE_TOLERANCE = 0.0002
+
+    # To enable the throttle, in the main Django settings.py, set
+    # BOUNDARIES_THROTTLE = 'boundaries.throttle.AnonRateThrottle'
+    THROTTLE = ''
+
+    # The HTTP header containing the IP the request is coming from.
+    # If you're behind a reverse proxy, you might want e.g.
+    # BOUNDARIES_THROTTLE_IP_HEADER = 'X_REAL_IP'
+    THROTTLE_IP_HEADER = 'REMOTE_ADDR'
+
+    # Rates are in the form (number of requests, number of seconds)
+    DEFAULT_THROTTLE_RATES = {
+        'anon': (90, 90)  # Throttle after 90 requests in 90 seconds.
+    }
+
+    THROTTLE_LOG = False  # On True, throws a warning whenever someone's throttled
 
 app_settings = MyAppConf()
 

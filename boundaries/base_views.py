@@ -1,6 +1,7 @@
 """ A mini API framework.
 """
 
+import json
 import re
 from urllib import urlencode
 
@@ -9,7 +10,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, Http404, HttpResponseForbidden, HttpResponseBadRequest
 from django.template import loader, RequestContext
 from django.template.defaultfilters import escapejs
-from django.utils import simplejson as json
+from django.utils import importlib
 from django.views.generic import View
 
 from tastypie.exceptions import BadRequest
@@ -24,6 +25,16 @@ class RawJSONResponse(object):
     def __init__(self, content):
         self.content = content
 
+throttle = None
+if getattr(app_settings, 'THROTTLE', ''):
+    def _import_from_string(val):
+        parts = val.split('.')
+        module_path, class_name = '.'.join(parts[:-1]), parts[-1]
+        module = importlib.import_module(module_path)
+        return getattr(module, class_name)
+    throttle = _import_from_string(app_settings.THROTTLE)()
+
+
 class APIView(View):
     """Base view class that serializes subclass responses to JSON.
 
@@ -33,6 +44,16 @@ class APIView(View):
     content_type = 'application/json; charset=utf-8'
 
     def dispatch(self, request, *args, **kwargs):
+
+        if throttle is not None:
+            if not throttle.allow_request(request, self):
+                msg = ("You've exceeded the request limit."
+                    " Try again in %d seconds." % throttle.wait() +
+                    " Contact us if you need to be able to exceed the default limit.")
+                return HttpResponse(msg,
+                    content_type='text/plain',
+                    status=503)
+
         try:
             result = super(APIView, self).dispatch(request, *args, **kwargs)
         except BadRequest as e:
