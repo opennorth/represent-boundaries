@@ -196,7 +196,7 @@ class Command(BaseCommand):
 
             external_id = str(config['id_func'](feature))
             feature_name = config['name_func'](feature)
-            feature_slug = unicode(slugify(config['slug_func'](feature)).replace(u'—', '-'))
+            feature_slug = slugify(config['slug_func'](feature).replace(u'—', '-'))
             
             log.info('%s...' % feature_slug)
             
