@@ -31,6 +31,16 @@ class MyAppConf(AppConf):
         'anon': (90, 90)  # Throttle after 90 requests in 90 seconds.
     }
 
+    # Any IP addresses here won't be throttled
+    THROTTLE_IP_WHITELIST = set()
+
+    # If an API key in THROTTLE_APIKEY_LIST is provided,
+    # via the HEADER header or PARAM GET parameter,
+    # the request won't be throttled
+    THROTTLE_APIKEY_HEADER = 'X-Represent-Key'
+    THROTTLE_APIKEY_PARAM = 'key'
+    THROTTLE_APIKEY_LIST = set()
+
     THROTTLE_LOG = False  # On True, throws a warning whenever someone's throttled
 
 app_settings = MyAppConf()

@@ -141,13 +141,27 @@ class AnonRateThrottle(SimpleRateThrottle):
     scope = 'anon'
 
     def get_cache_key(self, request, view):
-        self.ident = ident = request.META.get(
-            self.settings.THROTTLE_IP_HEADER, None)
-
         return self.cache_format % {
             'scope': self.scope,
-            'ident': ident
+            'ident': self.ident
         }
+
+    def allow_request(self, request, view):
+        """Determine whether this is a whitelisted request."""
+        if app_settings.THROTTLE_APIKEY_LIST:
+            key = request.META.get(app_settings.THROTTLE_APIKEY_HEADER.upper().replace('-', '_'))
+            if not key:
+                key = request.GET.get(app_settings.THROTTLE_APIKEY_PARAM)
+            if key and key in app_settings.THROTTLE_APIKEY_LIST:
+                return True
+
+        self.ident = request.META.get(
+            self.settings.THROTTLE_IP_HEADER, None)
+        if self.ident in app_settings.THROTTLE_IP_WHITELIST:
+            return True
+
+        # Not whitelisted; continue checking by IP
+        return super(AnonRateThrottle, self).allow_request(request, view)
 
     def throttle_failure(self, request, view):
         if self.ident == '127.0.0.1':

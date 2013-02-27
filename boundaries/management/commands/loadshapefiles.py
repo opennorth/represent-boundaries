@@ -254,8 +254,8 @@ def create_datasources(path, clean_shp):
         if not path: return
 
     if path.endswith('.shp'):
-        return [DataSource(path)]
-    
+        return [DataSource(path)], tmpdirs
+
     # assume it's a directory...
     sources = []
     for fn in os.listdir(path):
