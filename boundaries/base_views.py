@@ -129,6 +129,8 @@ class ModelListView(APIView):
                     val = True
                 elif val in ['false', 'False']:
                     val = False
+                elif val in ['none', 'None']:
+                    val = None
                 qs = qs.filter(**{filter_field + '__' + filter_type: val})
         return qs
 
