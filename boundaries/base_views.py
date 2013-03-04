@@ -177,9 +177,9 @@ class ModelGeoListView(ModelListView):
                 try:
                     lat, lon = re.sub(r'[^\d.,-]', '', request.GET['contains']).split(',')
                     wkt_pt = 'POINT(%s %s)' % (lon, lat)
+                    qs = qs.filter(**{self.default_geo_filter_field + "__contains" : wkt_pt})
                 except ValueError:
                     raise BadRequest("Invalid lat/lon values")
-                qs = qs.filter(**{self.default_geo_filter_field + "__contains" : wkt_pt})
 
             if 'near' in request.GET:
                 lat, lon, range = request.GET['near'].split(',')
