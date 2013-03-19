@@ -139,7 +139,10 @@ class ModelListView(APIView):
 
     def get(self, request, **kwargs):
         qs = self.get_qs(request, **kwargs)
-        qs = self.filter(request, qs)
+        try:
+            qs = self.filter(request, qs)
+        except ValueError:
+            raise BadRequest("Invalid filter value")
         if hasattr(self.model, 'prepare_queryset_for_get_dicts'):
             qs = self.model.prepare_queryset_for_get_dicts(qs)
         paginator = Paginator(request.GET, qs, resource_uri=request.path)
@@ -201,7 +204,10 @@ class ModelGeoListView(ModelListView):
         if field not in self.allowed_geo_fields:
             raise Http404
         qs = self.get_qs(request, **kwargs)
-        qs = self.filter(request, qs)
+        try:
+            qs = self.filter(request, qs)
+        except ValueError:
+            raise BadRequest("Invalid filter value")
 
         if qs.count() > app_settings.MAX_GEO_LIST_RESULTS:
             return HttpResponseForbidden(

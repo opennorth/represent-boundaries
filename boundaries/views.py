@@ -2,7 +2,8 @@ from django.contrib.gis.db import models
 from django.http import Http404
 
 from boundaries.base_views import (ModelListView, ModelDetailView,
-                                        ModelGeoListView, ModelGeoDetailView)
+                                   ModelGeoListView, ModelGeoDetailView,
+                                   BadRequest)
 from boundaries.models import BoundarySet, Boundary, app_settings
 
 class BoundarySetListView(ModelListView):
@@ -36,19 +37,23 @@ class BoundaryListView(ModelGeoListView):
         qs = super(BoundaryListView, self).filter(request, qs)
 
         if 'intersects' in request.GET:
-            (set_slug, slug) = request.GET['intersects'].split('/')
             try:
+                (set_slug, slug) = request.GET['intersects'].split('/')
                 shape = Boundary.objects.filter(slug=slug, set=set_slug).values_list('shape', flat=True)[0]
             except IndexError:
                 raise Http404
+            except ValueError:
+                raise BadRequest("Invalid value for intersects filter")
             qs = qs.filter(models.Q(shape__covers=shape) | models.Q(shape__overlaps=shape))
 
         if 'touches' in request.GET:
-            (set_slug, slug) = request.GET['touches'].split('/')
             try:
+                (set_slug, slug) = request.GET['touches'].split('/')
                 shape = Boundary.objects.filter(slug=slug, set=set_slug).values_list('shape', flat=True)[0]
             except IndexError:
                 raise Http404
+            except ValueError:
+                raise BadRequest("Invalid value for touches filter")
             qs = qs.filter(shape__touches=shape)
 
         if 'sets' in request.GET:
