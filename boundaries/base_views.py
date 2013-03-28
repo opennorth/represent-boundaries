@@ -136,7 +136,10 @@ class ModelListView(APIView):
 
     def get(self, request, **kwargs):
         qs = self.get_qs(request, **kwargs)
-        qs = self.filter(request, qs)
+        try:
+            qs = self.filter(request, qs)
+        except ValueError as e:
+            return { "error": unicode(e) }
         if hasattr(self.model, 'prepare_queryset_for_get_dicts'):
             qs = self.model.prepare_queryset_for_get_dicts(qs)
         paginator = Paginator(request.GET, qs, resource_uri=request.path)
