@@ -217,7 +217,9 @@ class ModelGeoListView(ModelListView):
             return HttpResponse("\n".join((geom.wkt for geom in qs.values_list(field, flat=True))), mimetype="text/plain")
         elif format == 'kml':
             placemarks = [kml.generate_placemark(x[1], x[0]) for x in qs.values_list(field, self.name_field)]
-            resp = HttpResponse(kml.generate_kml_document(placemarks), mimetype="application/vnd.google-earth.kml+xml")
+            resp = HttpResponse(
+                kml.generate_kml_document(placemarks),
+                mimetype="application/vnd.google-earth.kml+xml")
             resp['Content-Disposition'] = 'attachment; filename="shape.kml"'
             return resp
         else:
