@@ -128,6 +128,8 @@ class ModelListView(APIView):
                     val = True
                 elif val in ['false', 'False']:
                     val = False
+                elif val in ['none', 'None']:
+                    val = None
                 qs = qs.filter(**{filter_field + '__' + filter_type: val})
         return qs
 
@@ -138,8 +140,8 @@ class ModelListView(APIView):
         qs = self.get_qs(request, **kwargs)
         try:
             qs = self.filter(request, qs)
-        except ValueError as e:
-            return { "error": unicode(e) }
+        except ValueError:
+            raise BadRequest("Invalid filter value")
         if hasattr(self.model, 'prepare_queryset_for_get_dicts'):
             qs = self.model.prepare_queryset_for_get_dicts(qs)
         paginator = Paginator(request.GET, qs, resource_uri=request.path)
@@ -177,9 +179,9 @@ class ModelGeoListView(ModelListView):
                 try:
                     lat, lon = re.sub(r'[^\d.,-]', '', request.GET['contains']).split(',')
                     wkt_pt = 'POINT(%s %s)' % (lon, lat)
+                    qs = qs.filter(**{self.default_geo_filter_field + "__contains" : wkt_pt})
                 except ValueError:
                     raise BadRequest("Invalid lat/lon values")
-                qs = qs.filter(**{self.default_geo_filter_field + "__contains" : wkt_pt})
 
             if 'near' in request.GET:
                 lat, lon, range = request.GET['near'].split(',')
@@ -201,7 +203,10 @@ class ModelGeoListView(ModelListView):
         if field not in self.allowed_geo_fields:
             raise Http404
         qs = self.get_qs(request, **kwargs)
-        qs = self.filter(request, qs)
+        try:
+            qs = self.filter(request, qs)
+        except ValueError:
+            raise BadRequest("Invalid filter value")
 
         if qs.count() > app_settings.MAX_GEO_LIST_RESULTS:
             return HttpResponseForbidden(

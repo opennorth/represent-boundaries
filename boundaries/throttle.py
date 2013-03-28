@@ -147,7 +147,7 @@ class AnonRateThrottle(SimpleRateThrottle):
     def allow_request(self, request, view):
         """Determine whether this is a whitelisted request."""
         if app_settings.THROTTLE_APIKEY_LIST:
-            key = request.META.get(app_settings.THROTTLE_APIKEY_HEADER)
+            key = request.META.get(app_settings.THROTTLE_APIKEY_HEADER.upper().replace('-', '_'))
             if not key:
                 key = request.GET.get(app_settings.THROTTLE_APIKEY_PARAM)
             if key and key in app_settings.THROTTLE_APIKEY_LIST:
