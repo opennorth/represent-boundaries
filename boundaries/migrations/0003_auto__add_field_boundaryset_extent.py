@@ -7,16 +7,12 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        
         # Adding field 'BoundarySet.extent'
         db.add_column('boundaries_boundaryset', 'extent', self.gf('jsonfield.fields.JSONField')(null=True, blank=True), keep_default=False)
 
-
     def backwards(self, orm):
-        
         # Deleting field 'BoundarySet.extent'
         db.delete_column('boundaries_boundaryset', 'extent')
-
 
     models = {
         'boundaries.boundary': {

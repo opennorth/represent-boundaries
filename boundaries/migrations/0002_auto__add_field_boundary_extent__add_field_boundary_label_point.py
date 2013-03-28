@@ -4,7 +4,6 @@ from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
 
-
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
@@ -18,14 +17,12 @@ class Migration(SchemaMigration):
                       self.gf('django.contrib.gis.db.models.fields.PointField')(null=True, spatial_index=False),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Deleting field 'Boundary.extent'
         db.delete_column('boundaries_boundary', 'extent')
 
         # Deleting field 'Boundary.label_point'
         db.delete_column('boundaries_boundary', 'label_point')
-
 
     models = {
         'boundaries.boundary': {

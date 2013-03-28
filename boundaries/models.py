@@ -84,7 +84,7 @@ class BoundarySet(models.Model):
 
     name_plural = property(lambda s: s.name)
     name_singular = property(lambda s: s.singular)
-    
+
     api_fields = ('name_plural', 'name_singular', 'authority', 'domain', 'source_url', 'notes', 'licence_url', 'last_updated', 'extent')
     api_fields_doc_from = { 'name_plural': 'name', 'name_singular': 'singular' }
 
@@ -142,7 +142,7 @@ class Boundary(models.Model):
         blank=True, null=True, spatial_index=False,
         help_text='The suggested location to label this boundary in EPSG:4326 projection. '
             'Used by represent-maps, but not actually used within represent-boundaries.')
-    
+
     objects = models.GeoManager()
 
     class Meta:
@@ -161,11 +161,11 @@ class Boundary(models.Model):
 
     api_fields = ['boundary_set_name', 'name', 'metadata', 'external_id', 'extent']
     api_fields_doc_from = { 'boundary_set_name': 'set_name' }
-    
+
     @property
     def boundary_set(self):
         return self.set.slug
-    
+
     @property
     def boundary_set_name(self):
         return self.set_name
@@ -188,7 +188,6 @@ class Boundary(models.Model):
             if not isinstance(r[f], (basestring, int, list, tuple, dict)) and r[f] != None:
                 r[f] = unicode(r[f])
         return r
-        
 
     @staticmethod
     def prepare_queryset_for_get_dicts(qs):
@@ -207,5 +206,3 @@ class Boundary(models.Model):
                 'external_id': b[4],
             } for b in boundaries
         ]
-
-

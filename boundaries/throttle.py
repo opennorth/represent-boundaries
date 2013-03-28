@@ -30,14 +30,13 @@ class BaseThrottle(object):
         """
         return None
 
-
 class SimpleRateThrottle(BaseThrottle):
     """
     A simple cache implementation, that only requires `.get_cache_key()`
     to be overridden.
 
     The rate (requests / seconds) is set by a :attr:`throttle` attribute
-    on the :class:`.View` class.  The attribute is a tuple of 
+    on the :class:`.View` class.  The attribute is a tuple of
     (number of requests, number of seconds) -- that is, (60, 60)
     means to throttle after 60 requests in a minute.
 
@@ -130,7 +129,6 @@ class SimpleRateThrottle(BaseThrottle):
         available_requests = self.num_requests - len(self.history) + 1
 
         return remaining_duration / float(available_requests)
-
 
 class AnonRateThrottle(SimpleRateThrottle):
     """

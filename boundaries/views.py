@@ -81,7 +81,6 @@ class BoundaryListView(ModelGeoListView):
         )
         return r
 
-
 class BoundaryObjectGetterMixin(object):
 
     model = Boundary
@@ -103,4 +102,3 @@ class BoundaryGeoDetailView(ModelGeoDetailView, BoundaryObjectGetterMixin):
     """ e.g /boundary/federal-electoral-districts/outremont/shape """
 
     allowed_geo_fields = ('shape', 'simple_shape', 'centroid')
-

@@ -62,7 +62,6 @@ License: xxx
 Description: xxx
 """ % SETUPTOOLS_FAKED_VERSION
 
-
 def _install(tarball):
     # extracting the tarball
     tmpdir = tempfile.mkdtemp()
@@ -86,7 +85,6 @@ def _install(tarball):
             log.warn('See the error message above.')
     finally:
         os.chdir(old_wd)
-
 
 def _build_egg(egg, tarball, to_dir):
     # extracting the tarball
@@ -115,7 +113,6 @@ def _build_egg(egg, tarball, to_dir):
     if not os.path.exists(egg):
         raise IOError('Could not build the egg.')
 
-
 def _do_download(version, download_base, to_dir, download_delay):
     egg = os.path.join(to_dir, 'distribute-%s-py%d.%d.egg'
                        % (version, sys.version_info[0], sys.version_info[1]))
@@ -126,7 +123,6 @@ def _do_download(version, download_base, to_dir, download_delay):
     sys.path.insert(0, egg)
     import setuptools
     setuptools.bootstrap_install_from = egg
-
 
 def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
                    to_dir=os.curdir, download_delay=15, no_fake=True):
@@ -347,7 +343,6 @@ def _before_install():
     log.warn('Before install bootstrap.')
     _fake_setuptools()
 
-
 def _under_prefix(location):
     if 'install' not in sys.argv:
         return True
@@ -364,7 +359,6 @@ def _under_prefix(location):
         if arg == '--user' and USER_SITE is not None:
             return location.startswith(USER_SITE)
     return True
-
 
 def _fake_setuptools():
     log.warn('Scanning installed packages')
@@ -417,7 +411,6 @@ def _fake_setuptools():
     log.warn('Patched done.')
     _relaunch()
 
-
 def _relaunch():
     log.warn('Relaunching...')
     # we have to relaunch the process
@@ -426,7 +419,6 @@ def _relaunch():
         sys.argv[0] = 'setup.py'
     args = [sys.executable] + sys.argv
     sys.exit(subprocess.call(args))
-
 
 def _extractall(self, path=".", members=None):
     """Extract all members from the archive to the current working
@@ -474,12 +466,10 @@ def _extractall(self, path=".", members=None):
             else:
                 self._dbg(1, "tarfile: %s" % e)
 
-
 def main(argv, version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
     tarball = download_setuptools()
     _install(tarball)
-
 
 if __name__ == '__main__':
     main(sys.argv[1:])

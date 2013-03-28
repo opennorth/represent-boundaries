@@ -3,7 +3,6 @@ from django.contrib.gis.admin import OSMGeoAdmin
 
 from boundaries.models import BoundarySet, Boundary
 
-
 class BoundarySetAdmin(admin.ModelAdmin):
     list_filter = ('authority', 'domain')
 

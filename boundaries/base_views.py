@@ -44,7 +44,6 @@ class APIView(View):
     content_type = 'application/json; charset=utf-8'
 
     def dispatch(self, request, *args, **kwargs):
-
         if throttle is not None:
             if not throttle.allow_request(request, self):
                 msg = ("You've exceeded the request limit."

@@ -7,7 +7,6 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        
         # Adding model 'BoundarySet'
         db.create_table('boundaries_boundaryset', (
             ('slug', self.gf('django.db.models.fields.SlugField')(max_length=200, primary_key=True, db_index=True)),
@@ -40,9 +39,7 @@ class Migration(SchemaMigration):
         # Adding unique constraint on 'Boundary', fields ['slug', 'set']
         db.create_unique('boundaries_boundary', ['slug', 'set_id'])
 
-
     def backwards(self, orm):
-        
         # Removing unique constraint on 'Boundary', fields ['slug', 'set']
         db.delete_unique('boundaries_boundary', ['slug', 'set_id'])
 
@@ -51,7 +48,6 @@ class Migration(SchemaMigration):
 
         # Deleting model 'Boundary'
         db.delete_table('boundaries_boundary')
-
 
     models = {
         'boundaries.boundary': {

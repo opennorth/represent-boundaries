@@ -29,7 +29,7 @@ class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
         make_option('-r', '--reload', action='store_true', dest='reload',
             help='Reload BoundarySets that have already been imported.'),
-        make_option('-d', '--data-dir', action='store', dest='data_dir', 
+        make_option('-d', '--data-dir', action='store', dest='data_dir',
             default=app_settings.SHAPEFILES_DIR,
             help='Load shapefiles from this directory'),
         make_option('-e', '--except', action='store', dest='except',
@@ -63,7 +63,7 @@ class Command(BaseCommand):
             sources = all_slugs - exceptions
         else:
             sources = all_slugs
-        
+
         for slug, config in all_sources.items():
 
             # Backwards compatibility with specifying the name, rather than the slug,
@@ -84,7 +84,7 @@ class Command(BaseCommand):
     @transaction.commit_on_success
     def load_set(self, slug, config, options):
         log.info('Processing %s.' % slug)
-        
+
         BoundarySet.objects.filter(slug=slug).delete()
 
         path = config['file']
@@ -95,7 +95,7 @@ class Command(BaseCommand):
         finally:
             for path in tmpdirs:
                 rmtree(path)
-            
+
     def load_set_2(self, slug, config, options, datasources):
         layer = datasources[0][0]
 
@@ -119,7 +119,7 @@ class Command(BaseCommand):
             notes=config.get('notes', ''),
             licence_url=config.get('licence_url', ''),
         )
-        
+
         bset.extent = [None, None, None, None] # [xmin, ymin, xmax, ymax]
 
         for datasource in datasources:
@@ -130,7 +130,7 @@ class Command(BaseCommand):
             layer = datasource[0]
             layer.source = datasource # add additional attribute so definition file can trace back to filename
             self.add_boundaries_for_layer(config, layer, bset, options)
-            
+
         if None in bset.extent:
             bset.extent = None
         else:
@@ -181,11 +181,11 @@ class Command(BaseCommand):
             geometry.transform(transformer)
 
             # Create simplified geometry field by collapsing points within 1/1000th of a degree.
-            # Since Chicago is at approx. 42 degrees latitude this works out to an margin of 
+            # Since Chicago is at approx. 42 degrees latitude this works out to an margin of
             # roughly 80 meters latitude and 112 meters longitude.
             # Preserve topology prevents a shape from ever crossing over itself.
             simple_geometry = geometry.geos.simplify(app_settings.SIMPLE_SHAPE_TOLERANCE, preserve_topology=True)
-            
+
             # Conversion may force multipolygons back to being polygons
             simple_geometry = self.polygon_to_multipolygon(simple_geometry.ogr)
 
@@ -197,23 +197,23 @@ class Command(BaseCommand):
             external_id = str(config['id_func'](feature))
             feature_name = config['name_func'](feature)
             feature_slug = slugify(config['slug_func'](feature).replace(u'—', '-'))
-            
+
             log.info('%s...' % feature_slug)
-            
+
             if options["merge"]:
                 try:
                     b0 = Boundary.objects.get(set=bset, slug=feature_slug)
-                    
+
                     g = OGRGeometry(OGRGeomType('MultiPolygon'))
                     for p in b0.shape: g.add(p.ogr)
                     for p in geometry: g.add(p)
                     b0.shape = g.wkt
-                    
+
                     g = OGRGeometry(OGRGeomType('MultiPolygon'))
                     for p in b0.simple_shape: g.add(p.ogr)
                     for p in simple_geometry: g.add(p)
                     b0.simple_shape = g.wkt
-                    
+
                     if options["merge"] == "union":
                         b0.shape = self.polygon_to_multipolygon(b0.shape.cascaded_union.ogr).wkt
                         b0.simple_shape = self.polygon_to_multipolygon(b0.simple_shape.cascaded_union.ogr).wkt
@@ -225,7 +225,7 @@ class Command(BaseCommand):
                     continue
                 except Boundary.DoesNotExist:
                     pass
-            
+
             bdry = Boundary.objects.create(
                 set=bset,
                 set_name=bset.singular,
@@ -239,7 +239,7 @@ class Command(BaseCommand):
                 extent=geometry.extent,
                 label_point=config.get("label_point_func", lambda x : None)(feature)
                 )
-            
+
             if bset.extent[0] == None or bdry.extent[0] < bset.extent[0]: bset.extent[0] = bdry.extent[0]
             if bset.extent[1] == None or bdry.extent[1] < bset.extent[1]: bset.extent[1] = bdry.extent[1]
             if bset.extent[2] == None or bdry.extent[2] > bset.extent[2]: bset.extent[2] = bdry.extent[2]
@@ -247,7 +247,7 @@ class Command(BaseCommand):
 
 def create_datasources(path, clean_shp):
     tmpdirs = []
-    
+
     if path.endswith('.zip'):
         tmpdir, path = temp_shapefile_from_zip(path)
         tmpdirs.append(tmpdir)
@@ -272,7 +272,7 @@ def create_datasources(path, clean_shp):
                 # add additional attribute so definition file can trace back to filename
                 d.zipfile = zipfilename
             sources.append(d)
-            
+
     return sources, tmpdirs
 
 class UnicodeFeature(object):
@@ -286,10 +286,10 @@ class UnicodeFeature(object):
         if isinstance(val, str):
             return val.decode(self.encoding)
         return val
-    
+
 def temp_shapefile_from_zip(zip_path):
     """Given a path to a ZIP file, unpack it into a temp dir and return the path
-       to the shapefile that was in there.  Doesn't clean up after itself unless 
+       to the shapefile that was in there.  Doesn't clean up after itself unless
        there was an error.
 
        If you want to cleanup later, you can derive the temp dir from this path.
@@ -309,11 +309,10 @@ def temp_shapefile_from_zip(zip_path):
         f.close()
 
     return tempdir, shape_path
-    
+
 def preprocess_shp(shpfile):
     # Run this command to sanitize the input, removing 3D shapes which causes trouble for
     # us later.
     newfile = shpfile.replace(".shp", "._cleaned_.shp")
     subprocess.call(["ogr2ogr", "-f", "ESRI Shapefile", newfile, shpfile, "-nlt", "POLYGON"])
     return newfile
-
