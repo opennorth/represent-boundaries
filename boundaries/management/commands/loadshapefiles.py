@@ -88,7 +88,7 @@ class Command(BaseCommand):
         BoundarySet.objects.filter(slug=slug).delete()
 
         path = config['file']
-        datasources, tmpdirs = create_datasources(path, options["clean"])
+        datasources, tmpdirs = create_datasources(config, path, options["clean"])
 
         try:
             self.load_set_2(slug, config, options, datasources)
@@ -249,7 +249,7 @@ class Command(BaseCommand):
             if bset.extent[2] == None or bdry.extent[2] > bset.extent[2]: bset.extent[2] = bdry.extent[2]
             if bset.extent[3] == None or bdry.extent[3] > bset.extent[3]: bset.extent[3] = bdry.extent[3]
 
-def create_datasources(path, clean_shp):
+def create_datasources(config, path, clean_shp):
     tmpdirs = []
 
     if path.endswith('.zip'):
@@ -258,7 +258,7 @@ def create_datasources(path, clean_shp):
         if not path: return
 
     if path.endswith('.shp'):
-        return [DataSource(path)], tmpdirs
+        return [DataSource(path, encoding=config.get('encoding', 'ascii'))], tmpdirs
 
     # assume it's a directory...
     sources = []
@@ -271,7 +271,7 @@ def create_datasources(path, clean_shp):
             tmpdirs.append(tmpdir)
         if fn and fn.endswith('.shp') and not "_cleaned_" in fn:
             if clean_shp: fn = preprocess_shp(fn)
-            d = DataSource(fn)
+            d = DataSource(fn, encoding=config.get('encoding', 'ascii'))
             if zipfilename:
                 # add additional attribute so definition file can trace back to filename
                 d.zipfile = zipfilename
