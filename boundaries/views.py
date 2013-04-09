@@ -101,7 +101,7 @@ class BoundaryDetailView(ModelDetailView, BoundaryObjectGetterMixin):
 
     def __init__(self):
         super(BoundaryDetailView, self).__init__()
-        self.base_qs = self.base_qs.defer('shape', 'simple_shape', 'centroid')
+        self.base_qs = self.base_qs.defer('shape', 'simple_shape')
 
 class BoundaryGeoDetailView(ModelGeoDetailView, BoundaryObjectGetterMixin):
     """ e.g /boundary/federal-electoral-districts/outremont/shape """

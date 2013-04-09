@@ -159,7 +159,7 @@ class Boundary(models.Model):
     def get_absolute_url(self):
         return 'boundaries_boundary_detail', [], {'set_slug': self.set_id, 'slug': self.slug}
 
-    api_fields = ['boundary_set_name', 'name', 'metadata', 'external_id', 'extent']
+    api_fields = ['boundary_set_name', 'name', 'metadata', 'external_id', 'extent', 'centroid']
     api_fields_doc_from = { 'boundary_set_name': 'set_name' }
 
     @property
@@ -184,8 +184,11 @@ class Boundary(models.Model):
         for f in self.api_fields:
             r[f] = getattr(self, f)
             if isinstance(r[f], GEOSGeometry):
-                r[f] = r[f].coords
-            if not isinstance(r[f], (basestring, int, list, tuple, dict)) and r[f] != None:
+                r[f] = {
+                    "type": "Point",
+                    "coordinates": r[f].coords
+                }
+            if not isinstance(r[f], (basestring, int, list, tuple, dict)) and r[f] is not None:
                 r[f] = unicode(r[f])
         return r
 
