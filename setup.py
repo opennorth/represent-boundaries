@@ -15,5 +15,6 @@ setup(
     ],
     install_requires = [
         'django-jsonfield>=0.7.1',
+        'django-appconf',
     ]
 )
