@@ -252,26 +252,35 @@ class Command(BaseCommand):
 def create_datasources(config, path, clean_shp):
     tmpdirs = []
 
+    def make_datasource(p):
+        try:
+            return DataSource(p, encoding=config.get('encoding', 'ascii'))
+        except TypeError:
+            # DataSource only includes the encoding option in Django >= 1.5
+            return DataSource(p)
+
     if path.endswith('.zip'):
         tmpdir, path = temp_shapefile_from_zip(path)
         tmpdirs.append(tmpdir)
-        if not path: return
+        if not path:
+            return
 
     if path.endswith('.shp'):
-        return [DataSource(path, encoding=config.get('encoding', 'ascii'))], tmpdirs
+        return [make_datasource(path)], tmpdirs
 
     # assume it's a directory...
     sources = []
     for fn in os.listdir(path):
         zipfilename = None
-        fn = os.path.join(path,fn)
+        fn = os.path.join(path, fn)
         if fn.endswith('.zip'):
             zipfilename = fn
             tmpdir, fn = temp_shapefile_from_zip(fn)
             tmpdirs.append(tmpdir)
         if fn and fn.endswith('.shp') and not "_cleaned_" in fn:
-            if clean_shp: fn = preprocess_shp(fn)
-            d = DataSource(fn, encoding=config.get('encoding', 'ascii'))
+            if clean_shp:
+                fn = preprocess_shp(fn)
+            d = make_datasource(fn)
             if zipfilename:
                 # add additional attribute so definition file can trace back to filename
                 d.zipfile = zipfilename
