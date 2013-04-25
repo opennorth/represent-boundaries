@@ -42,4 +42,4 @@ The starting point for exploring the API resources is /boundary-sets. From there
 
 ## Contact
 
-Please use [GitHub Issues](http://github.com/opennorth/represent-canada/issues) for bug reports. You can also contact represent@opennorth.ca.
+Please use [GitHub Issues](http://github.com/opennorth/represent-canada/issues) for bug reports. You can also contact [represent@opennorth.ca](mailto:represent@opennorth.ca).
