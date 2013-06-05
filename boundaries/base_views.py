@@ -62,6 +62,12 @@ class APIView(View):
         if request.GET.get('format') == 'apibrowser':
             return self.apibrowser_response(request, result)
         resp = HttpResponse(content_type=self.content_type)
+
+        # CORS
+        if request.method == 'GET' and app_settings.ALLOW_ORIGIN:
+            resp['Access-Control-Allow-Origin'] = app_settings.ALLOW_ORIGIN
+
+        # JSONP
         callback = ''
         if self.allow_jsonp and 'callback' in request.GET:
             callback = re.sub(r'[^a-zA-Z0-9_]', '', request.GET['callback'])
@@ -72,6 +78,7 @@ class APIView(View):
             json.dump(result, resp, indent=(4 if request.GET.get('pretty') else None))
         if callback:
             resp.write(');')
+
         return resp
 
     def apibrowser_response(self, request, result):

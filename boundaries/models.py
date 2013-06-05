@@ -17,6 +17,9 @@ class MyAppConf(AppConf):
     SHAPEFILES_DIR = './data/shapefiles'
     SIMPLE_SHAPE_TOLERANCE = 0.0002
 
+    # The value for the Access-Control-Allow-Origin header
+    ALLOW_ORIGIN = '*'
+
     # To enable the throttle, in the main Django settings.py, set
     # BOUNDARIES_THROTTLE = 'boundaries.throttle.AnonRateThrottle'
     THROTTLE = ''
