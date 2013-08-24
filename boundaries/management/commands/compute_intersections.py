@@ -1,3 +1,5 @@
+import sys
+
 from optparse import make_option
 
 from django.conf import settings
@@ -29,7 +31,12 @@ class Command(BaseCommand):
 			for b_bdry in bset_b.boundaries\
 				.filter(shape__intersects=a_bdry.shape):
 
-				geometry = a_bdry.shape.intersection(b_bdry.shape)
+				try:
+					geometry = a_bdry.shape.intersection(b_bdry.shape)
+				except Exception as e:
+					sys.stderr.write("%s/%s: %s\n" % (a_slug, b_bdry.slug, unicode(e)))
+					continue
+					
 				int_area = geometry.area
 				if geometry.empty: continue
 
