@@ -119,8 +119,8 @@ class Command(BaseCommand):
             source_url=config.get('source_url', ''),
             notes=config.get('notes', ''),
             licence_url=config.get('licence_url', ''),
-            # Load from either the 'extra_metadata' or 'metadata' fields
-            extra_metadata=config.get('extra_metadata', config.get('metadata', None))
+            # Load from either the 'extra' or 'metadata' fields
+            extra=config.get('extra', config.get('metadata', None))
         )
 
         bset.extent = [None, None, None, None] # [xmin, ymin, xmax, ymax]

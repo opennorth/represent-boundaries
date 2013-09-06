@@ -8,14 +8,14 @@ class Migration(SchemaMigration):
 
     def forwards(self, orm):
         
-        # Adding field 'BoundarySet.extra_metadata'
-        db.add_column(u'boundaries_boundaryset', 'extra_metadata', self.gf('jsonfield.fields.JSONField')(null=True, blank=True), keep_default=False)
+        # Adding field 'BoundarySet.extra'
+        db.add_column(u'boundaries_boundaryset', 'extra', self.gf('jsonfield.fields.JSONField')(null=True, blank=True), keep_default=False)
 
 
     def backwards(self, orm):
         
-        # Deleting field 'BoundarySet.extra_metadata'
-        db.delete_column(u'boundaries_boundaryset', 'extra_metadata')
+        # Deleting field 'BoundarySet.extra'
+        db.delete_column(u'boundaries_boundaryset', 'extra')
 
 
     models = {
@@ -39,7 +39,7 @@ class Migration(SchemaMigration):
             'authority': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
             'domain': ('django.db.models.fields.CharField', [], {'max_length': '256'}),
             'extent': ('jsonfield.fields.JSONField', [], {'null': 'True', 'blank': 'True'}),
-            'extra_metadata': ('jsonfield.fields.JSONField', [], {'null': 'True', 'blank': 'True'}),
+            'extra': ('jsonfield.fields.JSONField', [], {'null': 'True', 'blank': 'True'}),
             'last_updated': ('django.db.models.fields.DateField', [], {}),
             'licence_url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),

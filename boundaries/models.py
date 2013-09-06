@@ -73,7 +73,7 @@ class BoundarySet(models.Model):
         help_text='The URL to the text of the licence this data is distributed under')
     extent = JSONField(blank=True, null=True,
         help_text='The bounding box of the boundaries in EPSG:4326 projection, as a list such as [xmin, ymin, xmax, ymax].')
-    extra_metadata = JSONField(blank=True, null=True,
+    extra = JSONField(blank=True, null=True,
         help_text="Any other nonstandard metadata provided when creating this boundary set.")
 
     class Meta:
@@ -90,7 +90,7 @@ class BoundarySet(models.Model):
     name_plural = property(lambda s: s.name)
     name_singular = property(lambda s: s.singular)
 
-    api_fields = ('name_plural', 'name_singular', 'authority', 'domain', 'source_url', 'notes', 'licence_url', 'last_updated', 'extent', 'extra_metadata')
+    api_fields = ('name_plural', 'name_singular', 'authority', 'domain', 'source_url', 'notes', 'licence_url', 'last_updated', 'extent', 'extra')
     api_fields_doc_from = { 'name_plural': 'name', 'name_singular': 'singular' }
 
     def as_dict(self):
