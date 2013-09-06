@@ -75,9 +75,13 @@ class Command(BaseCommand):
                 log.debug('Skipping %s.' % slug)
                 continue
 
-            if (not options['reload']) and BoundarySet.objects.filter(slug=slug).exists():
-                log.info('Already loaded %s, skipping.' % slug)
-                continue
+            try:
+                existing_set = BoundarySet.objects.get(slug=slug)
+                if (not options['reload']) and existing_set.last_updated >= config['last_updated']:
+                    log.info('Already loaded %s, skipping.' % slug)
+                    continue
+            except BoundarySet.DoesNotExist:
+                pass
 
             self.load_set(slug, config, options)
 
@@ -115,7 +119,7 @@ class Command(BaseCommand):
             singular=config['singular'],
             authority=config.get('authority', ''),
             domain=config.get('domain', ''),
-            last_updated=config.get('last_updated'),
+            last_updated=config['last_updated'],
             source_url=config.get('source_url', ''),
             notes=config.get('notes', ''),
             licence_url=config.get('licence_url', ''),
