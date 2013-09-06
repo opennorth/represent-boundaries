@@ -39,6 +39,8 @@ boundaries.register('federal-electoral-districts', # The slug of the boundary se
     # Notes identifying any pecularities about the data, such as columns that
     # were deleted or files which were merged
     notes='',
+    # Any extra, nonstandard metadata you'd like to include in API responses
+    # extra_metadata = { 'geographic_code': 48858 },
     # Encoding of the text fields in the shapefile, e.g. 'utf-8'. Default: 'ascii'
     encoding='iso-8859-1',
 
