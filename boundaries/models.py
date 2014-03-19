@@ -87,8 +87,9 @@ class BoundarySet(models.Model):
             self.slug = slugify(self.name)
         return super(BoundarySet, self).save(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
+    __unicode__ = __str__
 
     name_plural = property(lambda s: s.name)
     name_singular = property(lambda s: s.singular)
@@ -160,8 +161,9 @@ class Boundary(models.Model):
     def save(self, *args, **kwargs):
         return super(Boundary, self).save(*args, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s (%s)" % (self.name, self.set_name)
+    __unicode__ = __str__
 
     @models.permalink
     def get_absolute_url(self):
