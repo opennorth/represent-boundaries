@@ -1,4 +1,6 @@
+from __future__ import print_function
 import sys, json
+from six import text_type
 
 from optparse import make_option
 
@@ -21,14 +23,14 @@ class Command(BaseCommand):
 
 	def handle(self, *args, **options):
 		if len(args) < 2:
-			print "Specify two boundaryset slugs."
+			print("Specify two boundaryset slugs.")
 			return
 
 		bset_a = BoundarySet.objects.get(slug=args[0])
 		bset_b = BoundarySet.objects.get(slug=args[1])
 
 		if options["format"] == "csv":
-			print bset_a.slug, "area_1", bset_b.slug, "area_2", "area_intersection", "pct_of_1", "pct_of_2"
+			print(bset_a.slug, "area_1", bset_b.slug, "area_2", "area_intersection", "pct_of_1", "pct_of_2")
 		elif options["format"] == "json":
 			output = [ ]
 
@@ -44,7 +46,7 @@ class Command(BaseCommand):
 				try:
 					geometry = a_bdry.shape.intersection(b_bdry.shape)
 				except Exception as e:
-					sys.stderr.write("%s/%s: %s\n" % (a_slug, b_bdry.slug, unicode(e)))
+					sys.stderr.write("%s/%s: %s\n" % (a_slug, b_bdry.slug, text_type(e)))
 					continue
 					
 				int_area = geometry.area
@@ -58,7 +60,7 @@ class Command(BaseCommand):
 					continue
 
 				if options["format"] == "csv":
-					print a_slug, a_area, b_bdry.slug, b_area, int_area, int_area/a_area, int_area/b_area
+					print(a_slug, a_area, b_bdry.slug, b_area, int_area, int_area/a_area, int_area/b_area)
 				elif options["format"] == "json":
 					output.append({
 						"area": int_area,
@@ -86,5 +88,5 @@ class Command(BaseCommand):
 						output[-1][bset_b.slug]["metadata"] = b_bdry.metadata
 				
 		if options["format"] == "json":
-			print json.dumps(output, sort_keys=True, indent=2)
+			print(json.dumps(output, sort_keys=True, indent=2))
 	

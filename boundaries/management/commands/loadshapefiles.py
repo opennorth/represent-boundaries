@@ -1,4 +1,5 @@
 #coding: utf8
+from __future__ import unicode_literals
 
 import logging
 log = logging.getLogger(__name__)
@@ -206,7 +207,7 @@ class Command(BaseCommand):
 
             external_id = str(config['id_func'](feature))
             feature_name = config['name_func'](feature)
-            feature_slug = slugify(config['slug_func'](feature).replace(u'—', '-'))
+            feature_slug = slugify(config['slug_func'](feature).replace('—', '-'))
 
             log.info('%s...' % feature_slug)
 

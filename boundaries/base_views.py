@@ -1,9 +1,13 @@
 """ A mini API framework.
 """
+from __future__ import unicode_literals
 
 import json
 import re
-from urllib import urlencode
+
+import six
+from six.moves.urllib.parse import urlencode
+from six import text_type
 
 from django.conf import settings
 from django.contrib.gis.measure import D
@@ -56,7 +60,7 @@ class APIView(View):
         try:
             result = super(APIView, self).dispatch(request, *args, **kwargs)
         except BadRequest as e:
-            return HttpResponseBadRequest(unicode(e), mimetype='text/plain')
+            return HttpResponseBadRequest(text_type(e), content_type='text/plain')
         if isinstance(result, HttpResponse):
             return result
         if request.GET.get('format') == 'apibrowser':
@@ -223,11 +227,11 @@ class ModelGeoListView(ModelListView):
         format = request.GET.get('format', 'json')
 
         if format in ('json', 'apibrowser'):
-            strings = [u'{ "objects" : [ ']
-            strings.append(','.join( (u'{"name": "%s","%s":%s}' % (escapejs(x[1]),field,x[0].geojson)
+            strings = ['{ "objects" : [ ']
+            strings.append(','.join( ('{"name": "%s","%s":%s}' % (escapejs(x[1]),field,x[0].geojson)
                         for x in qs.values_list(field, self.name_field) )))
-            strings.append(u']}')
-            return RawJSONResponse(u''.join(strings))
+            strings.append(']}')
+            return RawJSONResponse(''.join(strings))
         elif format == 'wkt':
             return HttpResponse("\n".join((geom.wkt for geom in qs.values_list(field, flat=True))), mimetype="text/plain")
         elif format == 'kml':
@@ -448,7 +452,7 @@ class Paginator(object):
             request_params = {}
 
             for k, v in self.request_data.items():
-                if isinstance(v, unicode):
+                if isinstance(v, text_type):
                     request_params[k] = v.encode('utf-8')
                 else:
                     request_params[k] = v
@@ -460,10 +464,7 @@ class Paginator(object):
             request_params.update({'limit': limit, 'offset': offset})
             encoded_params = urlencode(request_params)
 
-        return '%s?%s' % (
-            self.resource_uri,
-            encoded_params
-        )
+        return '%s?%s' % (self.resource_uri, encoded_params)
 
     def page(self):
         """

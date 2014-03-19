@@ -1,4 +1,7 @@
+from __future__ import unicode_literals
+
 import re
+from six import text_type, string_types
 
 from django.contrib.gis.db import models
 from django.core import urlresolvers
@@ -101,8 +104,8 @@ class BoundarySet(models.Model):
         }
         for f in self.api_fields:
             r[f] = getattr(self, f)
-            if not isinstance(r[f], (str, unicode, int, list, tuple, dict)) and r[f] != None:
-                r[f] = unicode(r[f])
+            if not isinstance(r[f], (string_types, int, list, tuple, dict)) and r[f] != None:
+                r[f] = text_type(r[f])
         return r
 
     @staticmethod
@@ -158,7 +161,7 @@ class Boundary(models.Model):
         return super(Boundary, self).save(*args, **kwargs)
 
     def __unicode__(self):
-        return u"%s (%s)" % (self.name, self.set_name)
+        return "%s (%s)" % (self.name, self.set_name)
 
     @models.permalink
     def get_absolute_url(self):
@@ -193,8 +196,8 @@ class Boundary(models.Model):
                     "type": "Point",
                     "coordinates": r[f].coords
                 }
-            if not isinstance(r[f], (basestring, int, list, tuple, dict)) and r[f] is not None:
-                r[f] = unicode(r[f])
+            if not isinstance(r[f], (string_types, int, list, tuple, dict)) and r[f] is not None:
+                r[f] = text_type(r[f])
         return r
 
     @staticmethod
