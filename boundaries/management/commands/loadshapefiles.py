@@ -311,7 +311,7 @@ class UnicodeFeature(object):
 
     def get(self, field):
         val = self.feature.get(field)
-        if isinstance(val, str):
+        if isinstance(val, bytes):
             return val.decode(self.encoding)
         return val
 
