@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 import re
-from six import text_type, string_types
+from django.utils.six import text_type, string_types
 
 from django.contrib.gis.db import models
 from django.core import urlresolvers

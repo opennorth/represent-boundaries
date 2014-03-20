@@ -5,9 +5,8 @@ from __future__ import unicode_literals
 import json
 import re
 
-import six
-from six.moves.urllib.parse import urlencode
-from six import text_type
+from django.utils.six.moves.urllib.parse import urlencode
+from django.utils.six import text_type
 
 from django.conf import settings
 from django.contrib.gis.measure import D

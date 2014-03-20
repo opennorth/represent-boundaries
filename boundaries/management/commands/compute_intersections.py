@@ -1,6 +1,6 @@
 from __future__ import print_function
 import sys, json
-from six import text_type
+from django.utils.six import text_type
 
 from optparse import make_option
 
