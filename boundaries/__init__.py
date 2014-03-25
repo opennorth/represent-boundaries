@@ -27,7 +27,7 @@ def autodiscover(base_dir):
         for filename in filenames:
             if definition_file_re.search(filename):
                 logger.debug(filename)
-                exec(compile(open(os.path.join(dirpath, filename)).read(), os.path.join(dirpath, filename), 'exec'))
+                exec(open(os.path.join(dirpath, filename)).read())
 
 def attr(name):
     return lambda f: f.get(name)
