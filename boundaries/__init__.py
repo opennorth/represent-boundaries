@@ -1,4 +1,5 @@
 #coding: utf8
+from __future__ import unicode_literals
 
 import logging
 import os
@@ -26,7 +27,7 @@ def autodiscover(base_dir):
         for filename in filenames:
             if definition_file_re.search(filename):
                 logger.debug(filename)
-                execfile(os.path.join(dirpath, filename))
+                exec(open(os.path.join(dirpath, filename)).read())
 
 def attr(name):
     return lambda f: f.get(name)
@@ -37,7 +38,7 @@ def _clean_string(s):
         from boundaries.titlecase import titlecase
         s = titlecase(s)
     s = re.sub(r'(?u)\s', ' ', s)
-    s = re.sub(r'( ?-- ?| - )', u'—', s)
+    s = re.sub(r'( ?-- ?| - )', '—', s)
     return s
 
 def clean_attr(name):
@@ -47,4 +48,4 @@ def clean_attr(name):
 def dashed_attr(name):
     # Replaces all hyphens with em dashes
     attr_getter = clean_attr(name)
-    return lambda f: attr_getter(f).replace('-', u'—')
+    return lambda f: attr_getter(f).replace('-', '—')

@@ -1,11 +1,8 @@
-from distribute_setup import use_setuptools
-use_setuptools()
-
 from setuptools import setup
 
 setup(
     name = "represent-boundaries",
-    version = "0.1",
+    version = "0.2",
     url='http://github.com/rhymeswithcycle/represent-boundaries',
     description="A Web API to geographical districts loaded from shapefiles. Packaged as a Django app.",
     license = "MIT",
@@ -20,6 +17,7 @@ setup(
     ],
     classifiers = [
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.3',
         'License :: OSI Approved :: MIT License',
         'Framework :: Django',
         'Topic :: Scientific/Engineering :: GIS',
