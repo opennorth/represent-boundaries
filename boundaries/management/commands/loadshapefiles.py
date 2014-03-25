@@ -18,6 +18,7 @@ from django.contrib.gis.geos import MultiPolygon
 from django.core.management.base import BaseCommand
 from django.db import connections, DEFAULT_DB_ALIAS, transaction
 from django.template.defaultfilters import slugify
+from django.utils import six
 
 import boundaries
 from boundaries.models import BoundarySet, Boundary, app_settings
@@ -48,6 +49,11 @@ class Command(BaseCommand):
         return '0.1'
 
     def handle(self, *args, **options):
+        if settings.DEBUG:
+            print('DEBUG is True - this can cause memory usage to balloon.  continue? [y/n]')
+            if six.moves.input().lower() != 'y':
+                return
+
         # Load configuration
         boundaries.autodiscover(options['data_dir'])
 
