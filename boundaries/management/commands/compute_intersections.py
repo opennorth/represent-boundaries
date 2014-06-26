@@ -48,7 +48,7 @@ class Command(BaseCommand):
 				except Exception as e:
 					sys.stderr.write("%s/%s: %s\n" % (a_slug, b_bdry.slug, text_type(e)))
 					continue
-					
+
 				int_area = geometry.area
 				if geometry.empty: continue
 
@@ -86,7 +86,7 @@ class Command(BaseCommand):
 					if options["include_metadata"]:
 						output[-1][bset_a.slug]["metadata"] = a_bdry.metadata
 						output[-1][bset_b.slug]["metadata"] = b_bdry.metadata
-				
+
 		if options["format"] == "json":
 			print(json.dumps(output, sort_keys=True, indent=2))
-	
+
