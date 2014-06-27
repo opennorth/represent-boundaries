@@ -17,7 +17,7 @@ Notable deployments include:
 
 ## Install
 
-Represent Boundaries requires Python 2.7 or 3.3 and PostGIS. If you are unfamiliar with PostGIS and use OS X, install Xcode from the App Store, [install Homebrew](https://github.com/opennorth/opennorth.ca/wiki/Python-Quick-Start:-OS-X#homebrew), [install Python](https://github.com/opennorth/opennorth.ca/wiki/Python-Quick-Start:-OS-X#python-and-virtualenv) and [install PostGIS](https://github.com/opennorth/opennorth.ca/wiki/Python-Quick-Start:-OS-X#gdal-and-postgis). The last instructions to create a PostGIS template database are similar on Linux.
+Represent Boundaries requires Python 2.7 or 3.3 and PostGIS. If you are unfamiliar with PostGIS and use OS X, install [Xcode](https://itunes.apple.com/us/app/xcode/id497799835), [Homebrew](https://github.com/opennorth/opennorth.ca/wiki/Python-Quick-Start:-OS-X#homebrew), [Python](https://github.com/opennorth/opennorth.ca/wiki/Python-Quick-Start:-OS-X#python-and-virtualenv) and [PostGIS](https://github.com/opennorth/opennorth.ca/wiki/Python-Quick-Start:-OS-X#gdal-and-postgis). The last instructions to create a PostGIS template database are similar on Linux.
 
 Now, create a PostGIS database using the template you created:
 
