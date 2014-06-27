@@ -1,8 +1,8 @@
-# Represent API: Boundaries
+# Represent Boundaries
 
-[Represent](http://represent.opennorth.ca) is the open database of Canadian elected representatives and electoral districts. It provides a RESTful API to boundary, representative, and postcode resources.
+This repository provides an API to geographic boundaries. It is based on the Chicago Tribune's [django-boundaryservice](http://github.com/newsapps/django-boundaryservice) from [this commit](https://github.com/newsapps/django-boundaryservice/commit/67e79d47d49eab444681309328dbe6554b953d69).
 
-This repository provides an API to geographic boundaries. It is based on the Chicago Tribune's [django-boundaryservice](http://github.com/newsapps/django-boundaryservice).
+[Represent](http://represent.opennorth.ca) is an open database of Canadian elected representatives and electoral districts. It provides a RESTful API to boundary, representative, and postcode resources.
 
 The [represent-canada](http://github.com/opennorth/represent-canada) repository provides a full sample app, and points to plugins which add representative, postcode, and map features to this boundaries API.
 
@@ -12,29 +12,33 @@ API documentation is available at [represent.opennorth.ca/api/](http://represent
 
 Install the package:
 
-    python setup.py install
+    pip install represent-boundaries
 
-Add `boundaries` to INSTALLED_APPS in your settings.py.
+Add the following to `INSTALLED_APPS` in your `settings.py`:
 
-Add the following to your urls.py:
+    'boundaries',
+
+Add the following to your `urls.py`:
 
     (r'', include('boundaries.urls')),
 
-Run `python manage.py syncdb` (or `migrate` if you use South).
+Run:
+
+    python manage.py syncdb
 
 ## Adding data
 
-By default, shapefiles are expected to be in subdirectories of [project_dir]/data/shapefiles, though this can be configured via the `BOUNDARIES_SHAPEFILES_DIR` setting.
+Shapefiles are loaded from `BOUNDARIES_SHAPEFILES_DIR`, which defaults to `./data/shapefiles`. This directory contains a directory tree of shapefiles and definition files named `definition.py` or `definitions.py`. Definition files register "boundary sets," .
 
-To load data, run
+To load data, run:
 
     python manage.py loadshapefiles
 
-This command loads every file for which it can find a definition. It looks for definitions in files ending with `definition.py` or `definitions.py` in `BOUNDARIES_SHAPEFILE_DIR` or its subdirectories.
+This command loads every file for which it can find a definition.
 
 See the sample definition in [definition.example.py](http://github.com/rhymeswithcycle/represent-boundaries/blob/master/definition.example.py).
 
-Note that it's a good idea to keep DEBUG off during this process or Django will try to remember every SQL command.
+Note that it's a good idea to keep `DEBUG` off during this process or Django will try to remember every SQL command.
 
 ## API starting point
 
