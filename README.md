@@ -45,13 +45,13 @@ You can now run `python manage.py runserver` and navigate to [http://127.0.0.1:8
 
 ## Add data
 
-Represent Boundaries loads geospatial data in the shapefile format. A [shapefile](http://en.wikipedia.org/wiki/Shapefile) is a popular geospatial vector data format for geographic information system (GIS) software, developed by ESRI. Other formats like KML and GeoJSON are easily converted to shapefile using tools like [ogr2ogr](http://www.gdal.org/ogr2ogr.html). A first step is to collect the geospatial data that you need.
+Represent Boundaries loads geospatial data in the [shapefile](http://en.wikipedia.org/wiki/Shapefile) format. Other formats like KML and GeoJSON are easily converted to shapefile using tools like [ogr2ogr](http://www.gdal.org/ogr2ogr.html). A first step is to collect the geospatial data that you need.
 
-You've got your shapefiles? The next step is to write definition files that describe how to load shapefiles into the API. When a shapefile is loaded, a **boundary set** is created for the shapefile and a **boundary** is created for each polygon feature in the shapefile. See the [example definition file](http://github.com/opennorth/represent-boundaries/blob/master/definition.example.py) for details on how to control how shapefiles are loaded. Most parameters in definition files are optional.
+You've got your shapefiles? The next step is to write definition files that describe how to load shapefiles into the API. When a shapefile is loaded, a **boundary set** is created for the shapefile and a **boundary** is created for each polygon feature in the shapefile. See the [example definition file](http://github.com/opennorth/represent-boundaries/blob/master/definition.example.py) for details on how to control how shapefiles are loaded. Most parameters in a definition file are optional.
 
-Represent Boundaries looks for definition files, named `definition.py` or `definitions.py`, in `my_project/data/shapefiles` by default. You can change this path by setting `BOUNDARIES_SHAPEFILES_DIR` in `my_project/settings.py`. Represent Boundaries will walk the entire directory tree looking for definition files, so you may organize your shapefiles any way you like. [Some](https://github.com/sunlightlabs/pentagon/blob/master/shapefiles/definitions.py) put the shapefiles in subdirectories with a single top-level `definitions.py` file; [others](https://github.com/opennorth/represent-canada-data) create a directory tree with a `definition.py` file in each directory containing a shapefile.
+Represent Boundaries looks for definition files, named `definition.py` or `definitions.py`, in `my_project/data/shapefiles`. You can change this path by setting `BOUNDARIES_SHAPEFILES_DIR` in `my_project/settings.py`. Represent Boundaries will walk the directory tree looking for definition files, so you may organize your shapefiles any way you like. [Some](https://github.com/sunlightlabs/pentagon/blob/master/shapefiles/definitions.py) put the shapefiles in subdirectories with a single top-level `definitions.py` file; [others](https://github.com/opennorth/represent-canada-data) create a tree with a `definition.py` file in each directory containing a shapefile.
 
-Once you've written your definition files, before continuing, in `my_project/settings.py`, change `DEBUG` to `False` to avoid high memory consumption. Now, run:
+Once you've written your definition files, run:
 
     python manage.py loadshapefiles
 
@@ -59,7 +59,7 @@ The data should now be available via the API.
 
 ## Use the API
 
-You can explore the API starting from `/boundary-sets/`. You'll see links to get details on each individual boundary set and links to browse each boundary set's boundaries. Add `?format=apibrowser` to the end of the URL to make it easier to click on links and explore the API. Once you find your way to the details of an individual boundary, you'll see links to get its shape, simplified shape, or centroid.
+You can explore the API starting from `/boundary-sets/`. You'll see links to each boundary set's details and links to browse each boundary set's boundaries. Add `?format=apibrowser` to the end of the URL to make it easier to click on links and explore the API. If you find your way to an individual boundary's details, you'll see links to get its shape, simplified shape, or centroid.
 
 For all API documentation, including filters and geospatial queries, [read the API reference](http://represent.opennorth.ca/api/#boundaryset).
 
