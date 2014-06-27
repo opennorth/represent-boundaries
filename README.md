@@ -31,33 +31,33 @@ Start a new Django project (skip if you are integrating Represent Boundaries int
 
     django-admin.py startproject my_project
 
-In `my_project/settings.py`, [configure the default database](https://docs.djangoproject.com/en/dev/ref/contrib/gis/tutorial/#configure-settings-py) to connect to your PostGIS database and add `'boundaries'` to the list of `INSTALLED_APPS`.
+In `my_project/settings.py`, [configure the default database](https://docs.djangoproject.com/en/dev/ref/contrib/gis/tutorial/#configure-settings-py) to connect to your PostGIS database and add `'boundaries'` to the list of `INSTALLED_APPS`. In `my_project/urls.py`, add this line at the end of the `urlpatterns` list:
 
-In `my_project/urls.py`, add this line at the end of the `urlpatterns` list:
-
+```python
     (r'', include('boundaries.urls')),
+```
 
 From your project's directory, run:
 
     python manage.py syncdb --noinput
 
-You can now run `python manage.py runserver` and navigate to `http://127.0.0.1:8000/boundary-sets/` to see your empty API. Let's add some data!
+You can now run `python manage.py runserver` and navigate to [http://127.0.0.1:8000/boundary-sets/](http://127.0.0.1:8000/boundary-sets/) to see your empty API. Let's add some data!
 
 ## Load shapefiles
 
-[Shapefiles](http://en.wikipedia.org/wiki/Shapefile) are a popular geospatial vector data format for geographic information system (GIS) software, developed by ESRI. Other formats like KML, GeoJSON and others are easily converted to shapefile using tools like [`ogr2ogr`](http://www.gdal.org/ogr2ogr.html). A first step is to collect the geospatial data that you need.
+[Shapefiles](http://en.wikipedia.org/wiki/Shapefile) are a popular geospatial vector data format for geographic information system (GIS) software, developed by ESRI. Other formats like KML, GeoJSON and others are easily converted to shapefile using tools like [ogr2ogr](http://www.gdal.org/ogr2ogr.html). A first step is to collect the geospatial data that you need.
 
-Ready? Before continuing, in `my_project/settings.py`, change `DEBUG` to `False` to avoid high memory consumption.
+You've got your shapefiles? Before continuing, in `my_project/settings.py`, change `DEBUG` to `False` to avoid high memory consumption.
 
-Represent Boundaries looks for definition files, named `definition.py` or `definitions.py`, in `my_project/data/shapefiles` by default. Definition files describe how to load shapefiles into the API. When a shapefile is loaded, a **boundary set** is created for the shapefile and a **boundary** is created for each polygon feature in the shapefile. See the [example definition file](http://github.com/opennorth/represent-boundaries/blob/master/definition.example.py) for details on how to control how shapefiles are loaded. Most parameters in definition files are optional.
-
-You can change the `data/shapefiles` path by setting `BOUNDARIES_SHAPEFILES_DIR` in `my_project/settings.py`. Represent Boundaries will walk the entire directory tree looking for definition files, so you may organize your shapefiles any way you like. [Some](https://github.com/sunlightlabs/pentagon/blob/master/shapefiles/definitions.py) put the shapefiles in subdirectories with a single top-level `definitions.py` file; [others](https://github.com/opennorth/represent-canada-data) create a directory tree with a `definition.py` file in each directory containing a shapefile.
+Represent Boundaries looks for definition files, named `definition.py` or `definitions.py`, in `my_project/data/shapefiles` by default\*. Definition files describe how to load shapefiles into the API. When a shapefile is loaded, a **boundary set** is created for the shapefile and a **boundary** is created for each polygon feature in the shapefile. See the [example definition file](http://github.com/opennorth/represent-boundaries/blob/master/definition.example.py) for details on how to control how shapefiles are loaded. Most parameters in definition files are optional.
 
 Once you've written a definition for each shapefile, run:
 
     python manage.py loadshapefiles
 
 The data should now be available via the API.
+
+\* You can change the `data/shapefiles` path by setting `BOUNDARIES_SHAPEFILES_DIR` in `my_project/settings.py`. Represent Boundaries will walk the entire directory tree looking for definition files, so you may organize your shapefiles any way you like. [Some](https://github.com/sunlightlabs/pentagon/blob/master/shapefiles/definitions.py) put the shapefiles in subdirectories with a single top-level `definitions.py` file; [others](https://github.com/opennorth/represent-canada-data) create a directory tree with a `definition.py` file in each directory containing a shapefile.
 
 ## Use the API
 
