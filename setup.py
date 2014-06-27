@@ -3,8 +3,8 @@ from setuptools import setup
 setup(
     name = "represent-boundaries",
     version = "0.2",
-    url='http://github.com/rhymeswithcycle/represent-boundaries',
-    description="A Web API to geographical districts loaded from shapefiles. Packaged as a Django app.",
+    url='http://github.com/opennorth/represent-boundaries',
+    description="A web API to geographic boundaries loaded from shapefiles, packaged as a Django app.",
     license = "MIT",
     packages = [
         'boundaries',

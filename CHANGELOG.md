@@ -1,29 +1,28 @@
 # Changelog
 
-## 1.0
+## 1.0 (Unreleased)
 
 * Django 1.7 compatibility.
 * API
   * If the `contains` parameter is an invalid latitude and longitude pair, return the invalid pair in the error message.
 
-## 0.2
+## 0.2 (2014-03-26)
 
 * Python 3 compatibility. [#14](https://github.com/opennorth/represent-boundaries/pull/14)
 * Fix various small bugs and encoding issues and add help text.
 * API
   * Add CORS support.
   * New API throttle.
-  * Enable filtering boundaries by `external_id`.
   * If a request is made with invalid filters, return a 400 error instead of a 500 error.
   * JSON
-    * Add `extent` and `last_updated` to the detail of boundary sets.
+    * Add `extent` to the detail of boundary sets.
     * Add `external_id` to the list of boundaries.
     * Add `extent`, `centroid` and `extra` to the detail of boundaries.
 * Loading shapefiles
   * Calculate the geographic extent of boundary sets and boundaries.
   * Re-load a boundary set if the `last_updated` field in its definition is more recent than in the database, without having to set the `--reload` switch.
   * If two boundaries have the same slug, and the `--merge` option is set to `union` or `combine`, union their geometries or combine their geometries into a MultiPolygon.
-  * Follow symbolic links when traversing the shapefiles directory tree.
+  * Follow symbolic links when walking the shapefiles directory tree.
   * If `DEBUG = True`, prompt the user about the risk of high memory consumption. [#15](https://github.com/opennorth/represent-boundaries/pull/15)
   * Log an error if a shapefile contains no layers.
   * Add an example definition file.
@@ -36,10 +35,10 @@
     * Clean up temporary files created by uncompressing ZIP files.
     * Support ZIP files containing directories.
 * Management commands
-  * Add a `compute_intersections` management command to output information about overlapping boundaries from a pair of boundary sets.
+  * Add a `compute_intersections` management command to report overlapping boundaries from a pair of boundary sets.
   * Remove the `startshapedefinitions` management command.
 
-## 0.1
+## 0.1 (2013-09-14)
 
 This first release is a [significant refactoring](https://github.com/opennorth/represent-boundaries/commit/db2cdaa381ecde423dd68962d79811925092d4da) of [django-boundaryservice](https://github.com/newsapps/django-boundaryservice) from [this commit](https://github.com/newsapps/django-boundaryservice/commit/67e79d47d49eab444681309328dbe6554b953d69). Minor changes may not be logged.
 
