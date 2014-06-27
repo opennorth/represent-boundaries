@@ -63,22 +63,6 @@ You can explore the API starting from `/boundary-sets/`. You'll see links to eac
 
 For all API documentation, including filters and geospatial queries, [read the API reference](http://represent.opennorth.ca/api/#boundaryset).
 
-## What It Doesn't Do
-
-Represent Boundaries doesn't support:
-
-* Versioning of boundary sets or boundaries
-* Hierarchies of boundary sets
-* Points in addition to polygons
-
-If you need those features, have a look at [MapIt](http://mapit.poplus.org/). That said, users have found workarounds or built small Django apps to fill in these gaps. For example, [Imago](https://github.com/opencivicdata/imago) introduces "temporal sets" to add dates to boundary sets. [Represent Postcodes](https://github.com/rhymeswithcycle/represent-postcodes) adds support for Canadian postal codes, a type of point. Instead of versioning, most users namespace boundary sets with a year: for example, `federal-electoral-districts-2003` or `federal-electoral-districts-2013`.
-
-Advantages of Represent Boundries over MapIt:
-
-* Definition files give you fine-grain control over how data is loaded into the API, in particular how boundaries are named and identified, without having to write custom import scripts.
-* Boundary sets are used to organize boundaries and to publish metadata like information on the data's provenance. MapIt assigns types to areas to easily find all boundaries belonging to the same boundary set: for example, [all London wards](http://mapit.mysociety.org/areas/LBW). However, MapIt cannot publish metadata about an area type.
-* Represent Boundaries is a much smaller code base, making it easier to extend. For example, if you would like to create colorful map tile layers, check out [Represent Maps](https://github.com/JoshData/represent-maps) by Joshua Tauberer, which extends Represent Boundaries.
-
 ## Update data
 
 After running Represent Boundaries for a while, you may need to add new shapefiles, update a shapefile, or correct an error in your definition file. The `loadshapefiles` management command offers many options to make data management easy. To see all options, run:
@@ -90,6 +74,22 @@ If you are adding a shapefile, simply create a definition file as usual and run 
 If you have updated a shapefile, remember to change the `last_updated` parameter in its definition file. When you run the `loadshapefiles` command, the updated will be detected automatically, and the shapefile will be re-loaded.
 
 If you have corrected an error in a definition file, run the `loadshapefiles` with the `--reload` option to re-load its shapefile, even if `last_updated` is unchanged. To avoid re-loading every shapefile, point the command to the directory of the corrected definition file with the `--data-dir` option.
+
+## What It Doesn't Do
+
+Represent Boundaries doesn't support:
+
+* Versioning of boundary sets or boundaries
+* Hierarchies of boundary sets
+* Points in addition to polygons
+
+If you need these features, have a look at [MapIt](http://mapit.poplus.org/). That said, users have found workarounds or built small Django apps to fill in these gaps. For example, [Imago](https://github.com/opencivicdata/imago) introduces "temporal sets" to add dates to boundary sets. [Represent Postcodes](https://github.com/rhymeswithcycle/represent-postcodes) adds support for Canadian postal codes, a type of point. Instead of versioning, most users namespace boundary sets with a year: for example, `federal-electoral-districts-2003` or `federal-electoral-districts-2013`.
+
+If you're having trouble choosing between Represent Boundaries and MapIt, here are some advantages to Represent Boundaries:
+
+* Definition files give you fine-grain control over how data is loaded into the API, in particular how boundaries are named and identified, without having to write custom import scripts.
+* Boundary sets are used to organize boundaries and to publish metadata, like information on the data's provenance. MapIt assigns types to areas to easily find all boundaries belonging to the same boundary set: for example, [all London wards](http://mapit.mysociety.org/areas/LBW). However, MapIt cannot publish metadata about an area type.
+* Represent Boundaries is a much smaller code base, making it easier to extend. For example, if you would like to create colorful map tile layers, check out [Represent Maps](https://github.com/JoshData/represent-maps) by Joshua Tauberer, which extends Represent Boundaries.
 
 ## Acknowledgements
 
