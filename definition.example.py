@@ -9,7 +9,7 @@ boundaries.register('federal-electoral-districts', # The slug of the boundary se
     # omit this parameter, or set it to the empty string.
     file='',
     # (Optional)  The encoding of the shapefile's attributes. The default is
-    # "ascii", but most shapefiles are encoded as "iso-8859-1".
+    # "ascii", but many shapefiles are encoded as "iso-8859-1".
     encoding='iso-8859-1',
 
 
