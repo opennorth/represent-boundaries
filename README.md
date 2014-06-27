@@ -15,6 +15,8 @@ Notable deployments include:
 * [GovTrack.us](https://www.govtrack.us/congress/members) helps track the activities of the United States Congress and uses Represent Boundaries to help people find their members of Congress.
 * [ANCFinder.org](http://ancfinder.org/) helps Washington, DC residents discover and participate in their Advisory Neighborhood Commissions.
 
+Represent Boundaries is one of many [Poplus Components](http://poplus.org/components/): independent pieces of software developed to solve a range of common problems encountered when building civic and democratic websites. [Check out the other components.](http://poplus.org/components/current/)
+
 ## Install
 
 Represent Boundaries requires Python 2.7 or 3.3 and PostGIS. If you are unfamiliar with PostGIS and use OS X, install [Xcode](https://itunes.apple.com/us/app/xcode/id497799835), [Homebrew](https://github.com/opennorth/opennorth.ca/wiki/Python-Quick-Start:-OS-X#homebrew), [Python](https://github.com/opennorth/opennorth.ca/wiki/Python-Quick-Start:-OS-X#python-and-virtualenv) and [PostGIS](https://github.com/opennorth/opennorth.ca/wiki/Python-Quick-Start:-OS-X#gdal-and-postgis). The last instructions to create a PostGIS template database are similar on Linux.
@@ -75,7 +77,7 @@ If you have updated a shapefile, remember to change the `last_updated` parameter
 
 If you have corrected an error in a definition file, run the `loadshapefiles` with the `--reload` option to re-load its shapefile, even if `last_updated` is unchanged. To avoid re-loading every shapefile, point the command to the directory of the corrected definition file with the `--data-dir` option.
 
-## What It Doesn't Do
+## What it doesn't do
 
 Represent Boundaries doesn't support:
 
