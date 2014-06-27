@@ -23,31 +23,6 @@ class MyAppConf(AppConf):
     # The value for the Access-Control-Allow-Origin header
     ALLOW_ORIGIN = '*'
 
-    # To enable the throttle, in the main Django settings.py, set
-    # BOUNDARIES_THROTTLE = 'boundaries.throttle.AnonRateThrottle'
-    THROTTLE = ''
-
-    # The HTTP header containing the IP the request is coming from.
-    # If you're behind a reverse proxy, you might want e.g.
-    # BOUNDARIES_THROTTLE_IP_HEADER = 'X_REAL_IP'
-    THROTTLE_IP_HEADER = 'REMOTE_ADDR'
-
-    # Rates are in the form (number of requests, number of seconds)
-    DEFAULT_THROTTLE_RATES = {
-        'anon': (90, 90)  # Throttle after 90 requests in 90 seconds.
-    }
-
-    # Any IP addresses here won't be throttled
-    THROTTLE_IP_WHITELIST = set()
-
-    # If an API key in THROTTLE_APIKEY_LIST is provided,
-    # via the HEADER header or PARAM GET parameter,
-    # the request won't be throttled
-    THROTTLE_APIKEY_HEADER = 'X-Represent-Key'
-    THROTTLE_APIKEY_PARAM = 'key'
-    THROTTLE_APIKEY_LIST = set()
-
-    THROTTLE_LOG = False  # On True, throws a warning whenever someone's throttled
 
 app_settings = MyAppConf()
 
