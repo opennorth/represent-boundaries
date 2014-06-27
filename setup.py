@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name = "represent-boundaries",
     version = "0.2",
-    url='http://github.com/opennorth/represent-boundaries',
+    url="http://represent.poplus.org/",
     description="A web API to geographic boundaries loaded from shapefiles, packaged as a Django app.",
     license = "MIT",
     packages = [
