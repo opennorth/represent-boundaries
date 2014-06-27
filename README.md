@@ -38,7 +38,14 @@ Start a new Django project (skip if you are integrating Represent Boundaries int
 
     django-admin.py startproject my_project
 
-In `my_project/settings.py`, [configure the default database](https://docs.djangoproject.com/en/dev/ref/contrib/gis/tutorial/#configure-settings-py) to connect to your PostGIS database and add `'boundaries'` to the list of `INSTALLED_APPS`. In `my_project/urls.py`, add this to the end of the `urlpatterns` list:
+In `my_project/settings.py`, [configure the default database](https://docs.djangoproject.com/en/dev/ref/contrib/gis/tutorial/#configure-settings-py) to connect to your PostGIS database. Add these lines to the end of the `INSTALLED_APPS` list:
+
+```python
+    'django.contrib.gis',
+    'boundaries',
+```
+
+In `my_project/urls.py`, add this line to the end of the `urlpatterns` list:
 
 ```python
     (r'', include('boundaries.urls')),
