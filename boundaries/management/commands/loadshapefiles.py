@@ -47,7 +47,7 @@ class Command(BaseCommand):
     )
 
     def get_version(self):
-        return '0.1'
+        return '0.3'
 
     def handle(self, *args, **options):
         if settings.DEBUG:

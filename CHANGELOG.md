@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0 (Unreleased)
+## 0.3 (2014-06-27)
 
 * Django 1.7 compatibility.
 * API

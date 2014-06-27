@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name = "represent-boundaries",
-    version = "0.2",
+    version = "0.3",
     url="http://represent.poplus.org/",
     description="A web API to geographic boundaries loaded from shapefiles, packaged as a Django app.",
     license = "MIT",
