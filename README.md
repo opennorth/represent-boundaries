@@ -1,12 +1,12 @@
 # Represent Boundaries
 
-Represent Boundaries is a web service allowing you to easily perform queries on geographic boundaries. For example:
+Represent Boundaries is a web API allowing you to easily perform queries on geographic boundaries. For example:
 
 * Submit a latitude and longitude to find the administrative area that contains it
 * Render a map of school districts in your region
 * Find boundaries that intersect or touch another boundary
 
-Represent Boundaries provides a command-line tool to easily load geospatial data into the API. It's a Django app that's easy to integrate into your own project or to deploy on its own as an independent web service.
+Represent Boundaries is a Django app that's easy to integrate into your own project or to deploy on its own as an independent web service. It uses a simple file format to control how data is loaded into the API, and it provides a command-line tool to easily manage data.
 
 Notable uses include:
 
@@ -22,12 +22,13 @@ Public instances include:
 
 Represent Boundaries is one of many [Poplus Components](http://poplus.org/components/): independent pieces of software developed to solve a range of common problems encountered when building civic and democratic websites. [Check out the other components.](http://poplus.org/components/current/)
 
-## Usage
+## Documentation
 
 * [Installation](http://represent.poplus.org/docs/install/)
 * [Add data to the API](http://represent.poplus.org/docs/import/)
 * [Use the API](http://represent.poplus.org/docs/api/)
 * [Update data in the API](http://represent.poplus.org/docs/manage/)
+* [Read the API reference](http://represent.poplus.org/docs/reference/)
 
 ## Acknowledgements
 
