@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2 (2014-07-01)
+
+* Add templates and static files to package.
+
 ## 0.3.1 (2014-07-01)
 
 * Python 3 compatibility: Fix writing ZIP file contents.
