@@ -2,7 +2,8 @@ from datetime import date
 
 import boundaries
 
-boundaries.register('federal-electoral-districts', # The slug of the boundary set
+boundaries.register('Federal electoral districts', # The string to be used for
+    # the boundary set's slug. The slug will be "federal-electoral-districts".
 
     # (Optional) The path to the shapefile's directory relative to this file. If
     # this definition file and the shapefile share the same directory, you can
@@ -15,13 +16,14 @@ boundaries.register('federal-electoral-districts', # The slug of the boundary se
 
     # The following Boundary Set fields will be made available via the API.
 
-    # The name of the boundary set, for display.
+    # The date on which the data was most recently updated.
+    last_updated=date(2011, 11, 28),
+    # The name of the boundary set, for display. By default, it will use the
+    # boundary set's slug.
     name='Federal electoral districts',
     # A generic singular name for a boundary in this set. If the boundary set's
     # name ends in "s", this parameter is optional, as is the case here.
     singular='Federal electoral district',
-    # The date on which the data was most recently updated.
-    last_updated=date(2011, 11, 28),
 
     # (Optional) A description of the boundary set's spatial coverage, which if
     # often a country, a region, a municipality, etc.
