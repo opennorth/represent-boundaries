@@ -348,9 +348,8 @@ def temp_shapefile_from_zip(zip_path):
         outfile = os.path.join(tempdir, os.path.basename(name))
         if name.endswith('.shp'):
             shape_path = outfile
-        f = open(outfile, 'w')
-        f.write(data)
-        f.close()
+        with open(outfile, 'wb') as f:
+            f.write(data)
 
     return tempdir, shape_path
 
