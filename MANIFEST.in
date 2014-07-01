@@ -1,0 +1,2 @@
+recursive-include boundaries/static *
+recursive-include boundaries/templates *
