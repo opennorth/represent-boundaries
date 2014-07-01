@@ -222,8 +222,10 @@ class Command(BaseCommand):
                     b0 = Boundary.objects.get(set=bset, slug=feature_slug)
 
                     g = OGRGeometry(OGRGeomType('MultiPolygon'))
-                    for p in b0.shape: g.add(p.ogr)
-                    for p in geometry: g.add(p)
+                    for p in b0.shape:
+                        g.add(p.ogr)
+                    for p in geometry:
+                        g.add(p)
                     b0.shape = g.wkt
 
                     if options["merge"] == "union":
@@ -265,10 +267,14 @@ class Command(BaseCommand):
                 label_point=config.get("label_point_func", lambda x : None)(feature)
                 )
 
-            if bset.extent[0] == None or bdry.extent[0] < bset.extent[0]: bset.extent[0] = bdry.extent[0]
-            if bset.extent[1] == None or bdry.extent[1] < bset.extent[1]: bset.extent[1] = bdry.extent[1]
-            if bset.extent[2] == None or bdry.extent[2] > bset.extent[2]: bset.extent[2] = bdry.extent[2]
-            if bset.extent[3] == None or bdry.extent[3] > bset.extent[3]: bset.extent[3] = bdry.extent[3]
+            if bset.extent[0] == None or bdry.extent[0] < bset.extent[0]:
+                bset.extent[0] = bdry.extent[0]
+            if bset.extent[1] == None or bdry.extent[1] < bset.extent[1]:
+                bset.extent[1] = bdry.extent[1]
+            if bset.extent[2] == None or bdry.extent[2] > bset.extent[2]:
+                bset.extent[2] = bdry.extent[2]
+            if bset.extent[3] == None or bdry.extent[3] > bset.extent[3]:
+                bset.extent[3] = bdry.extent[3]
 
 def create_datasources(config, path, clean_shp):
     tmpdirs = []
@@ -336,7 +342,8 @@ def temp_shapefile_from_zip(zip_path):
     shape_path = None
     # Copy the zipped files to a temporary directory, preserving names.
     for name in zf.namelist():
-        if name.endswith("/"): continue
+        if name.endswith("/"):
+            continue
         data = zf.read(name)
         outfile = os.path.join(tempdir, os.path.basename(name))
         if name.endswith('.shp'):
