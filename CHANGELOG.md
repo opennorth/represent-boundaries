@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 (2014-07-01)
+
+* Python 3 compatibility: Fix writing ZIP file contents.
+
 ## 0.3 (2014-06-27)
 
 * Django 1.7 compatibility.
