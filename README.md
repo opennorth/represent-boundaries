@@ -1,12 +1,8 @@
 # Represent Boundaries
 
-Represent Boundaries is a web API allowing you to easily perform queries on geographic boundaries. For example:
+Represent Boundaries is a web API to geographic areas, like electoral districts. It allows you to easily find the areas that cover your users' locations to display location-based information, like profiles of electoral candidates.
 
-* Submit a latitude and longitude to find the administrative area that contains it
-* Render a map of school districts in your region
-* Find boundaries that intersect or touch another boundary
-
-Represent Boundaries is a Django app that's easy to integrate into your own project or to deploy on its own as an independent web service. It uses a simple file format to control how data is loaded into the API, and it provides a command-line tool to easily manage data.
+It's a Django app that's easy to integrate into an existing project or to deploy on its own. It uses a simple file format to control how data is loaded into the API, and it provides a command-line tool to easily manage data.
 
 Notable uses include:
 
