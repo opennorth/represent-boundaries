@@ -213,7 +213,7 @@ class Command(BaseCommand):
 
             external_id = str(config['id_func'](feature))
             feature_name = config['name_func'](feature)
-            feature_slug = slugify(config['slug_func'](feature).replace('—', '-'))
+            feature_slug = slugify(str(config['slug_func'](feature)).replace('—', '-'))  # m-dash
 
             log.info('%s...' % feature_slug)
 
