@@ -7,6 +7,7 @@ import re
 
 from django.utils.six.moves.urllib.parse import urlencode
 from django.utils.six import text_type
+from django.utils.translation import ugettext as _
 
 from django.conf import settings
 from django.contrib.gis.measure import D
@@ -135,7 +136,7 @@ class ModelListView(APIView):
         try:
             qs = self.filter(request, qs)
         except ValueError:
-            raise BadRequest("Invalid filter value")
+            raise BadRequest(_("Invalid filter value"))
         if hasattr(self.model, 'prepare_queryset_for_get_dicts'):
             qs = self.model.prepare_queryset_for_get_dicts(qs)
         paginator = Paginator(request.GET, qs, resource_uri=request.path)
@@ -175,7 +176,7 @@ class ModelGeoListView(ModelListView):
                     wkt_pt = 'POINT(%s %s)' % (lon, lat)
                     qs = qs.filter(**{self.default_geo_filter_field + "__contains" : wkt_pt})
                 except ValueError:
-                    raise BadRequest("Invalid latitude,longitude '%s' provided." % request.GET['contains'])
+                    raise BadRequest(_("Invalid latitude,longitude '%(value)s' provided.") % {'value': request.GET['contains']})
 
             if 'near' in request.GET:
                 lat, lon, range = request.GET['near'].split(',')
@@ -200,12 +201,12 @@ class ModelGeoListView(ModelListView):
         try:
             qs = self.filter(request, qs)
         except ValueError:
-            raise BadRequest("Invalid filter value")
+            raise BadRequest(_("Invalid filter value"))
 
         if qs.count() > app_settings.MAX_GEO_LIST_RESULTS:
             return HttpResponseForbidden(
-                "Spatial-list queries cannot return more than %d resources; this query would return %s. Please filter your query."
-                % (app_settings.MAX_GEO_LIST_RESULTS, qs.count()))
+                _("Spatial-list queries cannot return more than %(expected)d resources; this query would return %(actual)s. Please filter your query.")
+                % {'expected': app_settings.MAX_GEO_LIST_RESULTS, 'actual': qs.count()})
 
         format = request.GET.get('format', 'json')
 
@@ -343,10 +344,10 @@ class Paginator(object):
         try:
             limit = int(limit)
         except ValueError:
-            raise BadRequest("Invalid limit '%s' provided. Please provide a positive integer." % limit)
+            raise BadRequest(_("Invalid limit '%(value)s' provided. Please provide a positive integer.") % {'value': limit})
 
         if limit < 0:
-            raise BadRequest("Invalid limit '%s' provided. Please provide a positive integer >= 0." % limit)
+            raise BadRequest(_("Invalid limit '%(value)s' provided. Please provide a positive integer >= 0.") % {'value': limit})
 
         if self.max_limit and (not limit or limit > self.max_limit):
             # If it's more than the max, we're only going to return the max.
@@ -372,10 +373,10 @@ class Paginator(object):
         try:
             offset = int(offset)
         except ValueError:
-            raise BadRequest("Invalid offset '%s' provided. Please provide an integer." % offset)
+            raise BadRequest(_("Invalid offset '%(value)s' provided. Please provide an integer.") % {'value': offset})
 
         if offset < 0:
-            raise BadRequest("Invalid offset '%s' provided. Please provide a positive integer >= 0." % offset)
+            raise BadRequest(_("Invalid offset '%(value)s' provided. Please provide a positive integer >= 0.") % {'value': offset})
 
         return offset
 

@@ -7,23 +7,24 @@ from optparse import make_option
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.contrib.gis.geos import MultiPolygon, Polygon
+from django.utils.translation import ugettext_lazy as _
 
 from boundaries.models import BoundarySet, Boundary
 
 class Command(BaseCommand):
-	help = 'Create a report of the area of intersection of every pair of boundaries from two boundary sets specified by their slug.'
-	args = 'boundaryset1 boundaryset1'
+	help = _('Create a report of the area of intersection of every pair of boundaries from two boundary sets specified by their slug.')
+	args = 'boundaryset1 boundaryset2'
 
 	option_list = BaseCommand.option_list + (
 		make_option('-f', '--format', action='store', dest='format', default="csv",
-			help='Choose an output format: csv, json.'),
+			help=_('Choose an output format: csv, json.')),
 		make_option('-m', '--metadata', action='store_true', dest='include_metadata', default=False,
-			help='Includes the original shapefile metadata in the output.'),
+			help=_('Includes the original shapefile metadata in the output.')),
 	)
 
 	def handle(self, *args, **options):
 		if len(args) < 2:
-			print("Specify two boundaryset slugs.")
+			print(_("Specify two boundaryset slugs."))
 			return
 
 		bset_a = BoundarySet.objects.get(slug=args[0])

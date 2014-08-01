@@ -20,6 +20,7 @@ from django.core.management.base import BaseCommand
 from django.db import connections, DEFAULT_DB_ALIAS, transaction
 from django.template.defaultfilters import slugify
 from django.utils import six
+from django.utils.translation import ugettext_lazy as _
 
 import boundaries
 from boundaries.models import BoundarySet, Boundary, app_settings
@@ -27,23 +28,23 @@ from boundaries.models import BoundarySet, Boundary, app_settings
 GEOMETRY_COLUMN = 'shape'
 
 class Command(BaseCommand):
-    help = 'Import boundaries described by shapefiles.'
+    help = _('Import boundaries described by shapefiles.')
     option_list = BaseCommand.option_list + (
         make_option('-r', '--reload', action='store_true', dest='reload',
-            help='Reload BoundarySets that have already been imported.'),
+            help=_('Reload BoundarySets that have already been imported.')),
         make_option('-d', '--data-dir', action='store', dest='data_dir',
             default=app_settings.SHAPEFILES_DIR,
-            help='Load shapefiles from this directory'),
+            help=_('Load shapefiles from this directory')),
         make_option('-e', '--except', action='store', dest='except',
-            default=False, help='Don\'t load these BoundarySet slugs, comma-delimited.'),
+            default=False, help=_('Don\'t load these BoundarySet slugs, comma-delimited.')),
         make_option('-o', '--only', action='store', dest='only',
-            default=False, help='Only load these BoundarySet slugs, comma-delimited.'),
+            default=False, help=_('Only load these BoundarySet slugs, comma-delimited.')),
         make_option('-u', '--database', action='store', dest='database',
-            default=DEFAULT_DB_ALIAS, help='Specify a database to load shape data into.'),
+            default=DEFAULT_DB_ALIAS, help=_('Specify a database to load shape data into.')),
         make_option('-c', '--clean', action='store_true', dest='clean',
-            default=False, help='Clean shapefiles first with ogr2ogr.'),
+            default=False, help=_('Clean shapefiles first with ogr2ogr.')),
         make_option('-m', '--merge', action='store', dest='merge',
-            default=None, help='Merge method when there are duplicate slugs, either "combine" (preserve as a MultiPolygon) or "union" (union the polygons).'),
+            default=None, help=_('Merge method when there are duplicate slugs, either "combine" (preserve as a MultiPolygon) or "union" (union the polygons).')),
     )
 
     def get_version(self):
@@ -51,7 +52,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if settings.DEBUG:
-            print('DEBUG is True - this can cause memory usage to balloon.  continue? [y/n]')
+            print(_('DEBUG is True - this can cause memory usage to balloon.  continue? [y/n]'))
             if six.moves.input().lower() != 'y':
                 return
 
@@ -79,13 +80,13 @@ class Command(BaseCommand):
             slug = slugify(slug)
 
             if slug not in sources:
-                log.debug('Skipping %s.' % slug)
+                log.debug(_('Skipping %(slug)s.') % {'slug': slug})
                 continue
 
             try:
                 existing_set = BoundarySet.objects.get(slug=slug)
                 if (not options['reload']) and existing_set.last_updated >= config['last_updated']:
-                    log.info('Already loaded %s, skipping.' % slug)
+                    log.info(_('Already loaded %(slug)s, skipping.') % {'slug': slug})
                     continue
             except BoundarySet.DoesNotExist:
                 pass
@@ -94,7 +95,7 @@ class Command(BaseCommand):
 
     @transaction.commit_on_success
     def load_set(self, slug, config, options):
-        log.info('Processing %s.' % slug)
+        log.info(_('Processing %(slug)s.') % {'slug': slug})
 
         BoundarySet.objects.filter(slug=slug).delete()
 
@@ -109,7 +110,7 @@ class Command(BaseCommand):
 
     def load_set_2(self, slug, config, options, datasources):
         if len(datasources) == 0:
-            log.error("No shapefiles found.")
+            log.error(_("No shapefiles found."))
 
         # Add some default values
         if 'singular' not in config and config['name'].endswith('s'):
@@ -139,12 +140,12 @@ class Command(BaseCommand):
         bset.extent = [None, None, None, None] # [xmin, ymin, xmax, ymax]
 
         for datasource in datasources:
-            log.info("Loading %s from %s" % (slug, datasource.name))
+            log.info(_("Loading %(slug)s from %(source)s") % {'slug': slug, 'source': datasource.name})
             # Assume only a single-layer in shapefile
             if datasource.layer_count > 1:
-                log.warn('%s shapefile [%s] has multiple layers, using first.' % (datasource.name, slug))
+                log.warn(_('%(source)s shapefile [%(slug)s] has multiple layers, using first.') % {'slug': slug, 'source': datasource.name})
             if datasource.layer_count == 0:
-                log.error('%s shapefile [%s] has no layers, skipping.' % (datasource.name, slug))
+                log.error(_('%(source)s shapefile [%(slug)s] has no layers, skipping.') % {'slug': slug, 'source': datasource.name})
                 continue
             layer = datasource[0]
             layer.source = datasource # add additional attribute so definition file can trace back to filename
@@ -156,7 +157,7 @@ class Command(BaseCommand):
             # save the extents
             bset.save()
 
-        log.info('%s count: %i' % (slug, Boundary.objects.filter(set=bset).count()))
+        log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'source': Boundary.objects.filter(set=bset).count()})
 
     @staticmethod
     def polygon_to_multipolygon(geom):
@@ -170,7 +171,7 @@ class Command(BaseCommand):
         elif geom.__class__.__name__ == 'MultiPolygon':
             return geom
         else:
-            raise ValueError('Geom is neither Polygon nor MultiPolygon.')
+            raise ValueError(_('Geom is neither Polygon nor MultiPolygon.'))
 
     def add_boundaries_for_layer(self, config, layer, bset, options):
         # Get spatial reference system for the postgis geometry field
@@ -217,7 +218,7 @@ class Command(BaseCommand):
             feature_name = config['name_func'](feature)
             feature_slug = slugify(str(config['slug_func'](feature)).replace('—', '-'))  # m-dash
 
-            log.info('%s...' % feature_slug)
+            log.info(_('%(slug)s...') % {'slug': feature_slug})
 
             if options["merge"]:
                 try:
@@ -246,7 +247,7 @@ class Command(BaseCommand):
                         b0.simple_shape = g.wkt
 
                     else:
-                        raise ValueError("Invalid value for merge option.")
+                        raise ValueError(_("Invalid value for merge option."))
 
                     b0.centroid = b0.shape.centroid
                     b0.extent = b0.shape.extent
