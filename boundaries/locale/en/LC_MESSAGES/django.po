@@ -1,0 +1,301 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-08-01 19:21-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: base_views.py:139 base_views.py:204
+msgid "Invalid filter value"
+msgstr ""
+
+#: base_views.py:179
+#, python-format
+msgid "Invalid latitude,longitude '%(value)s' provided."
+msgstr ""
+
+#: base_views.py:208
+#, python-format
+msgid ""
+"Spatial-list queries cannot return more than %(expected)d resources; this "
+"query would return %(actual)s. Please filter your query."
+msgstr ""
+
+#: base_views.py:347
+#, python-format
+msgid "Invalid limit '%(value)s' provided. Please provide a positive integer."
+msgstr ""
+
+#: base_views.py:350
+#, python-format
+msgid ""
+"Invalid limit '%(value)s' provided. Please provide a positive integer >= 0."
+msgstr ""
+
+#: base_views.py:376
+#, python-format
+msgid "Invalid offset '%(value)s' provided. Please provide an integer."
+msgstr ""
+
+#: base_views.py:379
+#, python-format
+msgid ""
+"Invalid offset '%(value)s' provided. Please provide a positive integer >= 0."
+msgstr ""
+
+#: models.py:35 models.py:116
+msgid "The name of this BoundarySet used in API URLs."
+msgstr ""
+
+#: models.py:38
+msgid "Category of boundaries, e.g. \"Community Areas\"."
+msgstr ""
+
+#: models.py:40
+msgid "Name of a single boundary, e.g. \"Community Area\"."
+msgstr ""
+
+#: models.py:42
+msgid ""
+"The entity responsible for this data's accuracy, e.g. \"City of Chicago\"."
+msgstr ""
+
+#: models.py:44
+msgid ""
+"The area that this BoundarySet covers, e.g. \"Chicago\" or \"Illinois\"."
+msgstr ""
+
+#: models.py:46
+msgid ""
+"The last time this data was updated from its authority (but not necessarily "
+"the date it is current as of)."
+msgstr ""
+
+#: models.py:48
+msgid "The url this data was found at, if any."
+msgstr ""
+
+#: models.py:50
+msgid ""
+"Notes about loading this data, including any transformations that were "
+"applied to it."
+msgstr ""
+
+#: models.py:52
+msgid "The URL to the text of the licence this data is distributed under"
+msgstr ""
+
+#: models.py:54
+msgid ""
+"The bounding box of the boundaries in EPSG:4326 projection, as a list such "
+"as [xmin, ymin, xmax, ymax]."
+msgstr ""
+
+#: models.py:56
+msgid "The date on which this set of boundaries went into effect."
+msgstr ""
+
+#: models.py:58
+msgid "The date on which this set of boundaries was superceded."
+msgstr ""
+
+#: models.py:60
+msgid ""
+"Any other nonstandard metadata provided when creating this boundary set."
+msgstr ""
+
+#: models.py:64
+msgid "boundary set"
+msgstr ""
+
+#: models.py:65
+msgid "boundary sets"
+msgstr ""
+
+#: models.py:112 models.py:114
+msgid ""
+"Category of boundaries that this boundary belongs, e.g. \"Community Areas\"."
+msgstr ""
+
+#: models.py:118
+msgid "The boundaries' unique id in the source dataset, or a generated one."
+msgstr ""
+
+#: models.py:120
+msgid "The name of this boundary, e.g. \"Austin\"."
+msgstr ""
+
+#: models.py:122
+msgid ""
+"The complete contents of the attribute table for this boundary from the "
+"source shapefile, structured as json."
+msgstr ""
+
+#: models.py:124
+msgid "The geometry of this boundary in EPSG:4326 projection."
+msgstr ""
+
+#: models.py:126
+#, python-format
+msgid ""
+"The geometry of this boundary in EPSG:4326 projection and simplified to %s "
+"tolerance."
+msgstr ""
+
+#: models.py:129
+msgid ""
+"The centroid (weighted center) of this boundary in EPSG:4326 projection."
+msgstr ""
+
+#: models.py:131
+msgid ""
+"The bounding box of the boundary in EPSG:4326 projection, as a list such as "
+"[xmin, ymin, xmax, ymax]."
+msgstr ""
+
+#: models.py:134
+msgid ""
+"The suggested location to label this boundary in EPSG:4326 projection. Used "
+"by represent-maps, but not actually used within represent-boundaries."
+msgstr ""
+
+#: models.py:141
+msgid "boundary"
+msgstr ""
+
+#: models.py:142
+msgid "boundaries"
+msgstr ""
+
+#: views.py:47
+msgid "Invalid value for intersects filter"
+msgstr ""
+
+#: views.py:57
+msgid "Invalid value for touches filter"
+msgstr ""
+
+#: management/commands/compute_intersections.py:15
+msgid ""
+"Create a report of the area of intersection of every pair of boundaries from "
+"two boundary sets specified by their slug."
+msgstr ""
+
+#: management/commands/compute_intersections.py:20
+msgid "Choose an output format: csv, json."
+msgstr ""
+
+#: management/commands/compute_intersections.py:22
+msgid "Includes the original shapefile metadata in the output."
+msgstr ""
+
+#: management/commands/compute_intersections.py:27
+msgid "Specify two boundaryset slugs."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:31
+msgid "Import boundaries described by shapefiles."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:34
+msgid "Reload BoundarySets that have already been imported."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:37
+msgid "Load shapefiles from this directory"
+msgstr ""
+
+#: management/commands/loadshapefiles.py:39
+msgid "Don't load these BoundarySet slugs, comma-delimited."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:41
+msgid "Only load these BoundarySet slugs, comma-delimited."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:43
+msgid "Specify a database to load shape data into."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:45
+msgid "Clean shapefiles first with ogr2ogr."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:47
+msgid ""
+"Merge method when there are duplicate slugs, either \"combine\" (preserve as "
+"a MultiPolygon) or \"union\" (union the polygons)."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:55
+msgid ""
+"DEBUG is True - this can cause memory usage to balloon.  continue? [y/n]"
+msgstr ""
+
+#: management/commands/loadshapefiles.py:83
+#, python-format
+msgid "Skipping %(slug)s."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:89
+#, python-format
+msgid "Already loaded %(slug)s, skipping."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:98
+#, python-format
+msgid "Processing %(slug)s."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:113
+msgid "No shapefiles found."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:143
+#, python-format
+msgid "Loading %(slug)s from %(source)s"
+msgstr ""
+
+#: management/commands/loadshapefiles.py:146
+#, python-format
+msgid "%(source)s shapefile [%(slug)s] has multiple layers, using first."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:148
+#, python-format
+msgid "%(source)s shapefile [%(slug)s] has no layers, skipping."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:160
+#, python-format
+msgid "%(slug)s count: %(count)i"
+msgstr ""
+
+#: management/commands/loadshapefiles.py:174
+msgid "Geom is neither Polygon nor MultiPolygon."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:221
+#, python-format
+msgid "%(slug)s..."
+msgstr ""
+
+#: management/commands/loadshapefiles.py:250
+msgid "Invalid value for merge option."
+msgstr ""
+
+#: templates/boundaries/apibrowser.html:5
+msgid "API Browser"
+msgstr ""

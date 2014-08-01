@@ -1,2 +1,3 @@
+recursive-include boundaries/locale *
 recursive-include boundaries/static *
 recursive-include boundaries/templates *
