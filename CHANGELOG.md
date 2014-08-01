@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0 (2014-08-01)
+
+* Add `start_date` and `end_date` to boundary sets. (@jamesturk)
+* Remove API throttle, as this is the responsibility of a proxy. (@jamesturk)
+
 ## 0.3.2 (2014-07-01)
 
 * Add templates and static files to package.
@@ -11,8 +16,7 @@
 ## 0.3 (2014-06-27)
 
 * Django 1.7 compatibility.
-* API
-  * If the `contains` parameter is an invalid latitude and longitude pair, return the invalid pair in the error message.
+* If the `contains` parameter is an invalid latitude and longitude pair, return the invalid pair in the error message.
 
 ## 0.2 (2014-03-26)
 
