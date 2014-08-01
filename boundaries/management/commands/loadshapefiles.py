@@ -130,6 +130,8 @@ class Command(BaseCommand):
             source_url=config.get('source_url', ''),
             notes=config.get('notes', ''),
             licence_url=config.get('licence_url', ''),
+            start_date=config.get('start_date', None),
+            end_date=config.get('end_date', None),
             # Load from either the 'extra' or 'metadata' fields
             extra=config.get('extra', config.get('metadata', None))
         )
