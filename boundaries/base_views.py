@@ -5,17 +5,15 @@ from __future__ import unicode_literals
 import json
 import re
 
-from django.utils.six.moves.urllib.parse import urlencode
-from django.utils.six import text_type
-from django.utils.translation import ugettext as _
-
 from django.conf import settings
 from django.contrib.gis.measure import D
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, Http404, HttpResponseForbidden, HttpResponseBadRequest
 from django.template import loader, RequestContext
 from django.template.defaultfilters import escapejs
-from django.utils import importlib
+from django.utils.six import text_type
+from django.utils.six.moves.urllib.parse import urlencode
+from django.utils.translation import ugettext as _
 from django.views.generic import View
 
 from boundaries import kml
@@ -373,7 +371,7 @@ class Paginator(object):
         try:
             offset = int(offset)
         except ValueError:
-            raise BadRequest(_("Invalid offset '%(value)s' provided. Please provide an integer.") % {'value': offset})
+            raise BadRequest(_("Invalid offset '%(value)s' provided. Please provide a positive integer.") % {'value': offset})
 
         if offset < 0:
             raise BadRequest(_("Invalid offset '%(value)s' provided. Please provide a positive integer >= 0.") % {'value': offset})
