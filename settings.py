@@ -1,3 +1,7 @@
+"""
+To run `django-admin.py syncdb --settings settings --noinput` before testing.
+"""
+
 SECRET_KEY = 'x'
 
 DATABASES = {
