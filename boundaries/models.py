@@ -115,22 +115,20 @@ class Boundary(models.Model):
     slug = models.SlugField(max_length=200, db_index=True,
         help_text=_("The name of this BoundarySet used in API URLs."))
     external_id = models.CharField(max_length=64,
-        help_text=_('The boundaries\' unique id in the source dataset, or a generated one.'))
+        help_text=_("The boundary's unique ID in the source dataset, or a generated one."))
     name = models.CharField(max_length=192, db_index=True,
         help_text=_('The name of this boundary, e.g. "Austin".'))
     metadata = JSONField(blank=True,
-        help_text=_('The complete contents of the attribute table for this boundary from the source shapefile, structured as json.'))
+        help_text=_('The complete contents of the attribute table for this boundary from the source shapefile, structured as JSON.'))
     shape = models.MultiPolygonField(
         help_text=_('The geometry of this boundary in EPSG:4326 projection.'))
     simple_shape = models.MultiPolygonField(
-        help_text=_('The geometry of this boundary in EPSG:4326 projection and simplified to %s tolerance.' % app_settings.SIMPLE_SHAPE_TOLERANCE))
-    centroid = models.PointField(
-        null=True,
+        help_text=_('The geometry of this boundary in EPSG:4326 projection and simplified to %(tolerance)s tolerance.') % {'tolerance': app_settings.SIMPLE_SHAPE_TOLERANCE})
+    centroid = models.PointField(null=True,
         help_text=_('The centroid (weighted center) of this boundary in EPSG:4326 projection.'))
     extent = JSONField(blank=True, null=True,
         help_text=_('The bounding box of the boundary in EPSG:4326 projection, as a list such as [xmin, ymin, xmax, ymax].'))
-    label_point = models.PointField(
-        blank=True, null=True, spatial_index=False,
+    label_point = models.PointField(blank=True, null=True, spatial_index=False,
         help_text=_('The suggested location to label this boundary in EPSG:4326 projection. '
             'Used by represent-maps, but not actually used within represent-boundaries.'))
 
