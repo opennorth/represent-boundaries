@@ -1,25 +1,25 @@
 from __future__ import print_function
-import sys, json
-from django.utils.six import text_type
+
+import sys
+import json
 
 from optparse import make_option
 
-from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.contrib.gis.geos import MultiPolygon, Polygon
-from django.utils.translation import ugettext_lazy as _
+from django.utils.six import text_type
+from django.utils.translation import ugettext as _, ugettext_lazy as t
 
-from boundaries.models import BoundarySet, Boundary
+from boundaries.models import BoundarySet
 
 class Command(BaseCommand):
-	help = _('Create a report of the area of intersection of every pair of boundaries from two boundary sets specified by their slug.')
+	help = t('Create a report of the area of intersection of every pair of boundaries from two boundary sets specified by their slug.')
 	args = 'boundaryset1 boundaryset2'
 
 	option_list = BaseCommand.option_list + (
 		make_option('-f', '--format', action='store', dest='format', default="csv",
-			help=_('Choose an output format: csv, json.')),
+			help=t('Choose an output format: csv, json.')),
 		make_option('-m', '--metadata', action='store_true', dest='include_metadata', default=False,
-			help=_('Includes the original shapefile metadata in the output.')),
+			help=t('Includes the original shapefile metadata in the output.')),
 	)
 
 	def handle(self, *args, **options):

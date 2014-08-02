@@ -5,8 +5,6 @@ import logging
 log = logging.getLogger(__name__)
 from optparse import make_option
 import os, os.path
-import sys
-import random
 import subprocess
 
 from zipfile import ZipFile, BadZipfile
@@ -15,12 +13,11 @@ from shutil import rmtree
 
 from django.conf import settings
 from django.contrib.gis.gdal import CoordTransform, DataSource, OGRGeometry, OGRGeomType
-from django.contrib.gis.geos import MultiPolygon
 from django.core.management.base import BaseCommand
 from django.db import connections, DEFAULT_DB_ALIAS, transaction
 from django.template.defaultfilters import slugify
 from django.utils import six
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext as _, ugettext_lazy as t
 
 import boundaries
 from boundaries.models import BoundarySet, Boundary, app_settings
@@ -28,23 +25,23 @@ from boundaries.models import BoundarySet, Boundary, app_settings
 GEOMETRY_COLUMN = 'shape'
 
 class Command(BaseCommand):
-    help = _('Import boundaries described by shapefiles.')
+    help = t('Import boundaries described by shapefiles.')
     option_list = BaseCommand.option_list + (
         make_option('-r', '--reload', action='store_true', dest='reload',
-            help=_('Reload BoundarySets that have already been imported.')),
+            help=t('Reload BoundarySets that have already been imported.')),
         make_option('-d', '--data-dir', action='store', dest='data_dir',
             default=app_settings.SHAPEFILES_DIR,
-            help=_('Load shapefiles from this directory')),
+            help=t('Load shapefiles from this directory')),
         make_option('-e', '--except', action='store', dest='except',
-            default=False, help=_('Don\'t load these BoundarySet slugs, comma-delimited.')),
+            default=False, help=t('Don\'t load these BoundarySet slugs, comma-delimited.')),
         make_option('-o', '--only', action='store', dest='only',
-            default=False, help=_('Only load these BoundarySet slugs, comma-delimited.')),
+            default=False, help=t('Only load these BoundarySet slugs, comma-delimited.')),
         make_option('-u', '--database', action='store', dest='database',
-            default=DEFAULT_DB_ALIAS, help=_('Specify a database to load shape data into.')),
+            default=DEFAULT_DB_ALIAS, help=t('Specify a database to load shape data into.')),
         make_option('-c', '--clean', action='store_true', dest='clean',
-            default=False, help=_('Clean shapefiles first with ogr2ogr.')),
+            default=False, help=t('Clean shapefiles first with ogr2ogr.')),
         make_option('-m', '--merge', action='store', dest='merge',
-            default=None, help=_('Merge method when there are duplicate slugs, either "combine" (preserve as a MultiPolygon) or "union" (union the polygons).')),
+            default=None, help=t('Merge method when there are duplicate slugs, either "combine" (preserve as a MultiPolygon) or "union" (union the polygons).')),
     )
 
     def get_version(self):
@@ -157,7 +154,7 @@ class Command(BaseCommand):
             # save the extents
             bset.save()
 
-        log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'source': Boundary.objects.filter(set=bset).count()})
+        log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=bset).count()})
 
     @staticmethod
     def polygon_to_multipolygon(geom):
@@ -270,13 +267,13 @@ class Command(BaseCommand):
                 label_point=config.get("label_point_func", lambda x : None)(feature)
                 )
 
-            if bset.extent[0] == None or bdry.extent[0] < bset.extent[0]:
+            if bset.extent[0] is None or bdry.extent[0] < bset.extent[0]:
                 bset.extent[0] = bdry.extent[0]
-            if bset.extent[1] == None or bdry.extent[1] < bset.extent[1]:
+            if bset.extent[1] is None or bdry.extent[1] < bset.extent[1]:
                 bset.extent[1] = bdry.extent[1]
-            if bset.extent[2] == None or bdry.extent[2] > bset.extent[2]:
+            if bset.extent[2] is None or bdry.extent[2] > bset.extent[2]:
                 bset.extent[2] = bdry.extent[2]
-            if bset.extent[3] == None or bdry.extent[3] > bset.extent[3]:
+            if bset.extent[3] is None or bdry.extent[3] > bset.extent[3]:
                 bset.extent[3] = bdry.extent[3]
 
 def create_datasources(config, path, clean_shp):
