@@ -1,13 +1,11 @@
 from __future__ import unicode_literals
 
-import re
-from django.utils.six import text_type, string_types
-
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import GEOSGeometry
 from django.core import urlresolvers
 from django.template.defaultfilters import slugify
+from django.utils.six import text_type, string_types
 from django.utils.translation import ugettext_lazy as _
-from django.contrib.gis.geos import GEOSGeometry
 
 from appconf import AppConf
 from jsonfield import JSONField
@@ -87,7 +85,7 @@ class BoundarySet(models.Model):
         }
         for f in self.api_fields:
             r[f] = getattr(self, f)
-            if not isinstance(r[f], (string_types, int, list, tuple, dict)) and r[f] != None:
+            if not isinstance(r[f], (string_types, int, list, tuple, dict)) and r[f] is not None:
                 r[f] = text_type(r[f])
         return r
 
@@ -138,9 +136,6 @@ class Boundary(models.Model):
         unique_together = (('slug', 'set'))
         verbose_name = _('boundary')
         verbose_name_plural = _('boundaries')  # avoids "boundarys"
-
-    def save(self, *args, **kwargs):
-        return super(Boundary, self).save(*args, **kwargs)
 
     def __str__(self):
         return "%s (%s)" % (self.name, self.set_name)
