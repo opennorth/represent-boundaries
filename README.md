@@ -26,6 +26,15 @@ Represent Boundaries is one of many [Poplus Components](http://poplus.org/compon
 * [Update data in the API](http://represent.poplus.org/docs/manage/)
 * [Read the API reference](http://represent.poplus.org/docs/reference/)
 
+## Testing
+
+```
+createdb travis_ci_test
+psql travis_ci_test -c 'CREATE EXTENSION postgis;'
+django-admin.py syncdb --settings settings --noinput
+python runtests.py
+```
+
 ## Acknowledgements
 
 Represent Boundaries is based on the Chicago Tribune's [django-boundaryservice](http://github.com/newsapps/django-boundaryservice).

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0
+
+* I18n support.
+* Add tests.
+
 ## 0.4.0 (2014-08-01)
 
 * Add `start_date` and `end_date` to boundary sets. (@jamesturk)
