@@ -49,13 +49,13 @@ class BoundarySet(models.Model):
     notes = models.TextField(blank=True,
         help_text=_('Notes about loading this data, including any transformations that were applied to it.'))
     licence_url = models.URLField(blank=True,
-        help_text=_('The URL to the text of the licence this data is distributed under'))
+        help_text=_('The URL to the text of the licence this data is distributed under.'))
     extent = JSONField(blank=True, null=True,
         help_text=_('The bounding box of the boundaries in EPSG:4326 projection, as a list such as [xmin, ymin, xmax, ymax].'))
-    start_date = models.DateField(
-        help_text=_('The date on which this set of boundaries went into effect.', null=True))
-    end_date = models.DateField(
-        help_text=_('The date on which this set of boundaries was superceded.', null=True))
+    start_date = models.DateField(blank=True, null=True,
+        help_text=_('The date on which this set of boundaries went into effect.'))
+    end_date = models.DateField(blank=True, null=True,
+        help_text=_('The date on which this set of boundaries was superceded.'))
     extra = JSONField(blank=True, null=True,
         help_text=_("Any other nonstandard metadata provided when creating this boundary set."))
 
