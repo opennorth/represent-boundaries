@@ -210,7 +210,7 @@ class ModelGeoListView(ModelListView):
 
         if format in ('json', 'apibrowser'):
             strings = ['{"objects": [']
-            strings.append(','.join( ('{"name": "%s","%s":%s}' % (escapejs(x[1]),field,x[0].geojson)
+            strings.append(','.join( ('{"name": "%s", "%s": %s}' % (escapejs(x[1]), field, json.dumps(json.loads(x[0].geojson)))
                         for x in qs.values_list(field, self.name_field) )))
             strings.append(']}')
             return RawJSONResponse(''.join(strings))
@@ -276,7 +276,7 @@ class ModelGeoDetailView(ModelDetailView):
         name = getattr(obj, self.name_field)
         format = request.GET.get('format', 'json')
         if format in ('json', 'apibrowser'):
-            return RawJSONResponse(geom.geojson)
+            return RawJSONResponse(json.dumps(json.loads(geom.geojson)))
         elif format == 'wkt':
             return HttpResponse(geom.wkt, mimetype="text/plain")
         elif format == 'kml':
