@@ -17,11 +17,11 @@ class BoundarySetTestCase(TestCase):
     maxDiff = None
 
     def test_save_should_set_default_slug(self):
-        boundary_set = BoundarySet.objects.create(name='Foo Bar', last_updated=date(2000, 01, 01))
+        boundary_set = BoundarySet.objects.create(name='Foo Bar', last_updated=date(2000, 1, 1))
         self.assertEqual(boundary_set.slug, 'foo-bar')
 
     def test_save_should_not_overwrite_slug(self):
-        boundary_set = BoundarySet.objects.create(name='Foo Bar', last_updated=date(2000, 01, 01), slug='baz')
+        boundary_set = BoundarySet.objects.create(name='Foo Bar', last_updated=date(2000, 1, 1), slug='baz')
         self.assertEqual(boundary_set.slug, 'baz')
 
     def test___str__(self):
@@ -400,7 +400,7 @@ class ViewTestCase(TestCase):
 
     def assertNotFound(self, response):
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response['Content-Type'], 'text/html')
+        self.assertIn(response['Content-Type'], ('text/html', 'text/html; charset=utf-8'))  # different versions of Django
         self.assertNotIn('Access-Control-Allow-Origin', response)
 
     def assertError(self, response):
@@ -617,7 +617,50 @@ class BoundarySetListFilterTestCase(ViewTestCase):
 
 class BoundaryListFilterTestCase(ViewTestCase):
     url = '/boundaries/'
-    pass
+
+    def setUp(self):
+        Boundary.objects.create(slug='foo', set_id='inc', shape=MultiPolygon(()), simple_shape=MultiPolygon(()), name='Foo', external_id=1)
+        Boundary.objects.create(slug='bar', set_id='inc', shape=MultiPolygon(()), simple_shape=MultiPolygon(()), name='Bar', external_id=2)
+        Boundary.objects.create(slug='baz', set_id='inc', shape=MultiPolygon(()), simple_shape=MultiPolygon(()))
+
+    def test_filter_name(self):
+        response = self.client.get(self.url, {'name': 'Foo'})
+        self.assertResponse(response)
+        self.assertEqual(response.content, b'{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 1, "related": {"centroids_url": "/boundaries/centroid?name=Foo", "simple_shapes_url": "/boundaries/simple_shape?name=Foo", "shapes_url": "/boundaries/shape?name=Foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+
+    def test_filter_external_id(self):
+        response = self.client.get(self.url, {'external_id': '2'})
+        self.assertResponse(response)
+        self.assertEqual(response.content, b'{"objects": [{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 1, "related": {"centroids_url": "/boundaries/centroid?external_id=2", "simple_shapes_url": "/boundaries/simple_shape?external_id=2", "shapes_url": "/boundaries/shape?external_id=2"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+
+    def test_filter_type(self):
+        response = self.client.get(self.url, {'name__istartswith': 'f'})
+        self.assertResponse(response)
+        self.assertEqual(response.content, b'{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 1, "related": {"centroids_url": "/boundaries/centroid?name__istartswith=f", "simple_shapes_url": "/boundaries/simple_shape?name__istartswith=f", "shapes_url": "/boundaries/shape?name__istartswith=f"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+
+    def test_ignore_non_filter_field(self):
+        response = self.client.get(self.url, {'slug': 'foo'})
+        self.assertResponse(response)
+        self.assertEqual(response.content, b'{"objects": ['
+            b'{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+            b'{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+            b'{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], '
+            b'"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?slug=foo", "simple_shapes_url": "/boundaries/simple_shape?slug=foo", "shapes_url": "/boundaries/shape?slug=foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+
+    def test_ignore_non_filter_type(self):
+        response = self.client.get(self.url, {'name__search': 'Foo'})
+        self.assertResponse(response)
+        self.assertEqual(response.content, b'{"objects": ['
+            b'{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+            b'{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+            b'{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], '
+            b'"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?name__search=Foo", "simple_shapes_url": "/boundaries/simple_shape?name__search=Foo", "shapes_url": "/boundaries/shape?name__search=Foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+
+    def test_filter_value_must_be_valid(self):
+        response = self.client.get(self.url, {'name__isnull': 'none'})
+        self.assertError(response)
+        self.assertEqual(response.content, b'Invalid filter value')
+
 
 class BoundarySetDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
     url = '/boundary-sets/foo/'
@@ -648,15 +691,15 @@ class BoundarySetDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
 
 
 class BoundaryDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
-    url = '/boundaries/foo/bar/'
+    url = '/boundaries/inc/foo/'
     json = OrderedDict([
         ('name', ''),
         ('related', OrderedDict([
-            ('boundary_set_url', '/boundary-sets/foo/'),
-            ('simple_shape_url', '/boundaries/foo/bar/simple_shape'),
-            ('boundaries_url', '/boundaries/foo/'),
-            ('shape_url', '/boundaries/foo/bar/shape'),
-            ('centroid_url', '/boundaries/foo/bar/centroid'),
+            ('boundary_set_url', '/boundary-sets/inc/'),
+            ('simple_shape_url', '/boundaries/inc/foo/simple_shape'),
+            ('boundaries_url', '/boundaries/inc/'),
+            ('shape_url', '/boundaries/inc/foo/shape'),
+            ('centroid_url', '/boundaries/inc/foo/centroid'),
         ])),
         ('boundary_set_name', ''),
         ('centroid', None),
@@ -666,11 +709,11 @@ class BoundaryDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
     ])
 
     def setUp(self):
-        boundary_set = BoundarySet.objects.create(name='Foo', last_updated=date(2000, 1, 1))
-        Boundary.objects.create(slug='bar', set=boundary_set, shape=MultiPolygon(()), simple_shape=MultiPolygon(()))
+        BoundarySet.objects.create(slug='inc', last_updated=date(2000, 1, 1))
+        Boundary.objects.create(slug='foo', set_id='inc', shape=MultiPolygon(()), simple_shape=MultiPolygon(()))
 
     def test_404(self):
-        response = self.client.get('/boundaries/foo/nonexistent/')
+        response = self.client.get('/boundaries/inc/nonexistent/')
         self.assertNotFound(response)
 
     def test_404_on_boundary_set(self):
