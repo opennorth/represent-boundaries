@@ -368,26 +368,19 @@ class GeoListTests(object):
     def test_must_not_match_too_many_items(self):
         app_settings.MAX_GEO_LIST_RESULTS, _ = 0, app_settings.MAX_GEO_LIST_RESULTS
 
-        Boundary.objects.create(slug='foo', set_id='inc', shape=MultiPolygon(()), simple_shape=MultiPolygon(()))
-
         response = self.client.get(self.url)
         self.assertForbidden(response)
         self.assertEqual(response.content, b'Spatial-list queries cannot return more than 0 resources; this query would return 1. Please filter your query.')
 
         app_settings.MAX_GEO_LIST_RESULTS = _
 
+class GeoTests(object):
     def test_wkt(self):
-        geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
-        Boundary.objects.create(slug='foo', set_id='inc', shape=geom, simple_shape=geom)
-
         response = self.client.get(self.url, {'format': 'wkt'})
         self.assertResponse(response, content_type='text/plain')
         self.assertEqual(response.content, b'MULTIPOLYGON (((0.0000000000000000 0.0000000000000000, 0.0000000000000000 5.0000000000000000, 5.0000000000000000 5.0000000000000000, 0.0000000000000000 0.0000000000000000)))')
 
     def test_kml(self):
-        geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
-        Boundary.objects.create(slug='foo', set_id='inc', shape=geom, simple_shape=geom)
-
         response = self.client.get(self.url, {'format': 'kml'})
         self.assertResponse(response, content_type='application/vnd.google-earth.kml+xml')
         self.assertEqual(response.content, b'<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n<Placemark><name></name><MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>0.0,0.0,0 0.0,5.0,0 5.0,5.0,0 0.0,0.0,0</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry></Placemark>\n</Document>\n</kml>')
@@ -521,21 +514,58 @@ class BoundaryListSetTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationT
         self.assertNotFound(response)
 
 
-class BoundaryListGeoTestCase(ViewTestCase, ViewsTests, GeoListTests):  # doesn't respect pretty
+class BoundaryListGeoTestCase(ViewTestCase, ViewsTests, GeoListTests, GeoTests):  # doesn't respect pretty
     url = '/boundaries/shape'
     json = OrderedDict([
-        ('objects', []),
+        ('objects', [
+            OrderedDict([
+                ('name', ''),
+                ('shape', OrderedDict([
+                    ('type', 'MultiPolygon'),
+                    ('coordinates', [[[[0.0, 0.0], [0.0, 5.0], [5.0, 5.0], [0.0, 0.0]]]]),
+                ])),
+            ]),
+        ]),
     ])
 
+    def setUp(self):
+        geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
+        Boundary.objects.create(slug='foo', set_id='inc', shape=geom, simple_shape=geom)
 
-class BoundaryListSetGeoTestCase(ViewTestCase, ViewsTests, GeoListTests):  # doesn't respect pretty
+
+class BoundaryListSetGeoTestCase(ViewTestCase, ViewsTests, GeoListTests, GeoTests):  # doesn't respect pretty
     url = '/boundaries/inc/shape'
     json = OrderedDict([
-        ('objects', []),
+        ('objects', [
+            OrderedDict([
+                ('name', ''),
+                ('shape', OrderedDict([
+                    ('type', 'MultiPolygon'),
+                    ('coordinates', [[[[0.0, 0.0], [0.0, 5.0], [5.0, 5.0], [0.0, 0.0]]]]),
+                ])),
+            ]),
+        ]),
     ])
 
     def setUp(self):
         BoundarySet.objects.create(slug='inc', last_updated=date(2000, 1, 1))
+
+        geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
+        Boundary.objects.create(slug='foo', set_id='inc', shape=geom, simple_shape=geom)
+
+
+class BoundaryGeoDetailTestCase(ViewTestCase, ViewsTests, GeoTests):  # doesn't respect pretty
+    url = '/boundaries/inc/foo/shape'
+    json = OrderedDict([
+        ('type', 'MultiPolygon'),
+        ('coordinates', [[[[0.0, 0.0], [0.0, 5.0], [5.0, 5.0], [0.0, 0.0]]]]),
+    ])
+
+    def setUp(self):
+        BoundarySet.objects.create(slug='inc', last_updated=date(2000, 1, 1))
+
+        geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
+        Boundary.objects.create(slug='foo', set_id='inc', shape=geom, simple_shape=geom)
 
 
 class BoundarySetListFilterTestCase(ViewTestCase):
@@ -588,7 +618,6 @@ class BoundarySetListFilterTestCase(ViewTestCase):
 class BoundaryListFilterTestCase(ViewTestCase):
     url = '/boundaries/'
     pass
-
 
 class BoundarySetDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
     url = '/boundary-sets/foo/'
@@ -647,7 +676,3 @@ class BoundaryDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
     def test_404_on_boundary_set(self):
         response = self.client.get('/boundaries/nonexistent/bar/')
         self.assertNotFound(response)
-
-
-class BoundaryGeoDetailViewTestCase(ViewTestCase):
-    pass
