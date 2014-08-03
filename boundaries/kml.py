@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+
 from xml.sax.saxutils import escape
 
 def generate_placemark(name, geom):
