@@ -123,7 +123,7 @@ class Boundary(models.Model):
     shape = models.MultiPolygonField(
         help_text=_('The geometry of this boundary in EPSG:4326 projection.'))
     simple_shape = models.MultiPolygonField(
-        help_text=lazy(mark_safe, text_type)(_('The geometry of this boundary in EPSG:4326 projection and simplified to %(tolerance)s tolerance.') % {'tolerance': app_settings.SIMPLE_SHAPE_TOLERANCE}))
+        help_text=_('The simplified geometry of this boundary in EPSG:4326 projection.'))
     centroid = models.PointField(null=True,
         help_text=_('The centroid (weighted center) of this boundary in EPSG:4326 projection.'))
     extent = JSONField(blank=True, null=True,
