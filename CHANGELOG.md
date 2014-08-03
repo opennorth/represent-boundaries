@@ -2,6 +2,7 @@
 
 ## 1.0
 
+* Make non-integer `offset` error message consistent with non-integer `limit` error message.
 * I18n support.
 * Add tests.
 
