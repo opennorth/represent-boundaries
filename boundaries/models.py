@@ -4,6 +4,7 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 from django.core import urlresolvers
 from django.template.defaultfilters import slugify
+from django.utils.functional import lazy
 from django.utils.six import text_type, string_types
 from django.utils.translation import ugettext_lazy as _
 
@@ -121,7 +122,7 @@ class Boundary(models.Model):
     shape = models.MultiPolygonField(
         help_text=_('The geometry of this boundary in EPSG:4326 projection.'))
     simple_shape = models.MultiPolygonField(
-        help_text=_('The geometry of this boundary in EPSG:4326 projection and simplified to %(tolerance)s tolerance.') % {'tolerance': app_settings.SIMPLE_SHAPE_TOLERANCE})
+        help_text=lazy(_('The geometry of this boundary in EPSG:4326 projection and simplified to %(tolerance)s tolerance.') % {'tolerance': app_settings.SIMPLE_SHAPE_TOLERANCE}))
     centroid = models.PointField(null=True,
         help_text=_('The centroid (weighted center) of this boundary in EPSG:4326 projection.'))
     extent = JSONField(blank=True, null=True,
