@@ -4,7 +4,8 @@ from __future__ import unicode_literals
 import logging
 log = logging.getLogger(__name__)
 from optparse import make_option
-import os, os.path
+import os
+import os.path
 import subprocess
 
 from zipfile import ZipFile, BadZipfile
@@ -24,24 +25,25 @@ from boundaries.models import BoundarySet, Boundary, app_settings
 
 GEOMETRY_COLUMN = 'shape'
 
+
 class Command(BaseCommand):
     help = t('Import boundaries described by shapefiles.')
     option_list = BaseCommand.option_list + (
         make_option('-r', '--reload', action='store_true', dest='reload',
-            help=t('Reload BoundarySets that have already been imported.')),
+                    help=t('Reload BoundarySets that have already been imported.')),
         make_option('-d', '--data-dir', action='store', dest='data_dir',
-            default=app_settings.SHAPEFILES_DIR,
-            help=t('Load shapefiles from this directory')),
+                    default=app_settings.SHAPEFILES_DIR,
+                    help=t('Load shapefiles from this directory')),
         make_option('-e', '--except', action='store', dest='except',
-            default=False, help=t('Don\'t load these BoundarySet slugs, comma-delimited.')),
+                    default=False, help=t('Don\'t load these BoundarySet slugs, comma-delimited.')),
         make_option('-o', '--only', action='store', dest='only',
-            default=False, help=t('Only load these BoundarySet slugs, comma-delimited.')),
+                    default=False, help=t('Only load these BoundarySet slugs, comma-delimited.')),
         make_option('-u', '--database', action='store', dest='database',
-            default=DEFAULT_DB_ALIAS, help=t('Specify a database to load shape data into.')),
+                    default=DEFAULT_DB_ALIAS, help=t('Specify a database to load shape data into.')),
         make_option('-c', '--clean', action='store_true', dest='clean',
-            default=False, help=t('Clean shapefiles first with ogr2ogr.')),
+                    default=False, help=t('Clean shapefiles first with ogr2ogr.')),
         make_option('-m', '--merge', action='store', dest='merge',
-            default=None, help=t('Merge method when there are duplicate slugs, either "combine" (preserve as a MultiPolygon) or "union" (union the polygons).')),
+                    default=None, help=t('Merge method when there are duplicate slugs, either "combine" (preserve as a MultiPolygon) or "union" (union the polygons).')),
     )
 
     def get_version(self):
@@ -134,7 +136,7 @@ class Command(BaseCommand):
             extra=config.get('extra', config.get('metadata', None))
         )
 
-        bset.extent = [None, None, None, None] # [xmin, ymin, xmax, ymax]
+        bset.extent = [None, None, None, None]  # [xmin, ymin, xmax, ymax]
 
         for datasource in datasources:
             log.info(_("Loading %(slug)s from %(source)s") % {'slug': slug, 'source': datasource.name})
@@ -145,7 +147,7 @@ class Command(BaseCommand):
                 log.error(_('%(source)s shapefile [%(slug)s] has no layers, skipping.') % {'slug': slug, 'source': datasource.name})
                 continue
             layer = datasource[0]
-            layer.source = datasource # add additional attribute so definition file can trace back to filename
+            layer.source = datasource  # add additional attribute so definition file can trace back to filename
             self.add_boundaries_for_layer(config, layer, bset, options)
 
         if None in bset.extent:
@@ -188,9 +190,9 @@ class Command(BaseCommand):
             geometry = feature.geom
 
             feature = UnicodeFeature(feature, encoding=config.get('encoding', 'ascii'))
-            feature.layer = layer # add additional attribute so definition file can trace back to filename
+            feature.layer = layer  # add additional attribute so definition file can trace back to filename
 
-            if not config.get('is_valid_func', lambda feature : True)(feature):
+            if not config.get('is_valid_func', lambda feature: True)(feature):
                 continue
 
             # Transform the geometry to the correct SRS
@@ -208,7 +210,7 @@ class Command(BaseCommand):
 
             # Extract metadata into a dictionary
             metadata = dict(
-                ( (field, feature.get(field)) for field in layer.fields )
+                ((field, feature.get(field)) for field in layer.fields)
             )
 
             external_id = str(config['id_func'](feature))
@@ -239,8 +241,10 @@ class Command(BaseCommand):
                     elif options["merge"] == "combine":
                         # extend the previous simple_shape with the new simple_shape
                         g = OGRGeometry(OGRGeomType('MultiPolygon'))
-                        for p in b0.simple_shape: g.add(p.ogr)
-                        for p in simple_geometry: g.add(p)
+                        for p in b0.simple_shape:
+                            g.add(p.ogr)
+                        for p in simple_geometry:
+                            g.add(p)
                         b0.simple_shape = g.wkt
 
                     else:
@@ -264,8 +268,8 @@ class Command(BaseCommand):
                 simple_shape=simple_geometry.wkt,
                 centroid=geometry.geos.centroid,
                 extent=geometry.extent,
-                label_point=config.get("label_point_func", lambda x : None)(feature)
-                )
+                label_point=config.get("label_point_func", lambda x: None)(feature)
+            )
 
             if bset.extent[0] is None or bdry.extent[0] < bset.extent[0]:
                 bset.extent[0] = bdry.extent[0]
@@ -275,6 +279,7 @@ class Command(BaseCommand):
                 bset.extent[2] = bdry.extent[2]
             if bset.extent[3] is None or bdry.extent[3] > bset.extent[3]:
                 bset.extent[3] = bdry.extent[3]
+
 
 def create_datasources(config, path, clean_shp):
     tmpdirs = []
@@ -315,6 +320,7 @@ def create_datasources(config, path, clean_shp):
 
     return sources, tmpdirs
 
+
 class UnicodeFeature(object):
 
     def __init__(self, feature, encoding='ascii'):
@@ -326,6 +332,7 @@ class UnicodeFeature(object):
         if isinstance(val, bytes):
             return val.decode(self.encoding)
         return val
+
 
 def temp_shapefile_from_zip(zip_path):
     """Given a path to a ZIP file, unpack it into a temp dir and return the path
@@ -352,6 +359,7 @@ def temp_shapefile_from_zip(zip_path):
             f.write(data)
 
     return tempdir, shape_path
+
 
 def preprocess_shp(shpfile):
     # Run this command to sanitize the input, removing 3D shapes which causes trouble for

@@ -26,6 +26,7 @@ ALL_CAPS = re.compile(r'^[\w\s%s]+$' % PUNCT, flags=re.U)
 UC_INITIALS = re.compile(r"^(?:[A-Z]{1}\.{1}|[A-Z]{1}\.{1}[A-Z]{1})+$")
 MAC_MC = re.compile(r"^([Mm]a?c)(\w+)")
 
+
 def titlecase(text):
     """
     Titlecases input text
@@ -87,14 +88,14 @@ def titlecase(text):
         result = SMALL_FIRST.sub(lambda m: '%s%s' % (
             m.group(1),
             m.group(2).capitalize()
-            ), result)
+        ), result)
 
         result = SMALL_LAST.sub(lambda m: m.group(0).capitalize(), result)
 
         result = SUBPHRASE.sub(lambda m: '%s%s' % (
             m.group(1),
             m.group(2).capitalize()
-            ), result)
+        ), result)
 
         processed.append(result)
 

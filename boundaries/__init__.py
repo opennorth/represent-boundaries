@@ -10,11 +10,13 @@ logger = logging.getLogger(__name__)
 registry = {}
 _basepath = '.'
 
+
 def register(slug, **kwargs):
     """Called by definition files: adds a boundary definition to our list
     during the loadshapefiles command."""
     kwargs['file'] = os.path.join(_basepath, kwargs.get('file', ''))
     registry[slug] = kwargs
+
 
 def autodiscover(base_dir):
     """Walk the directory tree and load all definition files present.
@@ -29,8 +31,10 @@ def autodiscover(base_dir):
                 logger.debug(filename)
                 exec(open(os.path.join(dirpath, filename)).read())
 
+
 def attr(name):
     return lambda f: f.get(name)
+
 
 def _clean_string(s):
     if re.search(r'[A-Z]', s) and not re.search(r'[a-z]', s):
@@ -41,9 +45,11 @@ def _clean_string(s):
     s = re.sub(r'( ?-- ?| - )', '—', s)
     return s
 
+
 def clean_attr(name):
     attr_getter = attr(name)
     return lambda f: _clean_string(attr_getter(f))
+
 
 def dashed_attr(name):
     # Replaces all hyphens with em dashes

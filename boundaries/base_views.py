@@ -21,8 +21,10 @@ from boundaries.models import app_settings
 
 
 class RawJSONResponse(object):
+
     """APIView subclasses can return these if they have
     already-serialized JSON to return"""
+
     def __init__(self, content):
         self.content = content
 
@@ -30,7 +32,9 @@ class RawJSONResponse(object):
 class BadRequest(Exception):
     pass
 
+
 class APIView(View):
+
     """Base view class that serializes subclass responses to JSON.
 
     Subclasses should define get/post/etc. methods."""
@@ -74,7 +78,7 @@ class APIView(View):
         jsonresult = json.dumps(result, indent=4)
         t = loader.get_template('boundaries/apibrowser.html')
         json_url = request.path
-        params = dict([k, v.encode('utf-8')] for k,v in request.GET.items())
+        params = dict([k, v.encode('utf-8')] for k, v in request.GET.items())
         params.pop('format')
         if params:
             json_url += '?' + urlencode(params)
@@ -91,7 +95,9 @@ class APIView(View):
         c = RequestContext(request, ctx)
         return HttpResponse(t.render(c))
 
+
 class ModelListView(APIView):
+
     """Base API class for a list of resources.
 
     Subclasses should set the 'model' attribute to the appropriate model class.
@@ -145,7 +151,9 @@ class ModelListView(APIView):
             result['meta']['related'] = related
         return result
 
+
 class ModelGeoListView(ModelListView):
+
     """Adds geospatial support to ModelListView.
 
     Subclasses must set the 'allowed_geo_fields' attribute to a list
@@ -172,7 +180,7 @@ class ModelGeoListView(ModelListView):
                 try:
                     lat, lon = re.sub(r'[^\d.,-]', '', request.GET['contains']).split(',')
                     wkt_pt = 'POINT(%s %s)' % (lon, lat)
-                    qs = qs.filter(**{self.default_geo_filter_field + "__contains" : wkt_pt})
+                    qs = qs.filter(**{self.default_geo_filter_field + "__contains": wkt_pt})
                 except ValueError:
                     raise BadRequest(_("Invalid latitude,longitude '%(value)s' provided.") % {'value': request.GET['contains']})
 
@@ -183,7 +191,7 @@ class ModelGeoListView(ModelListView):
                 unit = range[len(numeral):]
                 numeral = int(numeral)
                 kwargs = {unit: numeral}
-                qs = qs.filter(**{self.default_geo_filter_field + "__distance_lte" :(wkt_pt, D(**kwargs))})
+                qs = qs.filter(**{self.default_geo_filter_field + "__distance_lte": (wkt_pt, D(**kwargs))})
 
         return qs
 
@@ -210,8 +218,8 @@ class ModelGeoListView(ModelListView):
 
         if format in ('json', 'apibrowser'):
             strings = ['{"objects": [']
-            strings.append(','.join( ('{"name": "%s", "%s": %s}' % (escapejs(x[1]), field, x[0].geojson)
-                        for x in qs.values_list(field, self.name_field) )))
+            strings.append(','.join(('{"name": "%s", "%s": %s}' % (escapejs(x[1]), field, x[0].geojson)
+                                     for x in qs.values_list(field, self.name_field))))
             strings.append(']}')
             return RawJSONResponse(''.join(strings))
         elif format == 'wkt':
@@ -226,7 +234,9 @@ class ModelGeoListView(ModelListView):
         else:
             raise NotImplementedError
 
+
 class ModelDetailView(APIView):
+
     """Return the API representation of a single object.
 
     Subclasses must set the 'model' attribute to the appropriate model class.
@@ -247,7 +257,9 @@ class ModelDetailView(APIView):
         except ObjectDoesNotExist:
             raise Http404
 
+
 class ModelGeoDetailView(ModelDetailView):
+
     """Adds geospatial support to ModelDetailView
 
     Subclasses must set the 'allowed_geo_fields' attribute to a list
@@ -288,10 +300,13 @@ class ModelGeoDetailView(ModelDetailView):
         else:
             raise NotImplementedError
 
+
 class Paginator(object):
+
     """
     Taken from django-tastypie. Thanks!
     """
+
     def __init__(self, request_data, objects, resource_uri=None, limit=None, offset=0, max_limit=1000, collection_name='objects'):
         """
         Instantiates the ``Paginator`` and allows for some configuration.
@@ -405,7 +420,7 @@ class Paginator(object):
         if offset - limit < 0:
             return None
 
-        return self._generate_uri(limit, offset-limit)
+        return self._generate_uri(limit, offset - limit)
 
     def get_next(self, limit, offset, count):
         """
@@ -415,7 +430,7 @@ class Paginator(object):
         if offset + limit >= count:
             return None
 
-        return self._generate_uri(limit, offset+limit)
+        return self._generate_uri(limit, offset + limit)
 
     def _generate_uri(self, limit, offset):
         if self.resource_uri is None:

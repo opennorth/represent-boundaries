@@ -12,12 +12,13 @@ from django.utils.translation import ugettext_lazy as _
 from appconf import AppConf
 from jsonfield import JSONField
 
+
 class MyAppConf(AppConf):
     # To override any of these settings, set BOUNDARIES_<setting name>
     # in the main Django settings.
 
     MAX_GEO_LIST_RESULTS = 350  # In a /boundary/shape query, if more than this
-                        # number of resources are matched, throw an error
+    # number of resources are matched, throw an error
     SHAPEFILES_DIR = './data/shapefiles'
     SIMPLE_SHAPE_TOLERANCE = 0.0002
 
@@ -27,37 +28,39 @@ class MyAppConf(AppConf):
 
 app_settings = MyAppConf()
 
+
 class BoundarySet(models.Model):
+
     """
     A set of related boundaries, such as all Wards or Neighborhoods.
     """
     slug = models.SlugField(max_length=200, primary_key=True, editable=False,
-        help_text=_("The name of this BoundarySet used in API URLs."))
+                            help_text=_("The name of this BoundarySet used in API URLs."))
 
     name = models.CharField(max_length=100, unique=True,
-        help_text=_('Category of boundaries, e.g. "Community Areas".'))
+                            help_text=_('Category of boundaries, e.g. "Community Areas".'))
     singular = models.CharField(max_length=100,
-        help_text=_('Name of a single boundary, e.g. "Community Area".'))
+                                help_text=_('Name of a single boundary, e.g. "Community Area".'))
     authority = models.CharField(max_length=256,
-        help_text=_('The entity responsible for this data\'s accuracy, e.g. "City of Chicago".'))
+                                 help_text=_('The entity responsible for this data\'s accuracy, e.g. "City of Chicago".'))
     domain = models.CharField(max_length=256,
-        help_text=_('The area that this BoundarySet covers, e.g. "Chicago" or "Illinois".'))
+                              help_text=_('The area that this BoundarySet covers, e.g. "Chicago" or "Illinois".'))
     last_updated = models.DateField(
         help_text=_('The last time this data was updated from its authority (but not necessarily the date it is current as of).'))
     source_url = models.URLField(blank=True,
-        help_text=_('The url this data was found at, if any.'))
+                                 help_text=_('The url this data was found at, if any.'))
     notes = models.TextField(blank=True,
-        help_text=_('Notes about loading this data, including any transformations that were applied to it.'))
+                             help_text=_('Notes about loading this data, including any transformations that were applied to it.'))
     licence_url = models.URLField(blank=True,
-        help_text=_('The URL to the text of the licence this data is distributed under.'))
+                                  help_text=_('The URL to the text of the licence this data is distributed under.'))
     extent = JSONField(blank=True, null=True,
-        help_text=_('The bounding box of the boundaries in EPSG:4326 projection, as a list such as [xmin, ymin, xmax, ymax].'))
+                       help_text=_('The bounding box of the boundaries in EPSG:4326 projection, as a list such as [xmin, ymin, xmax, ymax].'))
     start_date = models.DateField(blank=True, null=True,
-        help_text=_('The date on which this set of boundaries went into effect.'))
+                                  help_text=_('The date on which this set of boundaries went into effect.'))
     end_date = models.DateField(blank=True, null=True,
-        help_text=_('The date on which this set of boundaries was superceded.'))
+                                help_text=_('The date on which this set of boundaries was superceded.'))
     extra = JSONField(blank=True, null=True,
-        help_text=_("Any other nonstandard metadata provided when creating this boundary set."))
+                      help_text=_("Any other nonstandard metadata provided when creating this boundary set."))
 
     class Meta:
         ordering = ('name',)
@@ -77,7 +80,7 @@ class BoundarySet(models.Model):
     name_singular = property(lambda s: s.singular)
 
     api_fields = ('name_plural', 'name_singular', 'authority', 'domain', 'source_url', 'notes', 'licence_url', 'last_updated', 'extent', 'extra', 'start_date', 'end_date')
-    api_fields_doc_from = { 'name_plural': 'name', 'name_singular': 'singular' }
+    api_fields_doc_from = {'name_plural': 'name', 'name_singular': 'singular'}
 
     def as_dict(self):
         r = {
@@ -104,33 +107,35 @@ class BoundarySet(models.Model):
             } for s in sets
         ]
 
+
 class Boundary(models.Model):
+
     """
     A boundary object, such as a Ward or Neighborhood.
     """
     set = models.ForeignKey(BoundarySet, related_name='boundaries',
-        help_text=_('Category of boundaries that this boundary belongs, e.g. "Community Areas".'))
+                            help_text=_('Category of boundaries that this boundary belongs, e.g. "Community Areas".'))
     set_name = models.CharField(max_length=100,
-        help_text=_('Category of boundaries that this boundary belongs, e.g. "Community Areas".'))
+                                help_text=_('Category of boundaries that this boundary belongs, e.g. "Community Areas".'))
     slug = models.SlugField(max_length=200, db_index=True,
-        help_text=_("The name of this BoundarySet used in API URLs."))
+                            help_text=_("The name of this BoundarySet used in API URLs."))
     external_id = models.CharField(max_length=64,
-        help_text=_("The boundary's unique ID in the source dataset, or a generated one."))
+                                   help_text=_("The boundary's unique ID in the source dataset, or a generated one."))
     name = models.CharField(max_length=192, db_index=True,
-        help_text=_('The name of this boundary, e.g. "Austin".'))
+                            help_text=_('The name of this boundary, e.g. "Austin".'))
     metadata = JSONField(blank=True,
-        help_text=_('The complete contents of the attribute table for this boundary from the source shapefile, structured as JSON.'))
+                         help_text=_('The complete contents of the attribute table for this boundary from the source shapefile, structured as JSON.'))
     shape = models.MultiPolygonField(
         help_text=_('The geometry of this boundary in EPSG:4326 projection.'))
     simple_shape = models.MultiPolygonField(
         help_text=_('The simplified geometry of this boundary in EPSG:4326 projection.'))
     centroid = models.PointField(null=True,
-        help_text=_('The centroid (weighted center) of this boundary in EPSG:4326 projection.'))
+                                 help_text=_('The centroid (weighted center) of this boundary in EPSG:4326 projection.'))
     extent = JSONField(blank=True, null=True,
-        help_text=_('The bounding box of the boundary in EPSG:4326 projection, as a list such as [xmin, ymin, xmax, ymax].'))
+                       help_text=_('The bounding box of the boundary in EPSG:4326 projection, as a list such as [xmin, ymin, xmax, ymax].'))
     label_point = models.PointField(blank=True, null=True, spatial_index=False,
-        help_text=_('The suggested location to label this boundary in EPSG:4326 projection. '
-            'Used by represent-maps, but not actually used within represent-boundaries.'))
+                                    help_text=_('The suggested location to label this boundary in EPSG:4326 projection. '
+                                                'Used by represent-maps, but not actually used within represent-boundaries.'))
 
     objects = models.GeoManager()
 
@@ -148,7 +153,7 @@ class Boundary(models.Model):
         return 'boundaries_boundary_detail', [], {'set_slug': self.set_id, 'slug': self.slug}
 
     api_fields = ['boundary_set_name', 'name', 'metadata', 'external_id', 'extent', 'centroid']
-    api_fields_doc_from = { 'boundary_set_name': 'set_name' }
+    api_fields_doc_from = {'boundary_set_name': 'set_name'}
 
     @property
     def boundary_set(self):

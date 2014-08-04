@@ -9,14 +9,18 @@ from boundaries.base_views import (ModelListView, ModelDetailView,
                                    BadRequest)
 from boundaries.models import BoundarySet, Boundary, app_settings
 
+
 class BoundarySetListView(ModelListView):
+
     """ e.g. /boundary-set/ """
 
     filterable_fields = ['name', 'domain']
 
     model = BoundarySet
 
+
 class BoundarySetDetailView(ModelDetailView):
+
     """ e.g. /boundary-set/federal-electoral-districts/ """
 
     model = BoundarySet
@@ -27,7 +31,9 @@ class BoundarySetDetailView(ModelDetailView):
         except BoundarySet.DoesNotExist:
             raise Http404
 
+
 class BoundaryListView(ModelGeoListView):
+
     """ e.g. /boundary/federal-electoral-districts/
     or /boundary/federal-electoral-districts/centroid """
 
@@ -89,6 +95,7 @@ class BoundaryListView(ModelGeoListView):
         )
         return r
 
+
 class BoundaryObjectGetterMixin(object):
 
     model = Boundary
@@ -99,14 +106,18 @@ class BoundaryObjectGetterMixin(object):
         except Boundary.DoesNotExist:
             raise Http404
 
+
 class BoundaryDetailView(ModelDetailView, BoundaryObjectGetterMixin):
+
     """ e.g. /boundary/federal-electoral-districts/outremont/ """
 
     def __init__(self):
         super(BoundaryDetailView, self).__init__()
         self.base_qs = self.base_qs.defer('shape', 'simple_shape')
 
+
 class BoundaryGeoDetailView(ModelGeoDetailView, BoundaryObjectGetterMixin):
+
     """ e.g /boundary/federal-electoral-districts/outremont/shape """
 
     allowed_geo_fields = ('shape', 'simple_shape', 'centroid')

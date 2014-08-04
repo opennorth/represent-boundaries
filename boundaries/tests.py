@@ -16,6 +16,7 @@ from django.test import TestCase
 from boundaries import registry, register, autodiscover, attr, clean_attr, dashed_attr
 from boundaries.models import app_settings, BoundarySet, Boundary
 
+
 class BoundarySetTestCase(TestCase):
     maxDiff = None
 
@@ -247,7 +248,9 @@ class BoundariesTestCase(TestCase):
 
 jsonp_re = re.compile(r'\AabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\((.+)\);\Z', re.DOTALL)
 
+
 class ViewsTests(object):
+
     def test_get(self):
         response = self.client.get(self.url)
         self.assertResponse(response)
@@ -276,7 +279,9 @@ class ViewsTests(object):
 
 pretty_re = re.compile(r'\n    ')
 
+
 class PrettyTests(object):
+
     def test_pretty(self):
         response = self.client.get(self.url, {'pretty': 1})
         self.assertResponse(response)
@@ -293,6 +298,7 @@ class PrettyTests(object):
 
 
 class PaginationTests(object):
+
     def test_limit_is_set(self):
         response = self.client.get(self.url, {'limit': 10})
         self.assertResponse(response)
@@ -356,6 +362,7 @@ class PaginationTests(object):
 
 
 class BoundaryListTests(object):
+
     def test_omits_meta_if_too_many_items_match(self):
         app_settings.MAX_GEO_LIST_RESULTS, _ = 0, app_settings.MAX_GEO_LIST_RESULTS
 
@@ -369,6 +376,7 @@ class BoundaryListTests(object):
 
 
 class GeoListTests(object):
+
     def test_must_not_match_too_many_items(self):
         app_settings.MAX_GEO_LIST_RESULTS, _ = 0, app_settings.MAX_GEO_LIST_RESULTS
 
@@ -378,7 +386,9 @@ class GeoListTests(object):
 
         app_settings.MAX_GEO_LIST_RESULTS = _
 
+
 class GeoTests(object):
+
     def test_wkt(self):
         response = self.client.get(self.url, {'format': 'wkt'})
         self.assertResponse(response, content_type='text/plain')
@@ -456,7 +466,6 @@ class BoundarySetListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationT
         except AssertionError:
             self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/bar/", "domain": "", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}], "meta": {"next": "/boundary-sets/?offset=1&limit=1", "total_count": 3, "previous": null, "limit": 1, "offset": 0}}')
 
-
         response = self.client.get(self.url, {'limit': 1, 'offset': 1})
         self.assertResponse(response)
         try:
@@ -499,14 +508,12 @@ class BoundaryListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationTest
         except AssertionError:
             self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?limit=1", "simple_shapes_url": "/boundaries/simple_shape?limit=1", "shapes_url": "/boundaries/shape?limit=1"}, "next": "/boundaries/?offset=1&limit=1", "limit": 1, "offset": 0, "previous": null}}')
 
-
         response = self.client.get(self.url, {'limit': 1, 'offset': 1})
         self.assertResponse(response)
         try:
             self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?limit=1&offset=1", "simple_shapes_url": "/boundaries/simple_shape?limit=1&offset=1", "shapes_url": "/boundaries/shape?limit=1&offset=1"}, "next": "/boundaries/?limit=1&offset=2", "limit": 1, "offset": 1, "previous": "/boundaries/?limit=1&offset=0"}}')
         except AssertionError:
             self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?offset=1&limit=1", "simple_shapes_url": "/boundaries/simple_shape?offset=1&limit=1", "shapes_url": "/boundaries/shape?offset=1&limit=1"}, "next": "/boundaries/?offset=2&limit=1", "limit": 1, "offset": 1, "previous": "/boundaries/?offset=0&limit=1"}}')
-
 
         response = self.client.get(self.url, {'limit': 1, 'offset': 2})
         self.assertResponse(response)
@@ -654,19 +661,19 @@ class BoundarySetListFilterTestCase(ViewTestCase):
         response = self.client.get(self.url, {'authority': 'King'})
         self.assertResponse(response)
         self.assertJSONEqual(response, '{"objects": ['
-            '{"url": "/boundary-sets/bar/", "domain": "Barland", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}, '
-            '{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}, '
-            '{"url": "/boundary-sets/foo/", "domain": "Fooland", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], '
-            '"meta": {"next": null, "total_count": 3, "previous": null, "limit": 20, "offset": 0}}')
+                             '{"url": "/boundary-sets/bar/", "domain": "Barland", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}, '
+                             '{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}, '
+                             '{"url": "/boundary-sets/foo/", "domain": "Fooland", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], '
+                             '"meta": {"next": null, "total_count": 3, "previous": null, "limit": 20, "offset": 0}}')
 
     def test_ignore_non_filter_type(self):
         response = self.client.get(self.url, {'name__search': 'Foo'})
         self.assertResponse(response)
         self.assertJSONEqual(response, '{"objects": ['
-            '{"url": "/boundary-sets/bar/", "domain": "Barland", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}, '
-            '{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}, '
-            '{"url": "/boundary-sets/foo/", "domain": "Fooland", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], '
-            '"meta": {"next": null, "total_count": 3, "previous": null, "limit": 20, "offset": 0}}')
+                             '{"url": "/boundary-sets/bar/", "domain": "Barland", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}, '
+                             '{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}, '
+                             '{"url": "/boundary-sets/foo/", "domain": "Fooland", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], '
+                             '"meta": {"next": null, "total_count": 3, "previous": null, "limit": 20, "offset": 0}}')
 
     def test_filter_value_must_be_valid(self):
         response = self.client.get(self.url, {'name__isnull': 'none'})
@@ -706,19 +713,19 @@ class BoundaryListFilterTestCase(ViewTestCase):
         response = self.client.get(self.url, {'slug': 'foo'})
         self.assertResponse(response)
         self.assertJSONEqual(response, '{"objects": ['
-            '{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-            '{"url": "/boundaries/abc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/abc/"}}, '
-            '{"url": "/boundaries/xyz/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/xyz/"}}], '
-            '"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?slug=foo", "simple_shapes_url": "/boundaries/simple_shape?slug=foo", "shapes_url": "/boundaries/shape?slug=foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+                             '{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+                             '{"url": "/boundaries/abc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/abc/"}}, '
+                             '{"url": "/boundaries/xyz/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/xyz/"}}], '
+                             '"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?slug=foo", "simple_shapes_url": "/boundaries/simple_shape?slug=foo", "shapes_url": "/boundaries/shape?slug=foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
 
     def test_ignore_non_filter_type(self):
         response = self.client.get(self.url, {'name__search': 'Foo'})
         self.assertResponse(response)
         self.assertJSONEqual(response, '{"objects": ['
-            '{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-            '{"url": "/boundaries/abc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/abc/"}}, '
-            '{"url": "/boundaries/xyz/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/xyz/"}}], '
-            '"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?name__search=Foo", "simple_shapes_url": "/boundaries/simple_shape?name__search=Foo", "shapes_url": "/boundaries/shape?name__search=Foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+                             '{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+                             '{"url": "/boundaries/abc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/abc/"}}, '
+                             '{"url": "/boundaries/xyz/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/xyz/"}}], '
+                             '"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?name__search=Foo", "simple_shapes_url": "/boundaries/simple_shape?name__search=Foo", "shapes_url": "/boundaries/shape?name__search=Foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
 
     def test_filter_value_must_be_valid(self):
         response = self.client.get(self.url, {'name__isnull': 'none'})
@@ -813,19 +820,19 @@ class BoundaryListSetFilterTestCase(ViewTestCase):
         response = self.client.get(self.url, {'slug': 'foo'})
         self.assertResponse(response)
         self.assertJSONEqual(response, '{"objects": ['
-            '{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-            '{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-            '{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], '
-            '"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?slug=foo", "simple_shapes_url": "/boundaries/inc/simple_shape?slug=foo", "shapes_url": "/boundaries/inc/shape?slug=foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+                             '{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+                             '{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+                             '{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], '
+                             '"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?slug=foo", "simple_shapes_url": "/boundaries/inc/simple_shape?slug=foo", "shapes_url": "/boundaries/inc/shape?slug=foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
 
     def test_ignore_non_filter_type(self):
         response = self.client.get(self.url, {'name__search': 'Foo'})
         self.assertResponse(response)
         self.assertJSONEqual(response, '{"objects": ['
-            '{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-            '{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-            '{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], '
-            '"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?name__search=Foo", "simple_shapes_url": "/boundaries/inc/simple_shape?name__search=Foo", "shapes_url": "/boundaries/inc/shape?name__search=Foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+                             '{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+                             '{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+                             '{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], '
+                             '"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?name__search=Foo", "simple_shapes_url": "/boundaries/inc/simple_shape?name__search=Foo", "shapes_url": "/boundaries/inc/shape?name__search=Foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
 
     def test_filter_value_must_be_valid(self):
         response = self.client.get(self.url, {'name__isnull': 'none'})
@@ -868,10 +875,10 @@ class BoundaryListSetFilterTestCase(ViewTestCase):
         response = self.client.get(self.url, {'sets': 'inc'})
         self.assertResponse(response)
         self.assertJSONEqual(response, '{"objects": ['
-            '{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-            '{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-            '{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], '
-            '"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?sets=inc", "simple_shapes_url": "/boundaries/inc/simple_shape?sets=inc", "shapes_url": "/boundaries/inc/shape?sets=inc"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+                             '{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+                             '{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+                             '{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], '
+                             '"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?sets=inc", "simple_shapes_url": "/boundaries/inc/simple_shape?sets=inc", "shapes_url": "/boundaries/inc/shape?sets=inc"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
 
     def test_contains(self):
         response = self.client.get(self.url, {'contains': '1,4'})
