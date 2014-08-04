@@ -3,6 +3,7 @@
 ## 1.0
 
 * Make non-integer `offset` error message consistent with non-integer `limit` error message.
+* `format=wkt` and `format=kml` no longer error in Django 1.7.
 * I18n support.
 * Add tests.
 
