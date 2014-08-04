@@ -215,12 +215,12 @@ class ModelGeoListView(ModelListView):
             strings.append(']}')
             return RawJSONResponse(''.join(strings))
         elif format == 'wkt':
-            return HttpResponse("\n".join((geom.wkt for geom in qs.values_list(field, flat=True))), mimetype="text/plain")
+            return HttpResponse("\n".join((geom.wkt for geom in qs.values_list(field, flat=True))), content_type="text/plain")
         elif format == 'kml':
             placemarks = [kml.generate_placemark(x[1], x[0]) for x in qs.values_list(field, self.name_field)]
             resp = HttpResponse(
                 kml.generate_kml_document(placemarks),
-                mimetype="application/vnd.google-earth.kml+xml")
+                content_type="application/vnd.google-earth.kml+xml")
             resp['Content-Disposition'] = 'attachment; filename="shape.kml"'
             return resp
         else:
@@ -278,11 +278,11 @@ class ModelGeoDetailView(ModelDetailView):
         if format in ('json', 'apibrowser'):
             return RawJSONResponse(json.dumps(json.loads(geom.geojson)))
         elif format == 'wkt':
-            return HttpResponse(geom.wkt, mimetype="text/plain")
+            return HttpResponse(geom.wkt, content_type="text/plain")
         elif format == 'kml':
             resp = HttpResponse(
                 kml.generate_kml_document([kml.generate_placemark(name, geom)]),
-                mimetype="application/vnd.google-earth.kml+xml")
+                content_type="application/vnd.google-earth.kml+xml")
             resp['Content-Disposition'] = 'attachment; filename="shape.kml"'
             return resp
         else:
