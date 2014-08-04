@@ -1,5 +1,7 @@
 # Represent Boundaries
 
+[![Build Status](https://secure.travis-ci.org/opennorth/represent-boundaries.png)](http://travis-ci.org/opennorth/represent-boundaries)
+
 Represent Boundaries is a web API to geographic areas, like electoral districts. It allows you to easily find the areas that cover your users' locations to display location-based information, like profiles of electoral candidates.
 
 It's a Django app that's easy to integrate into an existing project or to deploy on its own. It uses a simple file format to control how data is loaded into the API, and it provides a command-line tool to easily manage data.
