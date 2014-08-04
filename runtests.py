@@ -1,6 +1,7 @@
 import os
 import sys
 
+import django
 from django.conf import settings
 
 if not settings.configured:
@@ -19,8 +20,11 @@ if not settings.configured:
             'django.contrib.contenttypes',
             'django.contrib.gis',
             'boundaries',
-        )
+        ),
+        MIDDLEWARE_CLASSES=(),
     )
+    if hasattr(django, 'setup'):  # Django 1.7
+        django.setup()
 
 if __name__ == '__main__':
     from django.test.simple import DjangoTestSuiteRunner
