@@ -246,6 +246,44 @@ class BoundariesTestCase(TestCase):
         self.assertEqual(dashed_attr('foo')({'foo': 'FOO --\tBAR\r--BAZ--\nBZZ--ABC - XYZ-INC'}), 'Foo—Bar—Baz—Bzz—Abc—Xyz—Inc')
 
 
+class ViewTestCase(TestCase):
+    non_integers = ('', '1.0', '0b1', '0o1', '0x1')  # '01' is okay
+
+    def assertResponse(self, response, content_type='application/json; charset=utf-8'):
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], content_type)
+        if app_settings.ALLOW_ORIGIN and 'application/json' in response['Content-Type']:
+            self.assertEqual(response['Access-Control-Allow-Origin'], '*')
+        else:
+            self.assertNotIn('Access-Control-Allow-Origin', response)
+
+    def assertNotFound(self, response):
+        self.assertEqual(response.status_code, 404)
+        self.assertIn(response['Content-Type'], ('text/html', 'text/html; charset=utf-8'))  # different versions of Django
+        self.assertNotIn('Access-Control-Allow-Origin', response)
+
+    def assertError(self, response):
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response['Content-Type'], 'text/plain')
+        self.assertNotIn('Access-Control-Allow-Origin', response)
+
+    def assertForbidden(self, response):
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response['Content-Type'], 'text/html; charset=utf-8')
+        self.assertNotIn('Access-Control-Allow-Origin', response)
+
+    def assertJSONEqual(self, actual, expected):
+        if isinstance(actual, text_type):
+            actual = json.loads(actual)
+        else:
+            actual = json.loads(actual.content.decode('utf-8'))
+        if isinstance(expected, text_type):
+            expected = json.loads(expected)
+        elif isinstance(expected, OrderedDict):
+            expected = dict(expected)
+        self.assertEqual(actual, expected)
+
+
 jsonp_re = re.compile(r'\AabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\((.+)\);\Z', re.DOTALL)
 
 
@@ -361,84 +399,6 @@ class PaginationTests(object):
         self.assertEqual(response.content, b"Invalid offset '-1' provided. Please provide a positive integer >= 0.")
 
 
-class BoundaryListTests(object):
-
-    def test_omits_meta_if_too_many_items_match(self):
-        app_settings.MAX_GEO_LIST_RESULTS, _ = 0, app_settings.MAX_GEO_LIST_RESULTS
-
-        Boundary.objects.create(slug='foo', set_id='inc', shape=MultiPolygon(()), simple_shape=MultiPolygon(()))
-
-        response = self.client.get(self.url)
-        self.assertResponse(response)
-        self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"next": null, "total_count": 1, "previous": null, "limit": 20, "offset": 0}}')
-
-        app_settings.MAX_GEO_LIST_RESULTS = _
-
-
-class GeoListTests(object):
-
-    def test_must_not_match_too_many_items(self):
-        app_settings.MAX_GEO_LIST_RESULTS, _ = 0, app_settings.MAX_GEO_LIST_RESULTS
-
-        response = self.client.get(self.url)
-        self.assertForbidden(response)
-        self.assertEqual(response.content, b'Spatial-list queries cannot return more than 0 resources; this query would return 1. Please filter your query.')
-
-        app_settings.MAX_GEO_LIST_RESULTS = _
-
-
-class GeoTests(object):
-
-    def test_wkt(self):
-        response = self.client.get(self.url, {'format': 'wkt'})
-        self.assertResponse(response, content_type='text/plain')
-        self.assertEqual(response.content, b'MULTIPOLYGON (((0.0000000000000000 0.0000000000000000, 0.0000000000000000 5.0000000000000000, 5.0000000000000000 5.0000000000000000, 0.0000000000000000 0.0000000000000000)))')
-
-    def test_kml(self):
-        response = self.client.get(self.url, {'format': 'kml'})
-        self.assertResponse(response, content_type='application/vnd.google-earth.kml+xml')
-        self.assertEqual(response.content, b'<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n<Placemark><name></name><MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>0.0,0.0,0 0.0,5.0,0 5.0,5.0,0 0.0,0.0,0</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry></Placemark>\n</Document>\n</kml>')
-        self.assertEqual(response['Content-Disposition'], 'attachment; filename="shape.kml"')
-
-
-class ViewTestCase(TestCase):
-    non_integers = ('', '1.0', '0b1', '0o1', '0x1')  # '01' is okay
-
-    def assertResponse(self, response, content_type='application/json; charset=utf-8'):
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['Content-Type'], content_type)
-        if app_settings.ALLOW_ORIGIN and 'application/json' in response['Content-Type']:
-            self.assertEqual(response['Access-Control-Allow-Origin'], '*')
-        else:
-            self.assertNotIn('Access-Control-Allow-Origin', response)
-
-    def assertNotFound(self, response):
-        self.assertEqual(response.status_code, 404)
-        self.assertIn(response['Content-Type'], ('text/html', 'text/html; charset=utf-8'))  # different versions of Django
-        self.assertNotIn('Access-Control-Allow-Origin', response)
-
-    def assertError(self, response):
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response['Content-Type'], 'text/plain')
-        self.assertNotIn('Access-Control-Allow-Origin', response)
-
-    def assertForbidden(self, response):
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response['Content-Type'], 'text/html; charset=utf-8')
-        self.assertNotIn('Access-Control-Allow-Origin', response)
-
-    def assertJSONEqual(self, actual, expected):
-        if isinstance(actual, text_type):
-            actual = json.loads(actual)
-        else:
-            actual = json.loads(actual.content.decode('utf-8'))
-        if isinstance(expected, text_type):
-            expected = json.loads(expected)
-        elif isinstance(expected, OrderedDict):
-            expected = dict(expected)
-        self.assertEqual(actual, expected)
-
-
 class BoundarySetListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationTests):
     maxDiff = None
 
@@ -479,6 +439,20 @@ class BoundarySetListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationT
             self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/foo/", "domain": "", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], "meta": {"next": null, "total_count": 3, "previous": "/boundary-sets/?limit=1&offset=1", "limit": 1, "offset": 2}}')
         except AssertionError:
             self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/foo/", "domain": "", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], "meta": {"next": null, "total_count": 3, "previous": "/boundary-sets/?offset=1&limit=1", "limit": 1, "offset": 2}}')
+
+
+class BoundaryListTests(object):
+
+    def test_omits_meta_if_too_many_items_match(self):
+        app_settings.MAX_GEO_LIST_RESULTS, _ = 0, app_settings.MAX_GEO_LIST_RESULTS
+
+        Boundary.objects.create(slug='foo', set_id='inc', shape=MultiPolygon(()), simple_shape=MultiPolygon(()))
+
+        response = self.client.get(self.url)
+        self.assertResponse(response)
+        self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"next": null, "total_count": 1, "previous": null, "limit": 20, "offset": 0}}')
+
+        app_settings.MAX_GEO_LIST_RESULTS = _
 
 
 class BoundaryListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationTests, BoundaryListTests):
@@ -570,6 +544,32 @@ class BoundaryListSetTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationT
     def test_404_on_boundary_set(self):
         response = self.client.get('/boundaries/nonexistent/')
         self.assertNotFound(response)
+
+
+class GeoListTests(object):
+
+    def test_must_not_match_too_many_items(self):
+        app_settings.MAX_GEO_LIST_RESULTS, _ = 0, app_settings.MAX_GEO_LIST_RESULTS
+
+        response = self.client.get(self.url)
+        self.assertForbidden(response)
+        self.assertEqual(response.content, b'Spatial-list queries cannot return more than 0 resources; this query would return 1. Please filter your query.')
+
+        app_settings.MAX_GEO_LIST_RESULTS = _
+
+
+class GeoTests(object):
+
+    def test_wkt(self):
+        response = self.client.get(self.url, {'format': 'wkt'})
+        self.assertResponse(response, content_type='text/plain')
+        self.assertEqual(response.content, b'MULTIPOLYGON (((0.0000000000000000 0.0000000000000000, 0.0000000000000000 5.0000000000000000, 5.0000000000000000 5.0000000000000000, 0.0000000000000000 0.0000000000000000)))')
+
+    def test_kml(self):
+        response = self.client.get(self.url, {'format': 'kml'})
+        self.assertResponse(response, content_type='application/vnd.google-earth.kml+xml')
+        self.assertEqual(response.content, b'<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n<Placemark><name></name><MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>0.0,0.0,0 0.0,5.0,0 5.0,5.0,0 0.0,0.0,0</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry></Placemark>\n</Document>\n</kml>')
+        self.assertEqual(response['Content-Disposition'], 'attachment; filename="shape.kml"')
 
 
 class BoundaryListGeoTestCase(ViewTestCase, ViewsTests, GeoListTests, GeoTests):
