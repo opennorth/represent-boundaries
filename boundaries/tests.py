@@ -2,12 +2,14 @@
 from __future__ import unicode_literals
 
 import json
+import re
 from collections import OrderedDict
 from copy import deepcopy
 from datetime import date
 
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry, Point, MultiPolygon
+from django.utils.six import assertRegex, text_type
 from django.test import TestCase
 
 from boundaries import registry, register, autodiscover, attr, clean_attr, dashed_attr
@@ -34,17 +36,17 @@ class BoundarySetTestCase(TestCase):
         ]
         self.assertEqual(BoundarySet.get_dicts(sets), [
             {
-                'url': b'/boundary-sets/foo/',
+                'url': '/boundary-sets/foo/',
                 'related': {
-                    'boundaries_url': b'/boundaries/foo/',
+                    'boundaries_url': '/boundaries/foo/',
                 },
                 'name': 'Foo',
                 'domain': 'Fooland',
             },
             {
-                'url': b'/boundary-sets/bar/',
+                'url': '/boundary-sets/bar/',
                 'related': {
-                    'boundaries_url': b'/boundaries/bar/',
+                    'boundaries_url': '/boundaries/bar/',
                 },
                 'name': 'Bar',
                 'domain': 'Barland',
@@ -70,7 +72,7 @@ class BoundarySetTestCase(TestCase):
             },
         ).as_dict(), {
             'related': {
-                'boundaries_url': b'/boundaries/foo/',
+                'boundaries_url': '/boundaries/foo/',
             },
             'name_plural': 'Foo',
             'name_singular': 'Foe',
@@ -92,7 +94,7 @@ class BoundarySetTestCase(TestCase):
             slug='foo',
         ).as_dict(), {
             'related': {
-                'boundaries_url': b'/boundaries/foo/',
+                'boundaries_url': '/boundaries/foo/',
             },
             'name_plural': '',
             'name_singular': '',
@@ -131,19 +133,19 @@ class BoundaryTestCase(TestCase):
         ]
         self.assertEqual(Boundary.get_dicts(boundaries), [
             {
-                'url': b'/boundaries/foo/bar/',
+                'url': '/boundaries/foo/bar/',
                 'name': 'Bar',
                 'related': {
-                    'boundary_set_url': b'/boundary-sets/foo/',
+                    'boundary_set_url': '/boundary-sets/foo/',
                 },
                 'boundary_set_name': 'Foo',
                 'external_id': 1,
             },
             {
-                'url': b'/boundaries/baz/bzz/',
+                'url': '/boundaries/baz/bzz/',
                 'name': 'Bzz',
                 'related': {
-                    'boundary_set_url': b'/boundary-sets/baz/',
+                    'boundary_set_url': '/boundary-sets/baz/',
                 },
                 'boundary_set_name': 'Baz',
                 'external_id': 2,
@@ -164,11 +166,11 @@ class BoundaryTestCase(TestCase):
             centroid=Point(0, 1),
         ).as_dict(), {
             'related': {
-                'boundary_set_url': b'/boundary-sets/foo/',
-                'shape_url': b'/boundaries/foo/bar/shape',
-                'simple_shape_url': b'/boundaries/foo/bar/simple_shape',
-                'centroid_url': b'/boundaries/foo/bar/centroid',
-                'boundaries_url': b'/boundaries/foo/',
+                'boundary_set_url': '/boundary-sets/foo/',
+                'shape_url': '/boundaries/foo/bar/shape',
+                'simple_shape_url': '/boundaries/foo/bar/simple_shape',
+                'centroid_url': '/boundaries/foo/bar/centroid',
+                'boundaries_url': '/boundaries/foo/',
             },
             'boundary_set_name': 'Foo',
             'name': 'Bar',
@@ -188,11 +190,11 @@ class BoundaryTestCase(TestCase):
             slug='bar',
         ).as_dict(), {
             'related': {
-                'boundary_set_url': b'/boundary-sets/foo/',
-                'shape_url': b'/boundaries/foo/bar/shape',
-                'simple_shape_url': b'/boundaries/foo/bar/simple_shape',
-                'centroid_url': b'/boundaries/foo/bar/centroid',
-                'boundaries_url': b'/boundaries/foo/',
+                'boundary_set_url': '/boundary-sets/foo/',
+                'shape_url': '/boundaries/foo/bar/shape',
+                'simple_shape_url': '/boundaries/foo/bar/simple_shape',
+                'centroid_url': '/boundaries/foo/bar/centroid',
+                'boundaries_url': '/boundaries/foo/',
             },
             'boundary_set_name': '',
             'name': '',
@@ -219,9 +221,11 @@ class BoundaryTestCase(TestCase):
 
 
 class BoundariesTestCase(TestCase):
+    maxDiff = None
+
     def test_register(self):
         register('foo', file='bar')
-        self.assertEqual(registry, {'foo': {b'file': './bar'}})
+        self.assertEqual(registry, {'foo': {'file': './bar'}})
 
     def test_autodiscover(self):
         pass
@@ -239,53 +243,51 @@ class BoundariesTestCase(TestCase):
         self.assertEqual(dashed_attr('foo')({'foo': 'FOO --\tBAR\r--BAZ--\nBZZ--ABC - XYZ-INC'}), 'Foo—Bar—Baz—Bzz—Abc—Xyz—Inc')
 
 
+jsonp_re = re.compile(r'\AabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\((.+)\);\Z', re.DOTALL)
+
 class ViewsTests(object):
     def test_get(self):
         response = self.client.get(self.url)
         self.assertResponse(response)
-        self.assertEqual(response.content, json.dumps(self.json))
+        self.assertJSONEqual(response, self.json)
 
     def test_allow_origin(self):
         app_settings.ALLOW_ORIGIN, _ = None, app_settings.ALLOW_ORIGIN
 
         response = self.client.get(self.url)
         self.assertResponse(response)
-        self.assertEqual(response.content, json.dumps(self.json))
+        self.assertJSONEqual(response, self.json)
 
         app_settings.ALLOW_ORIGIN = _
 
     def test_jsonp(self):
         response = self.client.get(self.url, {'callback': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?'})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_(%s);' % json.dumps(self.json))
+        content = response.content.decode('utf-8')
+        self.assertJSONEqual(content[64:-2], self.json)
+        assertRegex(self, content, jsonp_re)
 
     def test_apibrowser(self):
         response = self.client.get(self.url, {'format': 'apibrowser'})
         self.assertResponse(response, content_type='text/html; charset=utf-8')
 
-    def test_apibrowser_ignores_jsonp(self):
-        response = self.client.get(self.url, {'format': 'apibrowser', 'callback': 'callback'})
-        expected = self.client.get(self.url, {'format': 'apibrowser'})
-        self.assertResponse(response, content_type='text/html; charset=utf-8')
-        self.assertEqual(response.content, expected.content)
 
-    def test_apibrowser_ignores_pretty(self):
-        response = self.client.get(self.url, {'format': 'apibrowser', 'pretty': 1})
-        expected = self.client.get(self.url, {'format': 'apibrowser'})
-        self.assertResponse(response, content_type='text/html; charset=utf-8')
-        self.assertEqual(response.content, expected.content)
-
+pretty_re = re.compile(r'\n    ')
 
 class PrettyTests(object):
     def test_pretty(self):
         response = self.client.get(self.url, {'pretty': 1})
         self.assertResponse(response)
-        self.assertEqual(response.content, json.dumps(self.json, indent=4))
+        self.assertJSONEqual(response, self.json)
+        assertRegex(self, response.content.decode('utf-8'), pretty_re)
 
     def test_jsonp_and_pretty(self):
         response = self.client.get(self.url, {'callback': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?', 'pretty': 1})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_(%s);' % json.dumps(self.json, indent=4))
+        content = response.content.decode('utf-8')
+        self.assertJSONEqual(content[64:-2], self.json)
+        assertRegex(self, content, jsonp_re)
+        assertRegex(self, response.content.decode('utf-8'), pretty_re)
 
 
 class PaginationTests(object):
@@ -294,28 +296,28 @@ class PaginationTests(object):
         self.assertResponse(response)
         data = deepcopy(self.json)
         data['meta']['limit'] = 10
-        self.assertEqual(response.content, json.dumps(data))
+        self.assertJSONEqual(response, data)
 
     def test_offset_is_set(self):
         response = self.client.get(self.url, {'offset': 10})
         self.assertResponse(response)
         data = deepcopy(self.json)
         data['meta']['offset'] = 10
-        self.assertEqual(response.content, json.dumps(data))
+        self.assertJSONEqual(response, data)
 
     def test_limit_is_set_to_maximum_if_zero(self):
         response = self.client.get(self.url, {'limit': 0})
         self.assertResponse(response)
         data = deepcopy(self.json)
         data['meta']['limit'] = 1000
-        self.assertEqual(response.content, json.dumps(data))
+        self.assertJSONEqual(response, data)
 
     def test_limit_is_set_to_maximum_if_greater_than_maximum(self):
         response = self.client.get(self.url, {'limit': 2000})
         self.assertResponse(response)
         data = deepcopy(self.json)
         data['meta']['limit'] = 1000
-        self.assertEqual(response.content, json.dumps(data))
+        self.assertJSONEqual(response, data)
 
     def test_api_limit_per_page(self):
         settings.API_LIMIT_PER_PAGE, _ = 1, getattr(settings, 'API_LIMIT_PER_PAGE', 20)
@@ -324,7 +326,7 @@ class PaginationTests(object):
         self.assertResponse(response)
         data = deepcopy(self.json)
         data['meta']['limit'] = 1
-        self.assertEqual(response.content, json.dumps(data))
+        self.assertJSONEqual(response, data)
 
         settings.API_LIMIT_PER_PAGE = _
 
@@ -332,13 +334,13 @@ class PaginationTests(object):
         for value in self.non_integers:
             response = self.client.get(self.url, {'limit': value})
             self.assertError(response)
-            self.assertEqual(response.content, b"Invalid limit '%s' provided. Please provide a positive integer." % value)
+            self.assertEqual(response.content, ("Invalid limit '%s' provided. Please provide a positive integer." % value).encode('ascii'))
 
     def test_offset_must_be_an_integer(self):
         for value in self.non_integers:
             response = self.client.get(self.url, {'offset': value})
             self.assertError(response)
-            self.assertEqual(response.content, b"Invalid offset '%s' provided. Please provide a positive integer." % value)
+            self.assertEqual(response.content, ("Invalid offset '%s' provided. Please provide a positive integer." % value).encode('ascii'))
 
     def test_limit_must_be_non_negative(self):
         response = self.client.get(self.url, {'limit': -1})
@@ -359,7 +361,7 @@ class BoundaryListTests(object):
 
         response = self.client.get(self.url)
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"next": null, "total_count": 1, "previous": null, "limit": 20, "offset": 0}}')
+        self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"next": null, "total_count": 1, "previous": null, "limit": 20, "offset": 0}}')
 
         app_settings.MAX_GEO_LIST_RESULTS = _
 
@@ -413,8 +415,21 @@ class ViewTestCase(TestCase):
         self.assertEqual(response['Content-Type'], 'text/html; charset=utf-8')
         self.assertNotIn('Access-Control-Allow-Origin', response)
 
+    def assertJSONEqual(self, actual, expected):
+        if isinstance(actual, text_type):
+            actual = json.loads(actual)
+        else:
+            actual = json.loads(actual.content.decode('utf-8'))
+        if isinstance(expected, text_type):
+            expected = json.loads(expected)
+        elif isinstance(expected, OrderedDict):
+            expected = dict(expected)
+        self.assertEqual(actual, expected)
+
 
 class BoundarySetListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationTests):
+    maxDiff = None
+
     url = '/boundary-sets/'
     json = OrderedDict([
         ('objects', []),
@@ -434,18 +449,30 @@ class BoundarySetListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationT
 
         response = self.client.get(self.url, {'limit': 1})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundary-sets/bar/", "domain": "", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}], "meta": {"next": "/boundary-sets/?limit=1&offset=1", "total_count": 3, "previous": null, "limit": 1, "offset": 0}}')
+        try:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/bar/", "domain": "", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}], "meta": {"next": "/boundary-sets/?limit=1&offset=1", "total_count": 3, "previous": null, "limit": 1, "offset": 0}}')
+        except AssertionError:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/bar/", "domain": "", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}], "meta": {"next": "/boundary-sets/?offset=1&limit=1", "total_count": 3, "previous": null, "limit": 1, "offset": 0}}')
+
 
         response = self.client.get(self.url, {'limit': 1, 'offset': 1})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}], "meta": {"next": "/boundary-sets/?limit=1&offset=2", "total_count": 3, "previous": "/boundary-sets/?limit=1&offset=0", "limit": 1, "offset": 1}}')
+        try:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}], "meta": {"next": "/boundary-sets/?limit=1&offset=2", "total_count": 3, "previous": "/boundary-sets/?limit=1&offset=0", "limit": 1, "offset": 1}}')
+        except AssertionError:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}], "meta": {"next": "/boundary-sets/?offset=2&limit=1", "total_count": 3, "previous": "/boundary-sets/?offset=0&limit=1", "limit": 1, "offset": 1}}')
 
         response = self.client.get(self.url, {'limit': 1, 'offset': 2})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundary-sets/foo/", "domain": "", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], "meta": {"next": null, "total_count": 3, "previous": "/boundary-sets/?limit=1&offset=1", "limit": 1, "offset": 2}}')
+        try:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/foo/", "domain": "", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], "meta": {"next": null, "total_count": 3, "previous": "/boundary-sets/?limit=1&offset=1", "limit": 1, "offset": 2}}')
+        except AssertionError:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/foo/", "domain": "", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], "meta": {"next": null, "total_count": 3, "previous": "/boundary-sets/?offset=1&limit=1", "limit": 1, "offset": 2}}')
 
 
 class BoundaryListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationTests, BoundaryListTests):
+    maxDiff = None
+
     url = '/boundaries/'
     json = OrderedDict([
         ('objects', []),
@@ -465,18 +492,31 @@ class BoundaryListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationTest
 
         response = self.client.get(self.url, {'limit': 1})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?limit=1", "simple_shapes_url": "/boundaries/simple_shape?limit=1", "shapes_url": "/boundaries/shape?limit=1"}, "next": "/boundaries/?limit=1&offset=1", "limit": 1, "offset": 0, "previous": null}}')
+        try:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?limit=1", "simple_shapes_url": "/boundaries/simple_shape?limit=1", "shapes_url": "/boundaries/shape?limit=1"}, "next": "/boundaries/?limit=1&offset=1", "limit": 1, "offset": 0, "previous": null}}')
+        except AssertionError:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?limit=1", "simple_shapes_url": "/boundaries/simple_shape?limit=1", "shapes_url": "/boundaries/shape?limit=1"}, "next": "/boundaries/?offset=1&limit=1", "limit": 1, "offset": 0, "previous": null}}')
+
 
         response = self.client.get(self.url, {'limit': 1, 'offset': 1})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?limit=1&offset=1", "simple_shapes_url": "/boundaries/simple_shape?limit=1&offset=1", "shapes_url": "/boundaries/shape?limit=1&offset=1"}, "next": "/boundaries/?limit=1&offset=2", "limit": 1, "offset": 1, "previous": "/boundaries/?limit=1&offset=0"}}')
+        try:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?limit=1&offset=1", "simple_shapes_url": "/boundaries/simple_shape?limit=1&offset=1", "shapes_url": "/boundaries/shape?limit=1&offset=1"}, "next": "/boundaries/?limit=1&offset=2", "limit": 1, "offset": 1, "previous": "/boundaries/?limit=1&offset=0"}}')
+        except AssertionError:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?offset=1&limit=1", "simple_shapes_url": "/boundaries/simple_shape?offset=1&limit=1", "shapes_url": "/boundaries/shape?offset=1&limit=1"}, "next": "/boundaries/?offset=2&limit=1", "limit": 1, "offset": 1, "previous": "/boundaries/?offset=0&limit=1"}}')
+
 
         response = self.client.get(self.url, {'limit': 1, 'offset': 2})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?limit=1&offset=2", "simple_shapes_url": "/boundaries/simple_shape?limit=1&offset=2", "shapes_url": "/boundaries/shape?limit=1&offset=2"}, "next": null, "limit": 1, "offset": 2, "previous": "/boundaries/?limit=1&offset=1"}}')
+        try:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?limit=1&offset=2", "simple_shapes_url": "/boundaries/simple_shape?limit=1&offset=2", "shapes_url": "/boundaries/shape?limit=1&offset=2"}, "next": null, "limit": 1, "offset": 2, "previous": "/boundaries/?limit=1&offset=1"}}')
+        except AssertionError:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?offset=2&limit=1", "simple_shapes_url": "/boundaries/simple_shape?offset=2&limit=1", "shapes_url": "/boundaries/shape?offset=2&limit=1"}, "next": null, "limit": 1, "offset": 2, "previous": "/boundaries/?offset=1&limit=1"}}')
 
 
 class BoundaryListSetTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationTests, BoundaryListTests):
+    maxDiff = None
+
     url = '/boundaries/inc/'
     json = OrderedDict([
         ('objects', []),
@@ -499,22 +539,33 @@ class BoundaryListSetTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationT
 
         response = self.client.get(self.url, {'limit': 1})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?limit=1", "simple_shapes_url": "/boundaries/inc/simple_shape?limit=1", "shapes_url": "/boundaries/inc/shape?limit=1"}, "next": "/boundaries/inc/?limit=1&offset=1", "limit": 1, "offset": 0, "previous": null}}')
+        try:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?limit=1", "simple_shapes_url": "/boundaries/inc/simple_shape?limit=1", "shapes_url": "/boundaries/inc/shape?limit=1"}, "next": "/boundaries/inc/?limit=1&offset=1", "limit": 1, "offset": 0, "previous": null}}')
+        except AssertionError:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?limit=1", "simple_shapes_url": "/boundaries/inc/simple_shape?limit=1", "shapes_url": "/boundaries/inc/shape?limit=1"}, "next": "/boundaries/inc/?offset=1&limit=1", "limit": 1, "offset": 0, "previous": null}}')
 
         response = self.client.get(self.url, {'limit': 1, 'offset': 1})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?limit=1&offset=1", "simple_shapes_url": "/boundaries/inc/simple_shape?limit=1&offset=1", "shapes_url": "/boundaries/inc/shape?limit=1&offset=1"}, "next": "/boundaries/inc/?limit=1&offset=2", "limit": 1, "offset": 1, "previous": "/boundaries/inc/?limit=1&offset=0"}}')
+        try:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?limit=1&offset=1", "simple_shapes_url": "/boundaries/inc/simple_shape?limit=1&offset=1", "shapes_url": "/boundaries/inc/shape?limit=1&offset=1"}, "next": "/boundaries/inc/?limit=1&offset=2", "limit": 1, "offset": 1, "previous": "/boundaries/inc/?limit=1&offset=0"}}')
+        except AssertionError:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?offset=1&limit=1", "simple_shapes_url": "/boundaries/inc/simple_shape?offset=1&limit=1", "shapes_url": "/boundaries/inc/shape?offset=1&limit=1"}, "next": "/boundaries/inc/?offset=2&limit=1", "limit": 1, "offset": 1, "previous": "/boundaries/inc/?offset=0&limit=1"}}')
 
         response = self.client.get(self.url, {'limit': 1, 'offset': 2})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?limit=1&offset=2", "simple_shapes_url": "/boundaries/inc/simple_shape?limit=1&offset=2", "shapes_url": "/boundaries/inc/shape?limit=1&offset=2"}, "next": null, "limit": 1, "offset": 2, "previous": "/boundaries/inc/?limit=1&offset=1"}}')
+        try:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?limit=1&offset=2", "simple_shapes_url": "/boundaries/inc/simple_shape?limit=1&offset=2", "shapes_url": "/boundaries/inc/shape?limit=1&offset=2"}, "next": null, "limit": 1, "offset": 2, "previous": "/boundaries/inc/?limit=1&offset=1"}}')
+        except AssertionError:
+            self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?offset=2&limit=1", "simple_shapes_url": "/boundaries/inc/simple_shape?offset=2&limit=1", "shapes_url": "/boundaries/inc/shape?offset=2&limit=1"}, "next": null, "limit": 1, "offset": 2, "previous": "/boundaries/inc/?offset=1&limit=1"}}')
 
     def test_404_on_boundary_set(self):
         response = self.client.get('/boundaries/nonexistent/')
         self.assertNotFound(response)
 
 
-class BoundaryListGeoTestCase(ViewTestCase, ViewsTests, GeoListTests, GeoTests):  # doesn't respect pretty
+class BoundaryListGeoTestCase(ViewTestCase, ViewsTests, GeoListTests, GeoTests):
+    maxDiff = None
+
     url = '/boundaries/shape'
     json = OrderedDict([
         ('objects', [
@@ -533,7 +584,9 @@ class BoundaryListGeoTestCase(ViewTestCase, ViewsTests, GeoListTests, GeoTests):
         Boundary.objects.create(slug='foo', set_id='inc', shape=geom, simple_shape=geom)
 
 
-class BoundaryListSetGeoTestCase(ViewTestCase, ViewsTests, GeoListTests, GeoTests):  # doesn't respect pretty
+class BoundaryListSetGeoTestCase(ViewTestCase, ViewsTests, GeoListTests, GeoTests):
+    maxDiff = None
+
     url = '/boundaries/inc/shape'
     json = OrderedDict([
         ('objects', [
@@ -554,7 +607,9 @@ class BoundaryListSetGeoTestCase(ViewTestCase, ViewsTests, GeoListTests, GeoTest
         Boundary.objects.create(slug='foo', set_id='inc', shape=geom, simple_shape=geom)
 
 
-class BoundaryGeoDetailTestCase(ViewTestCase, ViewsTests, GeoTests):  # doesn't respect pretty
+class BoundaryGeoDetailTestCase(ViewTestCase, ViewsTests, GeoTests):
+    maxDiff = None
+
     url = '/boundaries/inc/foo/shape'
     json = OrderedDict([
         ('type', 'MultiPolygon'),
@@ -569,6 +624,8 @@ class BoundaryGeoDetailTestCase(ViewTestCase, ViewsTests, GeoTests):  # doesn't 
 
 
 class BoundarySetListFilterTestCase(ViewTestCase):
+    maxDiff = None
+
     url = '/boundary-sets/'
 
     def setUp(self):
@@ -579,35 +636,35 @@ class BoundarySetListFilterTestCase(ViewTestCase):
     def test_filter_name(self):
         response = self.client.get(self.url, {'name': 'Foo'})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundary-sets/foo/", "domain": "Fooland", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], "meta": {"next": null, "total_count": 1, "previous": null, "limit": 20, "offset": 0}}')
+        self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/foo/", "domain": "Fooland", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], "meta": {"next": null, "total_count": 1, "previous": null, "limit": 20, "offset": 0}}')
 
     def test_filter_domain(self):
         response = self.client.get(self.url, {'domain': 'Barland'})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundary-sets/bar/", "domain": "Barland", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}], "meta": {"next": null, "total_count": 1, "previous": null, "limit": 20, "offset": 0}}')
+        self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/bar/", "domain": "Barland", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}], "meta": {"next": null, "total_count": 1, "previous": null, "limit": 20, "offset": 0}}')
 
     def test_filter_type(self):
         response = self.client.get(self.url, {'name__istartswith': 'f'})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundary-sets/foo/", "domain": "Fooland", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], "meta": {"next": null, "total_count": 1, "previous": null, "limit": 20, "offset": 0}}')
+        self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/foo/", "domain": "Fooland", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], "meta": {"next": null, "total_count": 1, "previous": null, "limit": 20, "offset": 0}}')
 
     def test_ignore_non_filter_field(self):
         response = self.client.get(self.url, {'authority': 'King'})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": ['
-            b'{"url": "/boundary-sets/bar/", "domain": "Barland", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}, '
-            b'{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}, '
-            b'{"url": "/boundary-sets/foo/", "domain": "Fooland", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], '
-            b'"meta": {"next": null, "total_count": 3, "previous": null, "limit": 20, "offset": 0}}')
+        self.assertJSONEqual(response, '{"objects": ['
+            '{"url": "/boundary-sets/bar/", "domain": "Barland", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}, '
+            '{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}, '
+            '{"url": "/boundary-sets/foo/", "domain": "Fooland", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], '
+            '"meta": {"next": null, "total_count": 3, "previous": null, "limit": 20, "offset": 0}}')
 
     def test_ignore_non_filter_type(self):
         response = self.client.get(self.url, {'name__search': 'Foo'})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": ['
-            b'{"url": "/boundary-sets/bar/", "domain": "Barland", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}, '
-            b'{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}, '
-            b'{"url": "/boundary-sets/foo/", "domain": "Fooland", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], '
-            b'"meta": {"next": null, "total_count": 3, "previous": null, "limit": 20, "offset": 0}}')
+        self.assertJSONEqual(response, '{"objects": ['
+            '{"url": "/boundary-sets/bar/", "domain": "Barland", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}, '
+            '{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}, '
+            '{"url": "/boundary-sets/foo/", "domain": "Fooland", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], '
+            '"meta": {"next": null, "total_count": 3, "previous": null, "limit": 20, "offset": 0}}')
 
     def test_filter_value_must_be_valid(self):
         response = self.client.get(self.url, {'name__isnull': 'none'})
@@ -616,6 +673,8 @@ class BoundarySetListFilterTestCase(ViewTestCase):
 
 
 class BoundaryListFilterTestCase(ViewTestCase):
+    maxDiff = None
+
     url = '/boundaries/'
 
     def setUp(self):
@@ -626,43 +685,62 @@ class BoundaryListFilterTestCase(ViewTestCase):
     def test_filter_name(self):
         response = self.client.get(self.url, {'name': 'Foo'})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 1, "related": {"centroids_url": "/boundaries/centroid?name=Foo", "simple_shapes_url": "/boundaries/simple_shape?name=Foo", "shapes_url": "/boundaries/shape?name=Foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+        self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 1, "related": {"centroids_url": "/boundaries/centroid?name=Foo", "simple_shapes_url": "/boundaries/simple_shape?name=Foo", "shapes_url": "/boundaries/shape?name=Foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
 
     def test_filter_external_id(self):
         response = self.client.get(self.url, {'external_id': '2'})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 1, "related": {"centroids_url": "/boundaries/centroid?external_id=2", "simple_shapes_url": "/boundaries/simple_shape?external_id=2", "shapes_url": "/boundaries/shape?external_id=2"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+        self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 1, "related": {"centroids_url": "/boundaries/centroid?external_id=2", "simple_shapes_url": "/boundaries/simple_shape?external_id=2", "shapes_url": "/boundaries/shape?external_id=2"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
 
     def test_filter_type(self):
         response = self.client.get(self.url, {'name__istartswith': 'f'})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 1, "related": {"centroids_url": "/boundaries/centroid?name__istartswith=f", "simple_shapes_url": "/boundaries/simple_shape?name__istartswith=f", "shapes_url": "/boundaries/shape?name__istartswith=f"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+        self.assertJSONEqual(response, '{"objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], "meta": {"total_count": 1, "related": {"centroids_url": "/boundaries/centroid?name__istartswith=f", "simple_shapes_url": "/boundaries/simple_shape?name__istartswith=f", "shapes_url": "/boundaries/shape?name__istartswith=f"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
 
     def test_ignore_non_filter_field(self):
         response = self.client.get(self.url, {'slug': 'foo'})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": ['
-            b'{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-            b'{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-            b'{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], '
-            b'"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?slug=foo", "simple_shapes_url": "/boundaries/simple_shape?slug=foo", "shapes_url": "/boundaries/shape?slug=foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+        self.assertJSONEqual(response, '{"objects": ['
+            '{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+            '{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+            '{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], '
+            '"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?slug=foo", "simple_shapes_url": "/boundaries/simple_shape?slug=foo", "shapes_url": "/boundaries/shape?slug=foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
 
     def test_ignore_non_filter_type(self):
         response = self.client.get(self.url, {'name__search': 'Foo'})
         self.assertResponse(response)
-        self.assertEqual(response.content, b'{"objects": ['
-            b'{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-            b'{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-            b'{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], '
-            b'"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?name__search=Foo", "simple_shapes_url": "/boundaries/simple_shape?name__search=Foo", "shapes_url": "/boundaries/shape?name__search=Foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
+        self.assertJSONEqual(response, '{"objects": ['
+            '{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+            '{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
+            '{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], '
+            '"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/centroid?name__search=Foo", "simple_shapes_url": "/boundaries/simple_shape?name__search=Foo", "shapes_url": "/boundaries/shape?name__search=Foo"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
 
     def test_filter_value_must_be_valid(self):
         response = self.client.get(self.url, {'name__isnull': 'none'})
         self.assertError(response)
         self.assertEqual(response.content, b'Invalid filter value')
 
+    # @todo
+    # intersects: valid, 404, invalid
+    # touches: valid, 404, invalid
+    # sets: comma-separated
+    # contains: valid, invalid
+    # near
+
+    # add same tests with base url /boundaries/inc/
+    # add same tests with base url /boundaries/shape, /boundaries/inc/shape
+    #   error if count > MAX_GEO_LIST_RESULTS
+
+# def test_coerce_boolean_and_none(self):
+#     for value in ('none', 'None'):
+#         response = self.client.get(self.url, {'domain': value})
+#         self.assertResponse(response)
+#         self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/baz/", "domain": "Bazland", "name": "Foo", "related": {"boundaries_url": "/boundaries/baz/"}}], "meta": {"next": null, "total_count": 1, "previous": null, "limit": 20, "offset": 0}}')
+
 
 class BoundarySetDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
+    maxDiff = None
+
     url = '/boundary-sets/foo/'
     json = OrderedDict([
         ('domain', ''),
@@ -691,6 +769,8 @@ class BoundarySetDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
 
 
 class BoundaryDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
+    maxDiff = None
+
     url = '/boundaries/inc/foo/'
     json = OrderedDict([
         ('name', ''),
