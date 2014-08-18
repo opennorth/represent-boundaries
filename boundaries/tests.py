@@ -867,19 +867,6 @@ class BoundaryListSetFilterTestCase(ViewTestCase):
         self.assertError(response)
         self.assertEqual(response.content, b'Invalid value for touches filter')
 
-    def test_sets(self):
-        response = self.client.get(self.url, {'sets': 'abc'})
-        self.assertResponse(response)
-        self.assertJSONEqual(response, '{"meta": {"total_count": 0, "next": null, "limit": 20, "offset": 0, "previous": null}, "objects": []}')
-
-        response = self.client.get(self.url, {'sets': 'inc'})
-        self.assertResponse(response)
-        self.assertJSONEqual(response, '{"objects": ['
-                             '{"url": "/boundaries/inc/baz/", "boundary_set_name": "", "external_id": "", "name": "", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-                             '{"url": "/boundaries/inc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, '
-                             '{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}], '
-                             '"meta": {"total_count": 3, "related": {"centroids_url": "/boundaries/inc/centroid?sets=inc", "simple_shapes_url": "/boundaries/inc/simple_shape?sets=inc", "shapes_url": "/boundaries/inc/shape?sets=inc"}, "next": null, "limit": 20, "offset": 0, "previous": null}}')
-
     def test_contains(self):
         response = self.client.get(self.url, {'contains': '1,4'})
         self.assertResponse(response)
@@ -1064,15 +1051,6 @@ class BoundaryListSetGeoFilterTestCase(ViewTestCase):
         response = self.client.get(self.url, {'touches': ''})
         self.assertError(response)
         self.assertEqual(response.content, b'Invalid value for touches filter')
-
-    def test_sets(self):
-        response = self.client.get(self.url, {'sets': 'abc'})
-        self.assertResponse(response)
-        self.assertJSONEqual(response, '{"objects": []}')
-
-        response = self.client.get(self.url, {'sets': 'inc'})
-        self.assertResponse(response)
-        self.assertJSONEqual(response, '{"objects": [{"shape": {"type": "MultiPolygon", "coordinates": [[[[0.0, 0.0], [5.0, 0.0], [5.0, 5.0], [0.0, 0.0]]]]}, "name": ""}, {"shape": {"type": "MultiPolygon", "coordinates": [[[[1.0, 2.0], [1.0, 4.0], [3.0, 4.0], [1.0, 2.0]]]]}, "name": "Bar"}, {"shape": {"type": "MultiPolygon", "coordinates": [[[[0.0, 0.0], [0.0, 5.0], [5.0, 5.0], [0.0, 0.0]]]]}, "name": "Foo"}]}')
 
     def test_contains(self):
         response = self.client.get(self.url, {'contains': '1,4'})

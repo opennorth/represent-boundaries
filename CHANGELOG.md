@@ -9,7 +9,6 @@
 
 Identified quirks:
 
-* The `sets` boundary filter is only relevant for `/boundaries/`.
 * The `intersects` boundary filter will always return the filtering boundary.
 * The `shape`, `simple_shape` and `centroid` endpoints ignore the `pretty` parameter.
 * `format=apibrowser` ignores JSONP and the `pretty` parameter.
