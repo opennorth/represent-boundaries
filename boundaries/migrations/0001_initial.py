@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import __builtin__
 import jsonfield.fields
 import django.contrib.gis.db.models.fields
 
@@ -21,7 +20,7 @@ class Migration(migrations.Migration):
                 ('slug', models.SlugField(help_text='The name of this BoundarySet used in API URLs.', max_length=200)),
                 ('external_id', models.CharField(help_text="The boundary's unique ID in the source dataset, or a generated one.", max_length=64)),
                 ('name', models.CharField(help_text='The name of this boundary, e.g. "Austin".', max_length=192, db_index=True)),
-                ('metadata', jsonfield.fields.JSONField(default=__builtin__.dict, help_text='The complete contents of the attribute table for this boundary from the source shapefile, structured as JSON.', blank=True)),
+                ('metadata', jsonfield.fields.JSONField(default=dict, help_text='The complete contents of the attribute table for this boundary from the source shapefile, structured as JSON.', blank=True)),
                 ('shape', django.contrib.gis.db.models.fields.MultiPolygonField(help_text='The geometry of this boundary in EPSG:4326 projection.', srid=4326)),
                 ('simple_shape', django.contrib.gis.db.models.fields.MultiPolygonField(help_text='The simplified geometry of this boundary in EPSG:4326 projection.', srid=4326)),
                 ('centroid', django.contrib.gis.db.models.fields.PointField(help_text='The centroid (weighted center) of this boundary in EPSG:4326 projection.', srid=4326, null=True)),
