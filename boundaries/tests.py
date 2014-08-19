@@ -11,10 +11,31 @@ from datetime import date
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry, Point, MultiPolygon
 from django.utils.six import assertRegex, text_type
+from django.utils.six.moves.urllib.parse import parse_qsl, unquote_plus, urlparse
 from django.test import TestCase
 
 from boundaries import registry, register, autodiscover, attr, clean_attr, dashed_attr
 from boundaries.models import app_settings, BoundarySet, Boundary
+
+
+class URL(object):
+
+    """
+    http://stackoverflow.com/questions/5371992/comparing-two-urls-in-python
+    """
+
+    def __init__(self, url):
+        if isinstance(url, text_type):
+            parsed = urlparse(url)
+            self.parsed = parsed._replace(query=frozenset(parse_qsl(parsed.query)), path=unquote_plus(parsed.path))
+        else:  # It's already a URL.
+            self.parsed = url.parsed
+
+    def __eq__(self, other):
+        return self.parsed == other.parsed
+
+    def __hash__(self):
+        return hash(self.parsed)
 
 
 class BoundarySetTestCase(TestCase):
@@ -275,13 +296,30 @@ class ViewTestCase(TestCase):
     def assertJSONEqual(self, actual, expected):
         if isinstance(actual, text_type):
             actual = json.loads(actual)
-        else:
+        else:  # It's a response.
             actual = json.loads(actual.content.decode('utf-8'))
         if isinstance(expected, text_type):
             expected = json.loads(expected)
         elif isinstance(expected, OrderedDict):
             expected = dict(expected)
-        self.assertEqual(actual, expected)
+        self.assertEqual(comparable(actual), comparable(expected))
+
+
+def comparable(o):
+
+    """
+    URL query parameters may differ, so make URLs into URL objects, which ignore such superficial differences.
+    """
+
+    if isinstance(o, dict):
+        for k, v in o.items():
+            if k.endswith('url'):
+                o[k] = URL(v)
+            else:
+                o[k] = comparable(v)
+    elif isinstance(o, list):
+        o = [comparable(v) for v in o]
+    return o
 
 
 jsonp_re = re.compile(r'\AabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\((.+)\);\Z', re.DOTALL)
