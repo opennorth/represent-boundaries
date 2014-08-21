@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import json
 import re
 import unittest
-from collections import OrderedDict
 from copy import deepcopy
 from datetime import date
 
@@ -300,15 +299,14 @@ class ViewTestCase(TestCase):
             actual = json.loads(actual.content.decode('utf-8'))
         if isinstance(expected, text_type):
             expected = json.loads(expected)
-        elif isinstance(expected, OrderedDict):
-            expected = dict(expected)
         self.assertEqual(comparable(actual), comparable(expected))
 
 
 def comparable(o):
 
     """
-    URL query parameters may differ, so make URLs into URL objects, which ignore such superficial differences.
+    The order of URL query parameters may differ, so make URLs into URL objects,
+    which ignore query parameter ordering.
     """
 
     if isinstance(o, dict):
@@ -441,16 +439,16 @@ class BoundarySetListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationT
     maxDiff = None
 
     url = '/boundary-sets/'
-    json = OrderedDict([
-        ('objects', []),
-        ('meta', OrderedDict([
-            ('next', None),
-            ('total_count', 0),
-            ('previous', None),
-            ('limit', 20),
-            ('offset', 0),
-        ])),
-    ])
+    json = {
+        'objects': [],
+        'meta': {
+            'next': None,
+            'total_count': 0,
+            'previous': None,
+            'limit': 20,
+            'offset': 0,
+        },
+    }
 
     def test_pagination(self):
         BoundarySet.objects.create(name='Foo', last_updated=date(2000, 1, 1))
@@ -497,16 +495,16 @@ class BoundaryListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationTest
     maxDiff = None
 
     url = '/boundaries/'
-    json = OrderedDict([
-        ('objects', []),
-        ('meta', OrderedDict([
-            ('next', None),
-            ('total_count', 0),
-            ('previous', None),
-            ('limit', 20),
-            ('offset', 0),
-        ])),
-    ])
+    json = {
+        'objects': [],
+        'meta': {
+            'next': None,
+            'total_count': 0,
+            'previous': None,
+            'limit': 20,
+            'offset': 0,
+        },
+    }
 
     def test_pagination(self):
         Boundary.objects.create(slug='foo', set_id='inc', shape=MultiPolygon(()), simple_shape=MultiPolygon(()))
@@ -539,16 +537,16 @@ class BoundaryListSetTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationT
     maxDiff = None
 
     url = '/boundaries/inc/'
-    json = OrderedDict([
-        ('objects', []),
-        ('meta', OrderedDict([
-            ('next', None),
-            ('total_count', 0),
-            ('previous', None),
-            ('limit', 20),
-            ('offset', 0),
-        ])),
-    ])
+    json = {
+        'objects': [],
+        'meta': {
+            'next': None,
+            'total_count': 0,
+            'previous': None,
+            'limit': 20,
+            'offset': 0,
+        },
+    }
 
     def setUp(self):
         BoundarySet.objects.create(slug='inc', last_updated=date(2000, 1, 1))
@@ -614,17 +612,17 @@ class BoundaryListGeoTestCase(ViewTestCase, ViewsTests, GeoListTests, GeoTests):
     maxDiff = None
 
     url = '/boundaries/shape'
-    json = OrderedDict([
-        ('objects', [
-            OrderedDict([
-                ('name', ''),
-                ('shape', OrderedDict([
-                    ('type', 'MultiPolygon'),
-                    ('coordinates', [[[[0.0, 0.0], [0.0, 5.0], [5.0, 5.0], [0.0, 0.0]]]]),
-                ])),
-            ]),
-        ]),
-    ])
+    json = {
+        'objects': [
+            {
+                'name': '',
+                'shape': {
+                    'type': 'MultiPolygon',
+                    'coordinates': [[[[0.0, 0.0], [0.0, 5.0], [5.0, 5.0], [0.0, 0.0]]]],
+                },
+            },
+        ],
+    }
 
     def setUp(self):
         geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
@@ -635,17 +633,17 @@ class BoundaryListSetGeoTestCase(ViewTestCase, ViewsTests, GeoListTests, GeoTest
     maxDiff = None
 
     url = '/boundaries/inc/shape'
-    json = OrderedDict([
-        ('objects', [
-            OrderedDict([
-                ('name', ''),
-                ('shape', OrderedDict([
-                    ('type', 'MultiPolygon'),
-                    ('coordinates', [[[[0.0, 0.0], [0.0, 5.0], [5.0, 5.0], [0.0, 0.0]]]]),
-                ])),
-            ]),
-        ]),
-    ])
+    json = {
+        'objects': [
+            {
+                'name': '',
+                'shape': {
+                    'type': 'MultiPolygon',
+                    'coordinates': [[[[0.0, 0.0], [0.0, 5.0], [5.0, 5.0], [0.0, 0.0]]]],
+                },
+            },
+        ],
+    }
 
     def setUp(self):
         BoundarySet.objects.create(slug='inc', last_updated=date(2000, 1, 1))
@@ -658,10 +656,10 @@ class BoundaryGeoDetailTestCase(ViewTestCase, ViewsTests, GeoTests):
     maxDiff = None
 
     url = '/boundaries/inc/foo/shape'
-    json = OrderedDict([
-        ('type', 'MultiPolygon'),
-        ('coordinates', [[[[0.0, 0.0], [0.0, 5.0], [5.0, 5.0], [0.0, 0.0]]]]),
-    ])
+    json = {
+        'type': 'MultiPolygon',
+        'coordinates': [[[[0.0, 0.0], [0.0, 5.0], [5.0, 5.0], [0.0, 0.0]]]],
+    }
 
     def setUp(self):
         BoundarySet.objects.create(slug='inc', last_updated=date(2000, 1, 1))
@@ -1109,23 +1107,23 @@ class BoundarySetDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
     maxDiff = None
 
     url = '/boundary-sets/inc/'
-    json = OrderedDict([
-        ('domain', ''),
-        ('licence_url', ''),
-        ('end_date', None),
-        ('name_singular', ''),
-        ('extra', None),
-        ('notes', ''),
-        ('authority', ''),
-        ('source_url', ''),
-        ('name_plural', ''),
-        ('extent', None),
-        ('last_updated', '2000-01-01'),
-        ('start_date', None),
-        ('related', {
+    json = {
+        'domain': '',
+        'licence_url': '',
+        'end_date': None,
+        'name_singular': '',
+        'extra': None,
+        'notes': '',
+        'authority': '',
+        'source_url': '',
+        'name_plural': '',
+        'extent': None,
+        'last_updated': '2000-01-01',
+        'start_date': None,
+        'related': {
             'boundaries_url': '/boundaries/inc/'
-        }),
-    ])
+        },
+    }
 
     def setUp(self):
         BoundarySet.objects.create(slug='inc', last_updated=date(2000, 1, 1))
@@ -1139,21 +1137,21 @@ class BoundaryDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
     maxDiff = None
 
     url = '/boundaries/inc/foo/'
-    json = OrderedDict([
-        ('name', ''),
-        ('related', OrderedDict([
-            ('boundary_set_url', '/boundary-sets/inc/'),
-            ('simple_shape_url', '/boundaries/inc/foo/simple_shape'),
-            ('boundaries_url', '/boundaries/inc/'),
-            ('shape_url', '/boundaries/inc/foo/shape'),
-            ('centroid_url', '/boundaries/inc/foo/centroid'),
-        ])),
-        ('boundary_set_name', ''),
-        ('centroid', None),
-        ('extent', None),
-        ('external_id', ''),
-        ('metadata', {}),
-    ])
+    json = {
+        'name': '',
+        'related': {
+            'boundary_set_url': '/boundary-sets/inc/',
+            'simple_shape_url': '/boundaries/inc/foo/simple_shape',
+            'boundaries_url': '/boundaries/inc/',
+            'shape_url': '/boundaries/inc/foo/shape',
+            'centroid_url': '/boundaries/inc/foo/centroid',
+        },
+        'boundary_set_name': '',
+        'centroid': None,
+        'extent': None,
+        'external_id': '',
+        'metadata': {},
+    }
 
     def setUp(self):
         BoundarySet.objects.create(slug='inc', last_updated=date(2000, 1, 1))
