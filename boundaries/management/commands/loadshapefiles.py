@@ -140,7 +140,7 @@ class Command(BaseCommand):
             log.info(_('Loading %(slug)s from %(source)s') % {'slug': slug, 'source': data_source.name})
             # Assume only a single-layer in shapefile
             if data_source.layer_count > 1:
-                log.warn(_('%(source)s shapefile [%(slug)s] has multiple layers, using first.') % {'slug': slug, 'source': data_source.name})
+                log.warning(_('%(source)s shapefile [%(slug)s] has multiple layers, using first.') % {'slug': slug, 'source': data_source.name})
             if data_source.layer_count == 0:
                 log.error(_('%(source)s shapefile [%(slug)s] has no layers, skipping.') % {'slug': slug, 'source': data_source.name})
                 continue
@@ -357,7 +357,7 @@ def extract_shapefile_from_zip(zip_filepath):
 
         if filepath.endswith('.shp'):
             if shp_filepath:
-                log.warn(_('Multiple shapefiles found in zip file: %(path)s') % {'path': zip_filepath})
+                log.warning(_('Multiple shapefiles found in zip file: %(path)s') % {'path': zip_filepath})
             shp_filepath = filepath
 
         with open(filepath, 'wb') as f:
