@@ -21,20 +21,14 @@ class ZipFileTestCase(TestCase):
     def test_raises_error_if_multiple_shapefiles_in_zip(self):
         self.assertRaisesRegexp(CommandError, r'\AMultiple shapefiles found in zip file: .+/boundaries/tests/fixtures/multiple.zip\Z', extract_shapefile_from_zip, fixture('multiple.zip'))
 
-    def test_finds_shapefile_in_flat_zip(self):
-        shp_filepath, tmpdir = extract_shapefile_from_zip(fixture('flat.zip'))
-        self.assertEqual(shp_filepath, os.path.join(tmpdir, 'foo.shp'))
-        for extension in ('dbf', 'prj', 'shx', 'shp'):
-            self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.' + extension)))
-
-    def test_finds_shapefile_in_nested_zip(self):
+    def test_returns_shapefile_from_zip(self):
         # The nested directory is named dir.zip to try to confuse the method.
         shp_filepath, tmpdir = extract_shapefile_from_zip(fixture('nested.zip'))
         self.assertEqual(shp_filepath, os.path.join(tmpdir, 'foo.shp'))
         for extension in ('dbf', 'prj', 'shx', 'shp'):
             self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.' + extension)))
 
-    def test_finds_nothing_in_empty_zip(self):
+    def test_returns_nothing_from_empty_zip(self):
         shp_filepath, tmpdir = extract_shapefile_from_zip(fixture('empty.zip'))
         self.assertIsNone(shp_filepath)
         self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'empty.txt')))
@@ -67,19 +61,22 @@ class DataSourcesTestCase(TestCase):
         data_sources, tmpdirs = create_data_sources({}, path, False)
         self.assertEqual(len(tmpdirs), 2)
         self.assertEqual(len(data_sources), 4)
-        self.assertEqual(data_sources[0].name, os.path.join(path, 'bar.shp'))
-        self.assertEqual(data_sources[0].layer_count, 1)
 
-        self.assertEqual(data_sources[1].name, os.path.join(tmpdirs[0], 'foo.shp'))
-        self.assertEqual(data_sources[1].layer_count, 1)
-        self.assertEqual(data_sources[1].zipfile, os.path.join(path, 'flat.zip'))
 
-        self.assertEqual(data_sources[2].name, os.path.join(path, 'foo.shp'))
-        self.assertEqual(data_sources[2].layer_count, 1)
+        paths = [
+            os.path.join(path, 'bar.shp'),
+            os.path.join(path, 'foo.shp'),
+            os.path.join(tmpdirs[0], 'foo.shp'),
+            os.path.join(tmpdirs[1], 'foo.shp'),
+        ]
 
-        self.assertEqual(data_sources[3].name, os.path.join(tmpdirs[1], 'foo.shp'))
-        self.assertEqual(data_sources[3].layer_count, 1)
-        self.assertEqual(data_sources[3].zipfile, os.path.join(path, 'nested.zip'))
+        for data_source in data_sources:
+            self.assertTrue(data_source.name in paths)
+            self.assertEqual(data_source.layer_count, 1)
+            if tmpdirs[0] in data_source.name:
+                self.assertEqual(data_source.zipfile, os.path.join(path, 'flat.zip'))
+            elif tmpdirs[1] in data_source.name:
+                self.assertEqual(data_source.zipfile, os.path.join(path, 'nested.zip'))
 
     def test_returns_nothing_from_empty_directory(self):
         data_sources, tmpdirs = create_data_sources({}, fixture('empty'), False)
@@ -107,4 +104,5 @@ class DataSourcesTestCase(TestCase):
     # * handle
     #
     # @todo Move parts of loadshapefiles into the models and test there:
-    # * target_srs
+    # * UnicodeFeature: valid, geometry, simple_geometry, slug, id, name, metadata, polygon_to_multipolygon
+    # * Boundary: target_srs
