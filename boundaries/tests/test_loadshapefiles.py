@@ -14,7 +14,7 @@ from boundaries.management.commands.loadshapefiles import create_data_sources, e
 def fixture(basename):
     return os.path.join(os.path.dirname(__file__), 'fixtures', basename)
 
-class LoadShapefilesTestCase(TestCase):
+class ZipFileTestCase(TestCase):
     def test_raises_error_if_bad_zip_file(self):
         self.assertRaisesRegexp(BadZipfile, r'\AFile is not a zip file: .+/boundaries/tests/fixtures/bad.zip\Z', extract_shapefile_from_zip, fixture('bad.zip'))
 
@@ -24,25 +24,23 @@ class LoadShapefilesTestCase(TestCase):
     def test_finds_shapefile_in_flat_zip(self):
         shp_filepath, tmpdir = extract_shapefile_from_zip(fixture('flat.zip'))
         self.assertEqual(shp_filepath, os.path.join(tmpdir, 'foo.shp'))
-        self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.dbf')))
-        self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.prj')))
-        self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.shp')))
-        self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.shx')))
+        for extension in ('dbf', 'prj', 'shx', 'shp'):
+            self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.' + extension)))
 
     def test_finds_shapefile_in_nested_zip(self):
         # The nested directory is named dir.zip to try to confuse the method.
         shp_filepath, tmpdir = extract_shapefile_from_zip(fixture('nested.zip'))
         self.assertEqual(shp_filepath, os.path.join(tmpdir, 'foo.shp'))
-        self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.dbf')))
-        self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.prj')))
-        self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.shp')))
-        self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.shx')))
+        for extension in ('dbf', 'prj', 'shx', 'shp'):
+            self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.' + extension)))
 
     def test_finds_nothing_in_empty_zip(self):
         shp_filepath, tmpdir = extract_shapefile_from_zip(fixture('empty.zip'))
         self.assertIsNone(shp_filepath)
         self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'empty.txt')))
 
+
+class DataSourcesTestCase(TestCase):
     def test_returns_shapefile(self):
         path = fixture('foo.shp')
         data_sources, tmpdirs = create_data_sources({}, path, False)

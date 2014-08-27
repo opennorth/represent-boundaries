@@ -99,7 +99,7 @@ class Command(BaseCommand):
         BoundarySet.objects.filter(slug=slug).delete()
 
         path = config['file']
-        data_sources, tmpdirs = create_data_sources(config, path, options["clean"])
+        data_sources, tmpdirs = create_data_sources(config, path, options['clean'])
 
         try:
             self.load_set_2(slug, config, options, data_sources)
@@ -338,19 +338,6 @@ def create_data_sources(config, path, convert_3d_to_2d):
     return data_sources, tmpdirs
 
 
-class UnicodeFeature(object):
-
-    def __init__(self, feature, encoding='ascii'):
-        self.feature = feature
-        self.encoding = encoding
-
-    def get(self, field):
-        val = self.feature.get(field)
-        if isinstance(val, bytes):
-            return val.decode(self.encoding)
-        return val
-
-
 def extract_shapefile_from_zip(zip_filepath):
 
     """
@@ -381,3 +368,16 @@ def extract_shapefile_from_zip(zip_filepath):
             f.write(zip_file.read(name))
 
     return shp_filepath, tmpdir
+
+
+class UnicodeFeature(object):
+
+    def __init__(self, feature, encoding='ascii'):
+        self.feature = feature
+        self.encoding = encoding
+
+    def get(self, field):
+        val = self.feature.get(field)
+        if isinstance(val, bytes):
+            return val.decode(self.encoding)
+        return val
