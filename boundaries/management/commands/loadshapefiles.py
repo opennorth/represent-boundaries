@@ -21,7 +21,7 @@ from django.utils import six
 from django.utils.translation import ugettext as _, ugettext_lazy as t
 
 import boundaries
-from boundaries.models import BoundarySet, Boundary, app_settings
+from boundaries.models import app_settings, BoundarySet, Boundary, UnicodeFeature
 
 
 class Command(BaseCommand):
@@ -72,6 +72,7 @@ class Command(BaseCommand):
             # Backwards compatibility with specifying the name, rather than the slug,
             # as the first arg in the definition
             definition.setdefault('name', slug)
+            definition = Definition(definition)
             slug = slugify(slug)
 
             if slug not in sources:
@@ -107,29 +108,19 @@ class Command(BaseCommand):
         if len(data_sources) == 0:
             log.error(_('No shapefiles found.'))
 
-        # Add some default values
-        if 'singular' not in definition and definition['name'].endswith('s'):
-            definition['singular'] = definition['name'][:-1]
-        if 'id_func' not in definition:
-            definition['id_func'] = lambda f: ''
-        if 'slug_func' not in definition:
-            definition['slug_func'] = definition['name_func']
-
-        # Create BoundarySet
         boundary_set = BoundarySet.objects.create(
             slug=slug,
+            last_updated=definition['last_updated'],
             name=definition['name'],
             singular=definition['singular'],
-            authority=definition.get('authority', ''),
-            domain=definition.get('domain', ''),
-            last_updated=definition['last_updated'],
-            source_url=definition.get('source_url', ''),
-            notes=definition.get('notes', ''),
-            licence_url=definition.get('licence_url', ''),
-            start_date=definition.get('start_date', None),
-            end_date=definition.get('end_date', None),
-            # Load from either the 'extra' or 'metadata' fields
-            extra=definition.get('extra', definition.get('metadata', None))
+            domain=definition['domain'],
+            authority=definition['authority'],
+            source_url=definition['source_url'],
+            licence_url=definition['licence_url'],
+            start_date=definition['start_date'],
+            end_date=definition['end_date'],
+            notes=definition['notes'],
+            extra=definition['extra'],
         )
 
         boundary_set.extent = [None, None, None, None]  # [xmin, ymin, xmax, ymax]
@@ -183,9 +174,9 @@ class Command(BaseCommand):
 
         for feature in layer:
             geometry = feature.geom
-            feature = UnicodeFeature(feature, encoding=definition.get('encoding', 'ascii'))
+            feature = UnicodeFeature(feature, encoding=definition['encoding'])
 
-            if not definition.get('is_valid_func', lambda feature: True)(feature):
+            if not definition['is_valid_func'](feature):
                 continue
 
             feature.layer = layer  # add additional attribute so definition file can trace back to filename
@@ -262,7 +253,7 @@ class Command(BaseCommand):
                 simple_shape=simple_geometry.wkt,
                 centroid=geometry.geos.centroid,
                 extent=geometry.extent,
-                label_point=definition.get('label_point_func', lambda x: None)(feature)
+                label_point=definition['label_point_func'](feature)
             )
 
             if boundary_set.extent[0] is None or boundary.extent[0] < boundary_set.extent[0]:
@@ -285,7 +276,7 @@ def create_data_sources(definition, path, convert_3d_to_2d):
 
     def make_data_source(path):
         try:
-            return DataSource(path, encoding=definition.get('encoding', 'ascii'))
+            return DataSource(path, encoding=definition['encoding'])
         except TypeError:  # DataSource only includes the encoding option in Django >= 1.5.
             return DataSource(path)
 
@@ -360,16 +351,3 @@ def extract_shapefile_from_zip(zip_filepath):
             f.write(zip_file.read(name))
 
     return shp_filepath, tmpdir
-
-
-class UnicodeFeature(object):
-
-    def __init__(self, feature, encoding='ascii'):
-        self.feature = feature
-        self.encoding = encoding
-
-    def get(self, field):
-        value = self.feature.get(field)
-        if isinstance(value, bytes):
-            return value.decode(self.encoding)
-        return value

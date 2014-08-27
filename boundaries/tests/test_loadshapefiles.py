@@ -51,7 +51,7 @@ class DataSourcesTestCase(TestCase):
 
     def test_returns_shapefile(self):
         path = fixture('foo.shp')
-        data_sources, tmpdirs = create_data_sources({}, path, False)
+        data_sources, tmpdirs = create_data_sources({'encoding': 'ascii'}, path, False)
         self.assertEqual(tmpdirs, [])
         self.assertEqual(len(data_sources), 1)
         self.assertEqual(data_sources[0].name, path)
@@ -59,7 +59,7 @@ class DataSourcesTestCase(TestCase):
 
     def test_returns_shapefile_from_zip(self):
         path = fixture('flat.zip')
-        data_sources, tmpdirs = create_data_sources({}, path, False)
+        data_sources, tmpdirs = create_data_sources({'encoding': 'ascii'}, path, False)
         self.assertEqual(len(tmpdirs), 1)
         self.assertEqual(len(data_sources), 1)
         self.assertEqual(data_sources[0].name, os.path.join(tmpdirs[0], 'foo.shp'))
@@ -71,7 +71,7 @@ class DataSourcesTestCase(TestCase):
 
     def test_returns_shapefiles_from_directory(self):
         path = fixture('multiple')
-        data_sources, tmpdirs = create_data_sources({}, path, False)
+        data_sources, tmpdirs = create_data_sources({'encoding': 'ascii'}, path, False)
         self.assertEqual(len(tmpdirs), 2)
         self.assertEqual(len(data_sources), 4)
 

@@ -204,3 +204,57 @@ class Boundary(models.Model):
                 'external_id': b[4],
             } for b in boundaries
         ]
+
+
+class UnicodeFeature(object):
+
+    def __init__(self, feature, encoding='ascii'):
+        self.feature = feature
+        self.encoding = encoding
+
+    def get(self, field):
+        value = self.feature.get(field)
+        if isinstance(value, bytes):
+            return value.decode(self.encoding)
+        return value
+
+class Definition(object):
+    """
+    The dictionary must have `name` and `name_func` keys.
+    """
+    def __init__(self, dictionary):
+        self.dictionary = {}
+
+        self.dictionary.update({
+            'encoding': 'ascii',
+
+            # Boundary Set fields.
+            'domain': '',
+            'authority': '',
+            'source_url': '',
+            'licence_url': '',
+            'start_date': None,
+            'end_date': None,
+            'notes': '',
+            'extra': dictionary.pop('metadata', None),
+
+            # Boundary functions.
+            'id_func': lambda feature: '',
+            'slug_func': dictionary['name_func'],
+            'is_valid_func': lambda feature: True,
+            'label_point_func': lambda feature: None,
+        })
+
+        if dictionary['name'].endswith('s'):
+            self.dictionary['singular'] = dictionary['name'][:-1]
+
+        self.dictionary.update(dictionary)
+
+    def __getitem__(self, key):
+        return self.dictionary[key]
+
+    def __contains__(self, item):
+        return item in self.dictionary
+
+    def get(self, key, default=None):
+        return self.dictionary.get(key, default)
