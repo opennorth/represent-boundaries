@@ -23,8 +23,6 @@ from django.utils.translation import ugettext as _, ugettext_lazy as t
 import boundaries
 from boundaries.models import BoundarySet, Boundary, app_settings
 
-GEOMETRY_COLUMN = 'shape'
-
 
 class Command(BaseCommand):
     help = t('Import boundaries described by shapefiles.')
@@ -39,7 +37,7 @@ class Command(BaseCommand):
         make_option('-o', '--only', action='store', dest='only',
                     default=False, help=t('Only load these BoundarySet slugs, comma-delimited.')),
         make_option('-u', '--database', action='store', dest='database',
-                    default=DEFAULT_DB_ALIAS, help=t('Specify a database to load shape data into.')),
+                    default=DEFAULT_DB_ALIAS, help=t('Specify the database containing the spatial_ref_sys table.')),
         make_option('-c', '--clean', action='store_true', dest='clean',
                     default=False, help=t('Clean shapefiles first with ogr2ogr.')),
         make_option('-m', '--merge', action='store', dest='merge',
@@ -161,7 +159,7 @@ class Command(BaseCommand):
     def polygon_to_multipolygon(geometry):
 
         """
-        Converts a Polygon to a MultiOolygon, so that all features are of the same type.
+        Converts a Polygon to a MultiPolygon, so that all features are of the same type.
         """
 
         if geometry.__class__.__name__ == 'Polygon':
@@ -174,12 +172,11 @@ class Command(BaseCommand):
             raise ValueError(_('The geometry is neither a Polygon nor a MultiPolygon.'))
 
     def add_boundaries_for_layer(self, config, layer, boundary_set, options):
-        # Get the PostGIS geometry field's spatial reference system.
-        geometry_field = Boundary._meta.get_field_by_name(GEOMETRY_COLUMN)[0]
         spatial_ref_sys = connections[options['database']].ops.spatial_ref_sys()
-        target_srs = spatial_ref_sys.objects.using(options['database']).get(srid=geometry_field.srid).srs
+        target_srid = Boundary._meta.get_field_by_name('shape')[0].srid
+        target_srs = spatial_ref_sys.objects.using(options['database']).get(srid=target_srid).srs
 
-        if 'srid' in config and config['srid']:
+        if config.get('srid'):
             source_srs = spatial_ref_sys.objects.get(srid=config['srid']).srs
         else:
             source_srs = layer.srs
@@ -187,16 +184,15 @@ class Command(BaseCommand):
         transformer = CoordTransform(source_srs, target_srs)
 
         for feature in layer:
-            geometry = feature.geom
-
             feature = UnicodeFeature(feature, encoding=config.get('encoding', 'ascii'))
-            feature.layer = layer  # add additional attribute so definition file can trace back to filename
 
             if not config.get('is_valid_func', lambda feature: True)(feature):
                 continue
 
+            feature.layer = layer  # add additional attribute so definition file can trace back to filename
+
             # Transform the geometry to the correct SRS
-            geometry = self.polygon_to_multipolygon(geometry)
+            geometry = self.polygon_to_multipolygon(feature.geom)
             geometry.transform(transformer)
 
             # Create simplified geometry field by collapsing points within 1/1000th of a degree.
@@ -208,13 +204,6 @@ class Command(BaseCommand):
             # Conversion may force multipolygons back to being polygons
             simple_geometry = self.polygon_to_multipolygon(simple_geometry.ogr)
 
-            # Extract metadata into a dictionary
-            metadata = dict(
-                ((field, feature.get(field)) for field in layer.fields)
-            )
-
-            external_id = str(config['id_func'](feature))
-            feature_name = config['name_func'](feature)
             feature_slug = slugify(str(config['slug_func'](feature)).replace('—', '-'))  # m-dash
 
             log.info(_('%(slug)s...') % {'slug': feature_slug})
@@ -256,6 +245,12 @@ class Command(BaseCommand):
                     continue
                 except Boundary.DoesNotExist:
                     pass
+
+            external_id = str(config['id_func'](feature))
+            feature_name = config['name_func'](feature)
+            metadata = dict(
+                ((field, feature.get(field)) for field in layer.fields)
+            )
 
             boundary = Boundary.objects.create(
                 set=boundary_set,
