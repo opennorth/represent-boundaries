@@ -2,7 +2,6 @@
 
 ## 1.0
 
-* The `loadshapefiles` management command raises an error if a ZIP file contains multiple shapefiles.
 * Make non-integer `offset` error message consistent with non-integer `limit` error message.
 * `format=wkt` and `format=kml` no longer error in Django 1.7.
 * I18n support.
@@ -14,8 +13,8 @@ Identified quirks:
 
 ## 0.4.0 (2014-08-01)
 
-* Add `start_date` and `end_date` to boundary sets. (@jamesturk)
-* Remove API throttle, as this is the responsibility of a proxy. (@jamesturk)
+* Add `start_date` and `end_date` to boundary sets. [#21](https://github.com/opennorth/represent-boundaries/pull/21) (@jamesturk)
+* Remove API throttle, as this is the responsibility of a proxy. [#22](https://github.com/opennorth/represent-boundaries/pull/22) (@jamesturk)
 
 ## 0.3.2 (2014-07-01)
 
@@ -32,7 +31,7 @@ Identified quirks:
 
 ## 0.2 (2014-03-26)
 
-* Python 3 compatibility. [#14](https://github.com/opennorth/represent-boundaries/pull/14)
+* Python 3 compatibility. [#14](https://github.com/opennorth/represent-boundaries/pull/14) (@jamesturk)
 * Fix various small bugs and encoding issues and add help text.
 * API
   * Add CORS support.
@@ -47,7 +46,7 @@ Identified quirks:
   * Re-load a boundary set if the `last_updated` field in its definition is more recent than in the database, without having to set the `--reload` switch.
   * If two boundaries have the same slug, and the `--merge` option is set to `union` or `combine`, union their geometries or combine their geometries into a MultiPolygon.
   * Follow symbolic links when walking the shapefiles directory tree.
-  * If `DEBUG = True`, prompt the user about the risk of high memory consumption. [#15](https://github.com/opennorth/represent-boundaries/pull/15)
+  * If `DEBUG = True`, prompt the user about the risk of high memory consumption. [#15](https://github.com/opennorth/represent-boundaries/pull/15) (@jamesturk)
   * Log an error if a shapefile contains no layers.
   * Add an example definition file.
   * Definition files

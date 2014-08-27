@@ -357,7 +357,7 @@ def extract_shapefile_from_zip(zip_filepath):
 
         if filepath.endswith('.shp'):
             if shp_filepath:
-                raise CommandError('Multiple shapefiles found in zip file: %s' % zip_filepath)
+                log.warn(_('Multiple shapefiles found in zip file: %(path)s') % {'path': zip_filepath})
             shp_filepath = filepath
 
         with open(filepath, 'wb') as f:

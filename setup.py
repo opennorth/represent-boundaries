@@ -17,6 +17,9 @@ setup(
         'django-jsonfield>=0.7.1',
         'django-appconf',
     ],
+    extras_require={
+        'test': 'testfixtures',
+    },
     classifiers=[
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.3',
