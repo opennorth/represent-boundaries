@@ -70,13 +70,16 @@ class DataSourcesTestCase(TestCase):
             os.path.join(tmpdirs[1], 'foo.shp'),
         ]
 
+        zipfiles = [
+            os.path.join(path, 'flat.zip'),
+            os.path.join(path, 'nested.zip')
+        ]
+
         for data_source in data_sources:
             self.assertTrue(data_source.name in paths)
             self.assertEqual(data_source.layer_count, 1)
-            if tmpdirs[0] in data_source.name:
-                self.assertEqual(data_source.zipfile, os.path.join(path, 'flat.zip'))
-            elif tmpdirs[1] in data_source.name:
-                self.assertEqual(data_source.zipfile, os.path.join(path, 'nested.zip'))
+            if hasattr(data_source, 'zipfile'):
+                self.assertTrue(data_source.zipfile in zipfiles)
 
     def test_returns_nothing_from_empty_directory(self):
         data_sources, tmpdirs = create_data_sources({}, fixture('empty'), False)
