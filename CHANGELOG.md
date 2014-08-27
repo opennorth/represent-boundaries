@@ -2,6 +2,7 @@
 
 ## 1.0
 
+* The `loadshapefiles` management command raises an error if a ZIP file contains multiple shapefiles.
 * Make non-integer `offset` error message consistent with non-integer `limit` error message.
 * `format=wkt` and `format=kml` no longer error in Django 1.7.
 * I18n support.

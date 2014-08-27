@@ -14,7 +14,7 @@ from shutil import rmtree
 
 from django.conf import settings
 from django.contrib.gis.gdal import CoordTransform, DataSource, OGRGeometry, OGRGeomType
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import connections, DEFAULT_DB_ALIAS, transaction
 from django.template.defaultfilters import slugify
 from django.utils import six
@@ -99,16 +99,16 @@ class Command(BaseCommand):
         BoundarySet.objects.filter(slug=slug).delete()
 
         path = config['file']
-        datasources, tmpdirs = create_datasources(config, path, options["clean"])
+        data_sources, tmpdirs = create_data_sources(config, path, options["clean"])
 
         try:
-            self.load_set_2(slug, config, options, datasources)
+            self.load_set_2(slug, config, options, data_sources)
         finally:
             for path in tmpdirs:
                 rmtree(path)
 
-    def load_set_2(self, slug, config, options, datasources):
-        if len(datasources) == 0:
+    def load_set_2(self, slug, config, options, data_sources):
+        if len(data_sources) == 0:
             log.error(_("No shapefiles found."))
 
         # Add some default values
@@ -138,7 +138,7 @@ class Command(BaseCommand):
 
         bset.extent = [None, None, None, None]  # [xmin, ymin, xmax, ymax]
 
-        for datasource in datasources:
+        for datasource in data_sources:
             log.info(_("Loading %(slug)s from %(source)s") % {'slug': slug, 'source': datasource.name})
             # Assume only a single-layer in shapefile
             if datasource.layer_count > 1:
@@ -281,44 +281,61 @@ class Command(BaseCommand):
                 bset.extent[3] = bdry.extent[3]
 
 
-def create_datasources(config, path, clean_shp):
+def create_data_sources(config, path, convert_3d_to_2d):
+
+    """
+    If the path is to a shapefile, returns a DataSource for the shapefile. If
+    the path is to a ZIP file, returns a DataSource for the shapefile that it
+    contains. If the path is to a directory, returns DataSources for all
+    shapefiles in the directory, without traversing the directory's tree.
+    """
+
+    def make_data_source(path):
+        try:
+            return DataSource(path, encoding=config.get('encoding', 'ascii'))
+        except TypeError:  # DataSource only includes the encoding option in Django >= 1.5.
+            return DataSource(path)
+
     tmpdirs = []
 
-    def make_datasource(p):
-        try:
-            return DataSource(p, encoding=config.get('encoding', 'ascii'))
-        except TypeError:
-            # DataSource only includes the encoding option in Django >= 1.5
-            return DataSource(p)
-
     if path.endswith('.zip'):
-        tmpdir, path = temp_shapefile_from_zip(path)
-        tmpdirs.append(tmpdir)
-        if not path:
+        path, tmpdir = extract_shapefile_from_zip(path)
+        if not path:  # The only other option is that `path` ends in ".shp".
             return
+        tmpdirs.append(tmpdir)
 
     if path.endswith('.shp'):
-        return [make_datasource(path)], tmpdirs
+        return [make_data_source(path)], tmpdirs
 
-    # assume it's a directory...
-    sources = []
-    for fn in os.listdir(path):
-        zipfilename = None
-        fn = os.path.join(path, fn)
-        if fn.endswith('.zip'):
-            zipfilename = fn
-            tmpdir, fn = temp_shapefile_from_zip(fn)
-            tmpdirs.append(tmpdir)
-        if fn and fn.endswith('.shp') and not "_cleaned_" in fn:
-            if clean_shp:
-                fn = preprocess_shp(fn)
-            d = make_datasource(fn)
-            if zipfilename:
-                # add additional attribute so definition file can trace back to filename
-                d.zipfile = zipfilename
-            sources.append(d)
+    # Otherwise, it should be a directory.
+    data_sources = []
+    for name in os.listdir(path):  # This will not recurse directories.
+        filepath = os.path.join(path, name)
+        if os.path.isfile(filepath):
+            zip_filepath = None
 
-    return sources, tmpdirs
+            if filepath.endswith('.zip'):
+                zip_filepath = filepath
+
+                filepath, tmpdir = extract_shapefile_from_zip(filepath)
+                if not filepath:
+                    continue
+                tmpdirs.append(tmpdir)
+
+            if filepath.endswith('.shp') and not '_cleaned_' in filepath:
+                if convert_3d_to_2d:
+                    original_filepath = filepath
+                    filepath = filepath.replace('.shp', '._cleaned_.shp')
+                    subprocess.call(['ogr2ogr', '-f', 'ESRI Shapefile', filepath, original_filepath, '-nlt', 'POLYGON'])
+
+                data_source = make_data_source(filepath)
+
+                if zip_filepath:  # @todo Confirm if Josh Tauberer still needs this.
+                    data_source.zipfile = zip_filepath
+
+                data_sources.append(data_source)
+
+    return data_sources, tmpdirs
 
 
 class UnicodeFeature(object):
@@ -334,36 +351,33 @@ class UnicodeFeature(object):
         return val
 
 
-def temp_shapefile_from_zip(zip_path):
-    """Given a path to a ZIP file, unpack it into a temp dir and return the path
-       to the shapefile that was in there.  Doesn't clean up after itself unless
-       there was an error.
+def extract_shapefile_from_zip(zip_filepath):
 
-       If you want to cleanup later, you can derive the temp dir from this path.
     """
+    Decompresses a ZIP file into a temporary directory and returns the temporary
+    directory and the path to the shapefile that the ZIP file contains, if any.
+    """
+
     try:
-        zf = ZipFile(zip_path)
+        zip_file = ZipFile(zip_filepath)
     except BadZipfile as e:
-        raise BadZipfile(str(e) + ": " + zip_path)
-    tempdir = mkdtemp()
-    shape_path = None
-    # Copy the zipped files to a temporary directory, preserving names.
-    for name in zf.namelist():
-        if name.endswith("/"):
+        raise BadZipfile(str(e) + ': ' + zip_filepath) # e.g. "File is not a zip file: /path/to/file.zip"
+
+    tmpdir = mkdtemp()
+    shp_filepath = None
+
+    for name in zip_file.namelist():
+        if name.endswith('/'):
             continue
-        data = zf.read(name)
-        outfile = os.path.join(tempdir, os.path.basename(name))
-        if name.endswith('.shp'):
-            shape_path = outfile
-        with open(outfile, 'wb') as f:
-            f.write(data)
 
-    return tempdir, shape_path
+        filepath = os.path.join(tmpdir, os.path.basename(name))
 
+        if filepath.endswith('.shp'):
+            if shp_filepath:
+                raise CommandError('Multiple shapefiles found in zip file: %s' % zip_filepath)
+            shp_filepath = filepath
 
-def preprocess_shp(shpfile):
-    # Run this command to sanitize the input, removing 3D shapes which causes trouble for
-    # us later.
-    newfile = shpfile.replace(".shp", "._cleaned_.shp")
-    subprocess.call(["ogr2ogr", "-f", "ESRI Shapefile", newfile, shpfile, "-nlt", "POLYGON"])
-    return newfile
+        with open(filepath, 'wb') as f:
+            f.write(zip_file.read(name))
+
+    return shp_filepath, tmpdir
