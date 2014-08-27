@@ -193,38 +193,39 @@ class Command(BaseCommand):
 
             if options['merge']:
                 try:
-                    b0 = Boundary.objects.get(set=boundary_set, slug=feature_slug)
+                    boundary = Boundary.objects.get(set=boundary_set, slug=feature_slug)
 
+                    # Extend the shape.
                     g = OGRGeometry(OGRGeomType('MultiPolygon'))
-                    for p in b0.shape:
+                    for p in boundary.shape:
                         g.add(p.ogr)
                     for p in geometry:
                         g.add(p)
-                    b0.shape = g.wkt
+                    boundary.shape = g.wkt
 
                     if options['merge'] == 'union':
-                        # take a union of the shapes
-                        g = self.polygon_to_multipolygon(b0.shape.cascaded_union.ogr)
-                        b0.shape = g.wkt
+                        # Union the shapes.
+                        g = self.polygon_to_multipolygon(boundary.shape.cascaded_union.ogr)
+                        boundary.shape = g.wkt
 
-                        # re-create the simple_shape by simplifying the union
-                        b0.simple_shape = self.polygon_to_multipolygon(g.geos.simplify(app_settings.SIMPLE_SHAPE_TOLERANCE, preserve_topology=True).ogr).wkt
+                        # Simplify the union.
+                        boundary.simple_shape = self.polygon_to_multipolygon(g.geos.simplify(app_settings.SIMPLE_SHAPE_TOLERANCE, preserve_topology=True).ogr).wkt
 
                     elif options['merge'] == 'combine':
-                        # extend the previous simple_shape with the new simple_shape
+                        # Extend the simple_shape.
                         g = OGRGeometry(OGRGeomType('MultiPolygon'))
-                        for p in b0.simple_shape:
+                        for p in boundary.simple_shape:
                             g.add(p.ogr)
                         for p in simple_geometry:
                             g.add(p)
-                        b0.simple_shape = g.wkt
+                        boundary.simple_shape = g.wkt
 
                     else:
                         raise ValueError(_('Invalid value for merge option.'))
 
-                    b0.centroid = b0.shape.centroid
-                    b0.extent = b0.shape.extent
-                    b0.save()
+                    boundary.centroid = boundary.shape.centroid
+                    boundary.extent = boundary.shape.extent
+                    boundary.save()
                     continue
                 except Boundary.DoesNotExist:
                     pass
@@ -235,9 +236,7 @@ class Command(BaseCommand):
                 external_id=str(definition['id_func'](feature)),
                 name=definition['name_func'](feature),
                 slug=feature_slug,
-                metadata=dict(
-                    ((field, feature.get(field)) for field in layer.fields)
-                ),
+                metadata=feature.metadata(),
                 shape=geometry.wkt,
                 simple_shape=simple_geometry.wkt,
                 centroid=geometry.geos.centroid,
