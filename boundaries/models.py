@@ -211,6 +211,7 @@ class UnicodeFeature(object):
     def __init__(self, feature, encoding='ascii'):
         self.feature = feature
         self.encoding = encoding
+        self.geom = feature.geom
 
     def get(self, field):
         value = self.feature.get(field)

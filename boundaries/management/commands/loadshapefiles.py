@@ -171,25 +171,23 @@ class Command(BaseCommand):
         transformer = CoordTransform(source_srs, target_srs)
 
         for feature in layer:
-            geometry = feature.geom
             feature = UnicodeFeature(feature, encoding=definition['encoding'])
 
             if not definition['is_valid_func'](feature):
                 continue
 
+            feature_slug = slugify(str(definition['slug_func'](feature)).replace('—', '-'))  # m-dash
             log.info(_('%(slug)s...') % {'slug': feature_slug})
 
             feature.layer = layer  # to trace the feature back to its source
 
-            geometry = self.polygon_to_multipolygon(geometry)
+            geometry = self.polygon_to_multipolygon(feature.geom)
             # Transform the geometry to the correct SRS.
             geometry.transform(transformer)
             # Use `ST_SimplifyPreserveTopology` to avoid invalid geometries.
             simple_geometry = geometry.geos.simplify(app_settings.SIMPLE_SHAPE_TOLERANCE, preserve_topology=True)
             # The simplification may have simplified MultiPolygons to Polygons.
             simple_geometry = self.polygon_to_multipolygon(simple_geometry.ogr)
-
-            feature_slug = slugify(str(definition['slug_func'](feature)).replace('—', '-'))  # m-dash
 
             if options['merge']:
                 try:
