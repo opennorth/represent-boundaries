@@ -169,12 +169,13 @@ class Command(BaseCommand):
             raise ValueError(_('The geometry is neither a Polygon nor a MultiPolygon.'))
 
     def add_boundaries_for_layer(self, definition, layer, boundary_set, options):
-        spatial_ref_sys = connections[DEFAULT_DB_ALIAS].ops.spatial_ref_sys()
+        # @see https://github.com/django/django/blob/master/django/contrib/gis/utils/srs.py
+        SpatialRefSys = connections[DEFAULT_DB_ALIAS].ops.spatial_ref_sys()
         target_srid = Boundary._meta.get_field_by_name('shape')[0].srid
-        target_srs = spatial_ref_sys.objects.using(DEFAULT_DB_ALIAS).get(srid=target_srid).srs
+        target_srs = SpatialRefSys.objects.get(srid=target_srid).srs
 
         if definition.get('srid'):
-            source_srs = spatial_ref_sys.objects.get(srid=definition['srid']).srs
+            source_srs = SpatialRefSys.objects.get(srid=definition['srid']).srs
         else:
             source_srs = layer.srs
 
