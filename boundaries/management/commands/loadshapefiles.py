@@ -184,6 +184,7 @@ class Command(BaseCommand):
         transformer = CoordTransform(source_srs, target_srs)
 
         for feature in layer:
+            geometry = feature.geom
             feature = UnicodeFeature(feature, encoding=definition.get('encoding', 'ascii'))
 
             if not definition.get('is_valid_func', lambda feature: True)(feature):
@@ -192,7 +193,7 @@ class Command(BaseCommand):
             feature.layer = layer  # add additional attribute so definition file can trace back to filename
 
             # Transform the geometry to the correct SRS
-            geometry = self.polygon_to_multipolygon(feature.geom)
+            geometry = self.polygon_to_multipolygon(geometry)
             geometry.transform(transformer)
 
             # Create simplified geometry field by collapsing points within 1/1000th of a degree.
@@ -372,7 +373,7 @@ class UnicodeFeature(object):
         self.encoding = encoding
 
     def get(self, field):
-        val = self.feature.get(field)
-        if isinstance(val, bytes):
-            return val.decode(self.encoding)
-        return val
+        value = self.feature.get(field)
+        if isinstance(value, bytes):
+            return value.decode(self.encoding)
+        return value
