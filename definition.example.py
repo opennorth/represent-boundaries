@@ -16,23 +16,23 @@ boundaries.register('Federal electoral districts',  # The string to be used for
 
                     # The following Boundary Set fields will be made available via the API.
 
-                    # The date on which the data was most recently updated.
+                    # The most recent date on which the data was updated.
                     last_updated=date(2011, 11, 28),
-                    # The name of the boundary set, for display. By default, it will use the
+                    # The plural name of the boundary set, for display. By default, it will use the
                     # boundary set's slug.
                     name='Federal electoral districts',
-                    # A generic singular name for a boundary in this set. If the boundary set's
-                    # name ends in "s", this parameter is optional, as is the case here.
+                    # A generic singular name for a boundary in the set. If the boundary set's name
+                    # ends in "s", this parameter is optional, as is the case here.
                     singular='Federal electoral district',
 
-                    # (Optional) A description of the boundary set's spatial coverage, which if
-                    # often a country, a region, a municipality, etc.
+                    # (Optional) The geographic area covered by the boundary set, which is often
+                    # a country, a region, a municipality, etc.
                     domain='Canada',
-                    # (Optional) The authority publishing the data.
+                    # (Optional) The entity responsible for publishing the data.
                     authority='Her Majesty the Queen in Right of Canada',
                     # (Optional) A URL to the source of the data.
                     source_url='http://data.gc.ca/data/en/dataset/48f10fb9-78a2-43a9-92ab-354c28d30674',
-                    # (Optional) A URL to the licence for the data.
+                    # (Optional) A URL to the licence under which the data is made available.
                     licence_url='http://data.gc.ca/eng/open-government-licence-canada',
                     # (Optional) Free-form text notes, often used to describe changes that were
                     # made to the original source data: for example, deleted or merged features.
