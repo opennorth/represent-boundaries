@@ -109,7 +109,7 @@ class Command(BaseCommand):
 
     def load_set_2(self, slug, config, options, data_sources):
         if len(data_sources) == 0:
-            log.error(_("No shapefiles found."))
+            log.error(_('No shapefiles found.'))
 
         # Add some default values
         if 'singular' not in config and config['name'].endswith('s'):
@@ -120,7 +120,7 @@ class Command(BaseCommand):
             config['slug_func'] = config['name_func']
 
         # Create BoundarySet
-        bset = BoundarySet.objects.create(
+        boundary_set = BoundarySet.objects.create(
             slug=slug,
             name=config['name'],
             singular=config['singular'],
@@ -136,55 +136,55 @@ class Command(BaseCommand):
             extra=config.get('extra', config.get('metadata', None))
         )
 
-        bset.extent = [None, None, None, None]  # [xmin, ymin, xmax, ymax]
+        boundary_set.extent = [None, None, None, None]  # [xmin, ymin, xmax, ymax]
 
-        for datasource in data_sources:
-            log.info(_("Loading %(slug)s from %(source)s") % {'slug': slug, 'source': datasource.name})
+        for data_source in data_sources:
+            log.info(_('Loading %(slug)s from %(source)s') % {'slug': slug, 'source': data_source.name})
             # Assume only a single-layer in shapefile
-            if datasource.layer_count > 1:
-                log.warn(_('%(source)s shapefile [%(slug)s] has multiple layers, using first.') % {'slug': slug, 'source': datasource.name})
-            if datasource.layer_count == 0:
-                log.error(_('%(source)s shapefile [%(slug)s] has no layers, skipping.') % {'slug': slug, 'source': datasource.name})
+            if data_source.layer_count > 1:
+                log.warn(_('%(source)s shapefile [%(slug)s] has multiple layers, using first.') % {'slug': slug, 'source': data_source.name})
+            if data_source.layer_count == 0:
+                log.error(_('%(source)s shapefile [%(slug)s] has no layers, skipping.') % {'slug': slug, 'source': data_source.name})
                 continue
-            layer = datasource[0]
-            layer.source = datasource  # add additional attribute so definition file can trace back to filename
-            self.add_boundaries_for_layer(config, layer, bset, options)
+            layer = data_source[0]
+            layer.source = data_source  # add additional attribute so definition file can trace back to filename
+            self.add_boundaries_for_layer(config, layer, boundary_set, options)
 
-        if None in bset.extent:
-            bset.extent = None
-        else:
-            # save the extents
-            bset.save()
+        if None in boundary_set.extent:
+            boundary_set.extent = None
+        else:  # Save the extents.
+            boundary_set.save()
 
-        log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=bset).count()})
+        log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=boundary_set).count()})
 
     @staticmethod
-    def polygon_to_multipolygon(geom):
-        """
-        Convert polygons to multipolygons so all features are homogenous in the database.
-        """
-        if geom.__class__.__name__ == 'Polygon':
-            g = OGRGeometry(OGRGeomType('MultiPolygon'))
-            g.add(geom)
-            return g
-        elif geom.__class__.__name__ == 'MultiPolygon':
-            return geom
-        else:
-            raise ValueError(_('Geom is neither Polygon nor MultiPolygon.'))
+    def polygon_to_multipolygon(geometry):
 
-    def add_boundaries_for_layer(self, config, layer, bset, options):
-        # Get spatial reference system for the postgis geometry field
+        """
+        Converts a Polygon to a MultiOolygon, so that all features are of the same type.
+        """
+
+        if geometry.__class__.__name__ == 'Polygon':
+            g = OGRGeometry(OGRGeomType('MultiPolygon'))
+            g.add(geometry)
+            return g
+        elif geometry.__class__.__name__ == 'MultiPolygon':
+            return geometry
+        else:
+            raise ValueError(_('The geometry is neither a Polygon nor a MultiPolygon.'))
+
+    def add_boundaries_for_layer(self, config, layer, boundary_set, options):
+        # Get the PostGIS geometry field's spatial reference system.
         geometry_field = Boundary._meta.get_field_by_name(GEOMETRY_COLUMN)[0]
-        SpatialRefSys = connections[options["database"]].ops.spatial_ref_sys()
-        db_srs = SpatialRefSys.objects.using(options["database"]).get(srid=geometry_field.srid).srs
+        spatial_ref_sys = connections[options['database']].ops.spatial_ref_sys()
+        target_srs = spatial_ref_sys.objects.using(options['database']).get(srid=geometry_field.srid).srs
 
         if 'srid' in config and config['srid']:
-            layer_srs = SpatialRefSys.objects.get(srid=config['srid']).srs
+            source_srs = spatial_ref_sys.objects.get(srid=config['srid']).srs
         else:
-            layer_srs = layer.srs
+            source_srs = layer.srs
 
-        # Create a convertor to turn the source data into
-        transformer = CoordTransform(layer_srs, db_srs)
+        transformer = CoordTransform(source_srs, target_srs)
 
         for feature in layer:
             geometry = feature.geom
@@ -219,9 +219,9 @@ class Command(BaseCommand):
 
             log.info(_('%(slug)s...') % {'slug': feature_slug})
 
-            if options["merge"]:
+            if options['merge']:
                 try:
-                    b0 = Boundary.objects.get(set=bset, slug=feature_slug)
+                    b0 = Boundary.objects.get(set=boundary_set, slug=feature_slug)
 
                     g = OGRGeometry(OGRGeomType('MultiPolygon'))
                     for p in b0.shape:
@@ -230,7 +230,7 @@ class Command(BaseCommand):
                         g.add(p)
                     b0.shape = g.wkt
 
-                    if options["merge"] == "union":
+                    if options['merge'] == 'union':
                         # take a union of the shapes
                         g = self.polygon_to_multipolygon(b0.shape.cascaded_union.ogr)
                         b0.shape = g.wkt
@@ -238,7 +238,7 @@ class Command(BaseCommand):
                         # re-create the simple_shape by simplifying the union
                         b0.simple_shape = self.polygon_to_multipolygon(g.geos.simplify(app_settings.SIMPLE_SHAPE_TOLERANCE, preserve_topology=True).ogr).wkt
 
-                    elif options["merge"] == "combine":
+                    elif options['merge'] == 'combine':
                         # extend the previous simple_shape with the new simple_shape
                         g = OGRGeometry(OGRGeomType('MultiPolygon'))
                         for p in b0.simple_shape:
@@ -248,7 +248,7 @@ class Command(BaseCommand):
                         b0.simple_shape = g.wkt
 
                     else:
-                        raise ValueError(_("Invalid value for merge option."))
+                        raise ValueError(_('Invalid value for merge option.'))
 
                     b0.centroid = b0.shape.centroid
                     b0.extent = b0.shape.extent
@@ -257,9 +257,9 @@ class Command(BaseCommand):
                 except Boundary.DoesNotExist:
                     pass
 
-            bdry = Boundary.objects.create(
-                set=bset,
-                set_name=bset.singular,
+            boundary = Boundary.objects.create(
+                set=boundary_set,
+                set_name=boundary_set.singular,
                 external_id=external_id,
                 name=feature_name,
                 slug=feature_slug,
@@ -268,17 +268,17 @@ class Command(BaseCommand):
                 simple_shape=simple_geometry.wkt,
                 centroid=geometry.geos.centroid,
                 extent=geometry.extent,
-                label_point=config.get("label_point_func", lambda x: None)(feature)
+                label_point=config.get('label_point_func', lambda x: None)(feature)
             )
 
-            if bset.extent[0] is None or bdry.extent[0] < bset.extent[0]:
-                bset.extent[0] = bdry.extent[0]
-            if bset.extent[1] is None or bdry.extent[1] < bset.extent[1]:
-                bset.extent[1] = bdry.extent[1]
-            if bset.extent[2] is None or bdry.extent[2] > bset.extent[2]:
-                bset.extent[2] = bdry.extent[2]
-            if bset.extent[3] is None or bdry.extent[3] > bset.extent[3]:
-                bset.extent[3] = bdry.extent[3]
+            if boundary_set.extent[0] is None or boundary.extent[0] < boundary_set.extent[0]:
+                boundary_set.extent[0] = boundary.extent[0]
+            if boundary_set.extent[1] is None or boundary.extent[1] < boundary_set.extent[1]:
+                boundary_set.extent[1] = boundary.extent[1]
+            if boundary_set.extent[2] is None or boundary.extent[2] > boundary_set.extent[2]:
+                boundary_set.extent[2] = boundary.extent[2]
+            if boundary_set.extent[3] is None or boundary.extent[3] > boundary_set.extent[3]:
+                boundary_set.extent[3] = boundary.extent[3]
 
 
 def create_data_sources(config, path, convert_3d_to_2d):
