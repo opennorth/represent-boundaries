@@ -94,3 +94,17 @@ class DataSourcesTestCase(TestCase):
     @unittest.skip('TODO')
     def test_converts_3d_to_2d(self):
         pass
+
+    # @todo Next:
+    # * polygon_to_multipolygon: 3 cases
+    # * add_boundaries_for_layer:
+    #   definition (srid, is_valid_func, id_func, name_func, slug_func, label_point_func)
+    #   options (merge, database)
+    #   setting layer, polygon-to-multipolygon, transform, simplification, metadata, creating boundary set, changing extents
+    #   skip merging
+    # * load_set_2
+    # * load_set
+    # * handle
+    #
+    # @todo Move parts of loadshapefiles into the models and test there:
+    # * target_srs

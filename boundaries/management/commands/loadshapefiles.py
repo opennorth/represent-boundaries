@@ -69,11 +69,11 @@ class Command(BaseCommand):
         else:
             sources = all_slugs
 
-        for slug, config in all_sources.items():
+        for slug, definition in all_sources.items():
 
             # Backwards compatibility with specifying the name, rather than the slug,
             # as the first arg in the definition
-            config.setdefault('name', slug)
+            definition.setdefault('name', slug)
             slug = slugify(slug)
 
             if slug not in sources:
@@ -82,56 +82,56 @@ class Command(BaseCommand):
 
             try:
                 existing_set = BoundarySet.objects.get(slug=slug)
-                if (not options['reload']) and existing_set.last_updated >= config['last_updated']:
+                if (not options['reload']) and existing_set.last_updated >= definition['last_updated']:
                     log.info(_('Already loaded %(slug)s, skipping.') % {'slug': slug})
                     continue
             except BoundarySet.DoesNotExist:
                 pass
 
-            self.load_set(slug, config, options)
+            self.load_set(slug, definition, options)
 
     @transaction.commit_on_success
-    def load_set(self, slug, config, options):
+    def load_set(self, slug, definition, options):
         log.info(_('Processing %(slug)s.') % {'slug': slug})
 
         BoundarySet.objects.filter(slug=slug).delete()
 
-        path = config['file']
-        data_sources, tmpdirs = create_data_sources(config, path, options['clean'])
+        path = definition['file']
+        data_sources, tmpdirs = create_data_sources(definition, path, options['clean'])
 
         try:
-            self.load_set_2(slug, config, options, data_sources)
+            self.load_set_2(slug, definition, options, data_sources)
         finally:
             for path in tmpdirs:
                 rmtree(path)
 
-    def load_set_2(self, slug, config, options, data_sources):
+    def load_set_2(self, slug, definition, options, data_sources):
         if len(data_sources) == 0:
             log.error(_('No shapefiles found.'))
 
         # Add some default values
-        if 'singular' not in config and config['name'].endswith('s'):
-            config['singular'] = config['name'][:-1]
-        if 'id_func' not in config:
-            config['id_func'] = lambda f: ''
-        if 'slug_func' not in config:
-            config['slug_func'] = config['name_func']
+        if 'singular' not in definition and definition['name'].endswith('s'):
+            definition['singular'] = definition['name'][:-1]
+        if 'id_func' not in definition:
+            definition['id_func'] = lambda f: ''
+        if 'slug_func' not in definition:
+            definition['slug_func'] = definition['name_func']
 
         # Create BoundarySet
         boundary_set = BoundarySet.objects.create(
             slug=slug,
-            name=config['name'],
-            singular=config['singular'],
-            authority=config.get('authority', ''),
-            domain=config.get('domain', ''),
-            last_updated=config['last_updated'],
-            source_url=config.get('source_url', ''),
-            notes=config.get('notes', ''),
-            licence_url=config.get('licence_url', ''),
-            start_date=config.get('start_date', None),
-            end_date=config.get('end_date', None),
+            name=definition['name'],
+            singular=definition['singular'],
+            authority=definition.get('authority', ''),
+            domain=definition.get('domain', ''),
+            last_updated=definition['last_updated'],
+            source_url=definition.get('source_url', ''),
+            notes=definition.get('notes', ''),
+            licence_url=definition.get('licence_url', ''),
+            start_date=definition.get('start_date', None),
+            end_date=definition.get('end_date', None),
             # Load from either the 'extra' or 'metadata' fields
-            extra=config.get('extra', config.get('metadata', None))
+            extra=definition.get('extra', definition.get('metadata', None))
         )
 
         boundary_set.extent = [None, None, None, None]  # [xmin, ymin, xmax, ymax]
@@ -146,7 +146,7 @@ class Command(BaseCommand):
                 continue
             layer = data_source[0]
             layer.source = data_source  # add additional attribute so definition file can trace back to filename
-            self.add_boundaries_for_layer(config, layer, boundary_set, options)
+            self.add_boundaries_for_layer(definition, layer, boundary_set, options)
 
         if None in boundary_set.extent:
             boundary_set.extent = None
@@ -171,22 +171,22 @@ class Command(BaseCommand):
         else:
             raise ValueError(_('The geometry is neither a Polygon nor a MultiPolygon.'))
 
-    def add_boundaries_for_layer(self, config, layer, boundary_set, options):
+    def add_boundaries_for_layer(self, definition, layer, boundary_set, options):
         spatial_ref_sys = connections[options['database']].ops.spatial_ref_sys()
         target_srid = Boundary._meta.get_field_by_name('shape')[0].srid
         target_srs = spatial_ref_sys.objects.using(options['database']).get(srid=target_srid).srs
 
-        if config.get('srid'):
-            source_srs = spatial_ref_sys.objects.get(srid=config['srid']).srs
+        if definition.get('srid'):
+            source_srs = spatial_ref_sys.objects.get(srid=definition['srid']).srs
         else:
             source_srs = layer.srs
 
         transformer = CoordTransform(source_srs, target_srs)
 
         for feature in layer:
-            feature = UnicodeFeature(feature, encoding=config.get('encoding', 'ascii'))
+            feature = UnicodeFeature(feature, encoding=definition.get('encoding', 'ascii'))
 
-            if not config.get('is_valid_func', lambda feature: True)(feature):
+            if not definition.get('is_valid_func', lambda feature: True)(feature):
                 continue
 
             feature.layer = layer  # add additional attribute so definition file can trace back to filename
@@ -204,7 +204,7 @@ class Command(BaseCommand):
             # Conversion may force multipolygons back to being polygons
             simple_geometry = self.polygon_to_multipolygon(simple_geometry.ogr)
 
-            feature_slug = slugify(str(config['slug_func'](feature)).replace('—', '-'))  # m-dash
+            feature_slug = slugify(str(definition['slug_func'](feature)).replace('—', '-'))  # m-dash
 
             log.info(_('%(slug)s...') % {'slug': feature_slug})
 
@@ -246,8 +246,8 @@ class Command(BaseCommand):
                 except Boundary.DoesNotExist:
                     pass
 
-            external_id = str(config['id_func'](feature))
-            feature_name = config['name_func'](feature)
+            external_id = str(definition['id_func'](feature))
+            feature_name = definition['name_func'](feature)
             metadata = dict(
                 ((field, feature.get(field)) for field in layer.fields)
             )
@@ -263,7 +263,7 @@ class Command(BaseCommand):
                 simple_shape=simple_geometry.wkt,
                 centroid=geometry.geos.centroid,
                 extent=geometry.extent,
-                label_point=config.get('label_point_func', lambda x: None)(feature)
+                label_point=definition.get('label_point_func', lambda x: None)(feature)
             )
 
             if boundary_set.extent[0] is None or boundary.extent[0] < boundary_set.extent[0]:
@@ -276,7 +276,7 @@ class Command(BaseCommand):
                 boundary_set.extent[3] = boundary.extent[3]
 
 
-def create_data_sources(config, path, convert_3d_to_2d):
+def create_data_sources(definition, path, convert_3d_to_2d):
 
     """
     If the path is to a shapefile, returns a DataSource for the shapefile. If
@@ -287,7 +287,7 @@ def create_data_sources(config, path, convert_3d_to_2d):
 
     def make_data_source(path):
         try:
-            return DataSource(path, encoding=config.get('encoding', 'ascii'))
+            return DataSource(path, encoding=definition.get('encoding', 'ascii'))
         except TypeError:  # DataSource only includes the encoding option in Django >= 1.5.
             return DataSource(path)
 
