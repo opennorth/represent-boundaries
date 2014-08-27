@@ -119,7 +119,7 @@ class Boundary(models.Model):
     set = models.ForeignKey(BoundarySet, related_name='boundaries',
         help_text=_('The set to which the boundary belongs.'))
     set_name = models.CharField(max_length=100,
-        help_text=_('The name of the set to which the boundary belongs.'))
+        help_text=_('A generic singular name for the boundary.'))
     slug = models.SlugField(max_length=200, db_index=True,
         help_text=_("The boundary's unique identifier within the set, used as a path component in URLs."))
     external_id = models.CharField(max_length=64,
