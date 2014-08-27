@@ -114,7 +114,6 @@ class DataSourcesTestCase(TestCase):
     #   options (merge, database)
     #   setting layer, polygon-to-multipolygon, transform, simplification, metadata, creating boundary set, changing extents
     #   skip merging
-    # * load_set_2
     # * load_set
     # * handle
     #

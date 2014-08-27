@@ -51,7 +51,6 @@ class Command(BaseCommand):
             if six.moves.input().lower() != 'y':
                 return
 
-        # Load configuration
         boundaries.autodiscover(options['data_dir'])
 
         all_sources = boundaries.registry
@@ -68,20 +67,21 @@ class Command(BaseCommand):
             sources = all_slugs
 
         for slug, definition in all_sources.items():
-
-            # Backwards compatibility with specifying the name, rather than the slug,
-            # as the first arg in the definition
-            definition.setdefault('name', slug)
-            definition = Definition(definition)
             slug = slugify(slug)
 
             if slug not in sources:
                 log.debug(_('Skipping %(slug)s.') % {'slug': slug})
                 continue
 
+            # Backwards-compatibility with having the name, instead of the slug,
+            # as the first argument to `boundaries.register`.
+            definition.setdefault('name', slug)
+
+            definition = Definition(definition)
+
             try:
                 existing_set = BoundarySet.objects.get(slug=slug)
-                if (not options['reload']) and existing_set.last_updated >= definition['last_updated']:
+                if not options['reload'] and existing_set.last_updated >= definition['last_updated']:
                     log.info(_('Already loaded %(slug)s, skipping.') % {'slug': slug})
                     continue
             except BoundarySet.DoesNotExist:
@@ -93,56 +93,54 @@ class Command(BaseCommand):
     def load_set(self, slug, definition, options):
         log.info(_('Processing %(slug)s.') % {'slug': slug})
 
-        BoundarySet.objects.filter(slug=slug).delete()
+        BoundarySet.objects.filter(slug=slug).delete()  # also deletes boundaries
 
-        path = definition['file']
-        data_sources, tmpdirs = create_data_sources(definition, path, options['clean'])
+        data_sources, tmpdirs = create_data_sources(definition, definition['file'], options['clean'])
+
+        if not data_sources:
+            log.warning(_('No shapefiles found.'))
 
         try:
-            self.load_set_2(slug, definition, options, data_sources)
+            boundary_set = BoundarySet.objects.create(
+                slug=slug,
+                last_updated=definition['last_updated'],
+                name=definition['name'],
+                singular=definition['singular'],
+                domain=definition['domain'],
+                authority=definition['authority'],
+                source_url=definition['source_url'],
+                licence_url=definition['licence_url'],
+                start_date=definition['start_date'],
+                end_date=definition['end_date'],
+                notes=definition['notes'],
+                extra=definition['extra'],
+            )
+
+            boundary_set.extent = [None, None, None, None]  # [xmin, ymin, xmax, ymax]
+
+            for data_source in data_sources:
+                log.info(_('Loading %(slug)s from %(source)s') % {'slug': slug, 'source': data_source.name})
+
+                if data_source.layer_count == 0:
+                    log.error(_('%(source)s shapefile [%(slug)s] has no layers, skipping.') % {'slug': slug, 'source': data_source.name})
+                    continue
+
+                if data_source.layer_count > 1:
+                    log.warning(_('%(source)s shapefile [%(slug)s] has multiple layers, using first.') % {'slug': slug, 'source': data_source.name})
+
+                layer = data_source[0]
+                layer.source = data_source  # to trace the layer back to its source
+                self.add_boundaries_for_layer(definition, layer, boundary_set, options)
+
+            if None in boundary_set.extent:
+                boundary_set.extent = None
+            else:  # Save the extents.
+                boundary_set.save()
+
+            log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=boundary_set).count()})
         finally:
-            for path in tmpdirs:
-                rmtree(path)
-
-    def load_set_2(self, slug, definition, options, data_sources):
-        if len(data_sources) == 0:
-            log.error(_('No shapefiles found.'))
-
-        boundary_set = BoundarySet.objects.create(
-            slug=slug,
-            last_updated=definition['last_updated'],
-            name=definition['name'],
-            singular=definition['singular'],
-            domain=definition['domain'],
-            authority=definition['authority'],
-            source_url=definition['source_url'],
-            licence_url=definition['licence_url'],
-            start_date=definition['start_date'],
-            end_date=definition['end_date'],
-            notes=definition['notes'],
-            extra=definition['extra'],
-        )
-
-        boundary_set.extent = [None, None, None, None]  # [xmin, ymin, xmax, ymax]
-
-        for data_source in data_sources:
-            log.info(_('Loading %(slug)s from %(source)s') % {'slug': slug, 'source': data_source.name})
-            # Assume only a single-layer in shapefile
-            if data_source.layer_count > 1:
-                log.warning(_('%(source)s shapefile [%(slug)s] has multiple layers, using first.') % {'slug': slug, 'source': data_source.name})
-            if data_source.layer_count == 0:
-                log.error(_('%(source)s shapefile [%(slug)s] has no layers, skipping.') % {'slug': slug, 'source': data_source.name})
-                continue
-            layer = data_source[0]
-            layer.source = data_source  # add additional attribute so definition file can trace back to filename
-            self.add_boundaries_for_layer(definition, layer, boundary_set, options)
-
-        if None in boundary_set.extent:
-            boundary_set.extent = None
-        else:  # Save the extents.
-            boundary_set.save()
-
-        log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=boundary_set).count()})
+            for tmpdir in tmpdirs:
+                rmtree(tmpdir)
 
     @staticmethod
     def polygon_to_multipolygon(geometry):
@@ -179,24 +177,19 @@ class Command(BaseCommand):
             if not definition['is_valid_func'](feature):
                 continue
 
-            feature.layer = layer  # add additional attribute so definition file can trace back to filename
+            log.info(_('%(slug)s...') % {'slug': feature_slug})
 
-            # Transform the geometry to the correct SRS
+            feature.layer = layer  # to trace the feature back to its source
+
             geometry = self.polygon_to_multipolygon(geometry)
+            # Transform the geometry to the correct SRS.
             geometry.transform(transformer)
-
-            # Create simplified geometry field by collapsing points within 1/1000th of a degree.
-            # Since Chicago is at approx. 42 degrees latitude this works out to an margin of
-            # roughly 80 meters latitude and 112 meters longitude.
-            # Preserve topology prevents a shape from ever crossing over itself.
+            # Use `ST_SimplifyPreserveTopology` to avoid invalid geometries.
             simple_geometry = geometry.geos.simplify(app_settings.SIMPLE_SHAPE_TOLERANCE, preserve_topology=True)
-
-            # Conversion may force multipolygons back to being polygons
+            # The simplification may have simplified MultiPolygons to Polygons.
             simple_geometry = self.polygon_to_multipolygon(simple_geometry.ogr)
 
             feature_slug = slugify(str(definition['slug_func'](feature)).replace('—', '-'))  # m-dash
-
-            log.info(_('%(slug)s...') % {'slug': feature_slug})
 
             if options['merge']:
                 try:
@@ -236,19 +229,15 @@ class Command(BaseCommand):
                 except Boundary.DoesNotExist:
                     pass
 
-            external_id = str(definition['id_func'](feature))
-            feature_name = definition['name_func'](feature)
-            metadata = dict(
-                ((field, feature.get(field)) for field in layer.fields)
-            )
-
             boundary = Boundary.objects.create(
                 set=boundary_set,
                 set_name=boundary_set.singular,
-                external_id=external_id,
-                name=feature_name,
+                external_id=str(definition['id_func'](feature)),
+                name=definition['name_func'](feature),
                 slug=feature_slug,
-                metadata=metadata,
+                metadata=dict(
+                    ((field, feature.get(field)) for field in layer.fields)
+                ),
                 shape=geometry.wkt,
                 simple_shape=simple_geometry.wkt,
                 centroid=geometry.geos.centroid,
@@ -314,8 +303,8 @@ def create_data_sources(definition, path, convert_3d_to_2d):
 
                 data_source = make_data_source(filepath)
 
-                if zip_filepath:  # @todo Confirm if Josh Tauberer still needs this.
-                    data_source.zipfile = zip_filepath
+                if zip_filepath:
+                    data_source.zipfile = zip_filepath  # to trace the data source back to its ZIP file
 
                 data_sources.append(data_source)
 
