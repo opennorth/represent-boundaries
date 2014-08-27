@@ -238,3 +238,21 @@ class GeoTests(object):
         self.assertResponse(response, content_type='application/vnd.google-earth.kml+xml')
         self.assertEqual(response.content, b'<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n<Placemark><name></name><MultiGeometry><Polygon><outerBoundaryIs><LinearRing><coordinates>0.0,0.0,0 0.0,5.0,0 5.0,5.0,0 0.0,0.0,0</coordinates></LinearRing></outerBoundaryIs></Polygon></MultiGeometry></Placemark>\n</Document>\n</kml>')
         self.assertEqual(response['Content-Disposition'], 'attachment; filename="shape.kml"')
+
+# For Django < 1.6
+from boundaries.tests.test import *
+from boundaries.tests.test_boundary import *
+from boundaries.tests.test_boundary_detail import *
+from boundaries.tests.test_boundary_geo_detail import *
+from boundaries.tests.test_boundary_list import *
+from boundaries.tests.test_boundary_list_filter import *
+from boundaries.tests.test_boundary_list_geo import *
+from boundaries.tests.test_boundary_list_geo_filter import *
+from boundaries.tests.test_boundary_list_set import *
+from boundaries.tests.test_boundary_list_set_filter import *
+from boundaries.tests.test_boundary_list_set_geo import *
+from boundaries.tests.test_boundary_list_set_geo_filter import *
+from boundaries.tests.test_boundary_set import *
+from boundaries.tests.test_boundary_set_detail import *
+from boundaries.tests.test_boundary_set_list import *
+from boundaries.tests.test_boundary_set_list_filter import *

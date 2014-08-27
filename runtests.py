@@ -27,7 +27,13 @@ if not settings.configured:
         django.setup()
 
 if __name__ == '__main__':
-    from django.test.runner import DiscoverRunner
-    runner = DiscoverRunner(failfast=False)
+    # @see https://docs.djangoproject.com/en/1.6/releases/1.6/#discovery-of-tests-in-any-test-module
+    # @see https://docs.djangoproject.com/en/1.6/releases/1.6/#new-test-runner
+    try:
+        from django.test.runner import DiscoverRunner
+        runner = DiscoverRunner(failfast=False)
+    except ImportError:
+        from django.test.simple import DjangoTestSuiteRunner
+        runner = DjangoTestSuiteRunner(failfast=False)
     failures = runner.run_tests(['boundaries'])
     sys.exit(failures)
