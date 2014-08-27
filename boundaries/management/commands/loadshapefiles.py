@@ -36,8 +36,6 @@ class Command(BaseCommand):
                     default=False, help=t('Don\'t load these BoundarySet slugs, comma-delimited.')),
         make_option('-o', '--only', action='store', dest='only',
                     default=False, help=t('Only load these BoundarySet slugs, comma-delimited.')),
-        make_option('-u', '--database', action='store', dest='database',
-                    default=DEFAULT_DB_ALIAS, help=t('Specify the database containing the spatial_ref_sys table.')),
         make_option('-c', '--clean', action='store_true', dest='clean',
                     default=False, help=t('Clean shapefiles first with ogr2ogr.')),
         make_option('-m', '--merge', action='store', dest='merge',
@@ -172,9 +170,9 @@ class Command(BaseCommand):
             raise ValueError(_('The geometry is neither a Polygon nor a MultiPolygon.'))
 
     def add_boundaries_for_layer(self, definition, layer, boundary_set, options):
-        spatial_ref_sys = connections[options['database']].ops.spatial_ref_sys()
+        spatial_ref_sys = connections[DEFAULT_DB_ALIAS].ops.spatial_ref_sys()
         target_srid = Boundary._meta.get_field_by_name('shape')[0].srid
-        target_srs = spatial_ref_sys.objects.using(options['database']).get(srid=target_srid).srs
+        target_srs = spatial_ref_sys.objects.using(DEFAULT_DB_ALIAS).get(srid=target_srid).srs
 
         if definition.get('srid'):
             source_srs = spatial_ref_sys.objects.get(srid=definition['srid']).srs
