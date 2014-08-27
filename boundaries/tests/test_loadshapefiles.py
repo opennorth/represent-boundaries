@@ -116,6 +116,7 @@ class DataSourcesTestCase(TestCase):
     #   skip merging
     # * load_set
     # * handle
+    # * UnicodeFeature
     #
     # @todo Move parts of loadshapefiles into the models and test there:
     # * UnicodeFeature: valid, geometry, simple_geometry, slug, id, name, metadata, polygon_to_multipolygon

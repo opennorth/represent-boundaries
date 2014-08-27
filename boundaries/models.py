@@ -222,6 +222,7 @@ class UnicodeFeature(object):
     def metadata(self):
         return dict((field, feature.get(field)) for field in self.feature.fields)
 
+
 class Definition(object):
     """
     The dictionary must have `name` and `name_func` keys.
