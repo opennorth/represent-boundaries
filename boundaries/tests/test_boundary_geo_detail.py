@@ -8,6 +8,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from boundaries.models import BoundarySet, Boundary
 from boundaries.tests import ViewTestCase, ViewsTests, GeoTests
 
+
 class BoundaryGeoDetailTestCase(ViewTestCase, ViewsTests, GeoTests):
     maxDiff = None
 

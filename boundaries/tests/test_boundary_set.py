@@ -7,6 +7,7 @@ from django.test import TestCase
 
 from boundaries.models import BoundarySet
 
+
 class BoundarySetTestCase(TestCase):
     maxDiff = None
 

@@ -12,10 +12,13 @@ from django.test import TestCase
 
 from boundaries.management.commands.loadshapefiles import create_data_sources, extract_shapefile_from_zip
 
+
 def fixture(basename):
     return os.path.join(os.path.dirname(__file__), 'fixtures', basename)
 
+
 class ZipFileTestCase(TestCase):
+
     def test_raises_error_if_bad_zip_file(self):
         self.assertRaisesRegexp(BadZipfile, r'\AFile is not a zip file: .+/boundaries/tests/fixtures/bad.zip\Z', extract_shapefile_from_zip, fixture('bad.zip'))
 
@@ -45,6 +48,7 @@ class ZipFileTestCase(TestCase):
 
 
 class DataSourcesTestCase(TestCase):
+
     def test_returns_shapefile(self):
         path = fixture('foo.shp')
         data_sources, tmpdirs = create_data_sources({}, path, False)

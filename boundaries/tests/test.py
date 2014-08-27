@@ -7,6 +7,7 @@ from django.test import TestCase
 
 from boundaries import registry, register, attr, clean_attr, dashed_attr
 
+
 class BoundariesTestCase(TestCase):
     maxDiff = None
 
@@ -29,4 +30,3 @@ class BoundariesTestCase(TestCase):
     def test_dashed_attr(self):
         self.assertEqual(dashed_attr('foo')({'foo': 'Foo --\tBar\r--Baz--\nBzz--Abc - Xyz-Inc'}), 'Foo—Bar—Baz—Bzz—Abc—Xyz—Inc')
         self.assertEqual(dashed_attr('foo')({'foo': 'FOO --\tBAR\r--BAZ--\nBZZ--ABC - XYZ-INC'}), 'Foo—Bar—Baz—Bzz—Abc—Xyz—Inc')
-

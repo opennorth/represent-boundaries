@@ -4,19 +4,18 @@ from south.db import db
 from south.v2 import SchemaMigration
 from django.db import models
 
+
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        
+
         # Adding field 'BoundarySet.extra'
         db.add_column('boundaries_boundaryset', 'extra', self.gf('jsonfield.fields.JSONField')(null=True, blank=True), keep_default=False)
 
-
     def backwards(self, orm):
-        
+
         # Deleting field 'BoundarySet.extra'
         db.delete_column('boundaries_boundaryset', 'extra')
-
 
     models = {
         'boundaries.boundary': {

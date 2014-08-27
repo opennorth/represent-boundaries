@@ -155,7 +155,6 @@ class Command(BaseCommand):
 
     @staticmethod
     def polygon_to_multipolygon(geometry):
-
         """
         Converts a Polygon to a MultiPolygon, so that all features are of the same type.
         """
@@ -276,7 +275,6 @@ class Command(BaseCommand):
 
 
 def create_data_sources(definition, path, convert_3d_to_2d):
-
     """
     If the path is to a shapefile, returns a DataSource for the shapefile. If
     the path is to a ZIP file, returns a DataSource for the shapefile that it
@@ -333,7 +331,6 @@ def create_data_sources(definition, path, convert_3d_to_2d):
 
 
 def extract_shapefile_from_zip(zip_filepath):
-
     """
     Decompresses a ZIP file into a temporary directory and returns the temporary
     directory and the path to the shapefile that the ZIP file contains, if any.
@@ -342,7 +339,7 @@ def extract_shapefile_from_zip(zip_filepath):
     try:
         zip_file = ZipFile(zip_filepath)
     except BadZipfile as e:
-        raise BadZipfile(str(e) + ': ' + zip_filepath) # e.g. "File is not a zip file: /path/to/file.zip"
+        raise BadZipfile(str(e) + ': ' + zip_filepath)  # e.g. "File is not a zip file: /path/to/file.zip"
 
     tmpdir = mkdtemp()
     shp_filepath = None

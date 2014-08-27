@@ -18,14 +18,12 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.DateField')(null=True, blank=True),
                       keep_default=False)
 
-
     def backwards(self, orm):
         # Deleting field 'BoundarySet.start_date'
         db.delete_column(u'boundaries_boundaryset', 'start_date')
 
         # Deleting field 'BoundarySet.end_date'
         db.delete_column(u'boundaries_boundaryset', 'end_date')
-
 
     models = {
         u'boundaries.boundary': {

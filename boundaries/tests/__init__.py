@@ -74,7 +74,6 @@ class URL(object):
 
 
 def comparable(o):
-
     """
     The order of URL query parameters may differ, so make URLs into URL objects,
     which ignore query parameter ordering.

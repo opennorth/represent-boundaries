@@ -6,6 +6,7 @@ from django.contrib.gis.geos import Point, MultiPolygon
 
 from boundaries.models import BoundarySet, Boundary
 
+
 class BoundaryTestCase(TestCase):
     maxDiff = None
 

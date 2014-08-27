@@ -6,6 +6,7 @@ from datetime import date
 from boundaries.models import BoundarySet
 from boundaries.tests import ViewTestCase
 
+
 class BoundarySetListFilterTestCase(ViewTestCase):
     maxDiff = None
 
