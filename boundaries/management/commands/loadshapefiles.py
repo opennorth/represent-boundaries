@@ -33,13 +33,17 @@ class Command(BaseCommand):
                     default=app_settings.SHAPEFILES_DIR,
                     help=ugettext_lazy('Load shapefiles from this directory.')),
         make_option('-e', '--except', action='store', dest='except',
-                    default='', help=ugettext_lazy("Don't load these boundary set slugs (comma-delimited).")),
+                    default='',
+                    help=ugettext_lazy("Don't load these boundary set slugs (comma-delimited).")),
         make_option('-o', '--only', action='store', dest='only',
-                    default='', help=ugettext_lazy('Only load these boundary set slugs (comma-delimited).')),
+                    default='',
+                    help=ugettext_lazy('Only load these boundary set slugs (comma-delimited).')),
         make_option('-c', '--clean', action='store_true', dest='clean',
-                    default=False, help=ugettext_lazy('Clean shapefiles first with ogr2ogr.')),
+                    default=False,
+                    help=ugettext_lazy('Clean shapefiles first with ogr2ogr.')),
         make_option('-m', '--merge', action='store', dest='merge',
-                    default=None, help=ugettext_lazy('Merge strategy when there are duplicate slugs, either "combine" (extend the MultiPolygon) or "union" (union the geometries).')),
+                    default=None,
+                    help=ugettext_lazy('Merge strategy when there are duplicate slugs, either "combine" (extend the MultiPolygon) or "union" (union the geometries).')),
     )
 
     def get_version(self):

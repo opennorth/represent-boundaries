@@ -310,7 +310,7 @@ class Geometry(object):
             raise ValueError(_('The geometry is neither a Polygon nor a MultiPolygon.'))
 
 
-slug_re = re.compile('[–—]')  # n-dash, m-dash
+slug_re = re.compile(r'[–—]')  # n-dash, m-dash
 
 class Feature(object):
 

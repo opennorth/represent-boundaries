@@ -22,9 +22,10 @@ class FeatureProxy(dict):
 
 class FeatureTestCase(TestCase):
     definition = Definition({
+        'last_updated': date(2000, 1, 1),
+        'encoding': 'utf-8',
         'name': 'Districts',
         'name_func': clean_attr('Name'),
-        'last_updated': date(2000, 1, 1),
         'id_func': attr('ID'),
         'slug_func': attr('Code'),
         'is_valid_func': lambda f: f.get('ID') == '1',
