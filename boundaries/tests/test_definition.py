@@ -11,13 +11,14 @@ from boundaries.models import Definition
 if not hasattr(TestCase, 'assertCountEqual'):  # Python < 3.2
     TestCase.assertCountEqual = TestCase.assertItemsEqual
 
+
 class DefinitionTestCase(TestCase):
     maxDiff = None
 
     def test_defaults(self):
         definition = Definition({
             'name': '',
-            'name_func': lambda feature: None,
+            'name_func': lambda feature: 'Test',
         })
 
         self.assertCountEqual(definition.dictionary.keys(), [
@@ -39,7 +40,7 @@ class DefinitionTestCase(TestCase):
         ])
 
         self.assertEqual(definition['name'], '')
-        self.assertEqual(definition['name_func']({}), None)
+        self.assertEqual(definition['name_func']({}), 'Test')
         self.assertEqual(definition['encoding'], 'ascii')
         self.assertEqual(definition['domain'], '')
         self.assertEqual(definition['authority'], '')
@@ -50,7 +51,7 @@ class DefinitionTestCase(TestCase):
         self.assertEqual(definition['notes'], '')
         self.assertEqual(definition['extra'], None)
         self.assertEqual(definition['id_func']({}), '')
-        self.assertEqual(definition['slug_func']({}), None)
+        self.assertEqual(definition['slug_func']({}), 'Test')
         self.assertEqual(definition['is_valid_func']({}), True)
         self.assertEqual(definition['label_point_func']({}), None)
 

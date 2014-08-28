@@ -64,7 +64,7 @@ class GeometryTestCase(TestCase):
 
     def test_centroid(self):
         geometry = Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0 5,5 5,0 0)))'))
-        self.assertEqual(geometry.centroid.wkt, 'POINT (1.6666666666666665 3.3333333333333330)')
+        self.assertEqual(geometry.centroid.ogr.wkt, 'POINT (1.666666666666667 3.333333333333333)')
 
     def test_extent(self):
         geometry = Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0 5,5 5,0 0)))'))

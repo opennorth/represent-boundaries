@@ -21,7 +21,7 @@ from django.utils import six
 from django.utils.translation import ugettext as _, ugettext_lazy
 
 import boundaries
-from boundaries.models import app_settings, BoundarySet, Boundary, Geometry, UnicodeFeature, Definition
+from boundaries.models import app_settings, BoundarySet, Boundary, Definition, Feature, Geometry
 
 
 class Command(BaseCommand):
@@ -133,17 +133,16 @@ class Command(BaseCommand):
                     srs = layer.srs
 
                 for feature in layer:
-                    feature = UnicodeFeature(feature, encoding=definition['encoding'])
-
-                    if not definition['is_valid_func'](feature):
-                        continue
-
-                    feature_slug = slugify(str(definition['slug_func'](feature)).replace('—', '-'))  # m-dash
-                    log.info(_('%(slug)s...') % {'slug': feature_slug})
-
+                    feature = Feature(feature, definition)
                     feature.layer = layer  # to trace the feature back to its source
 
-                    geometry = Geometry(feature.geom).transform(srs)
+                    if not feature.is_valid():
+                        continue
+
+                    feature_slug = feature.slug
+                    log.info(_('%(slug)s...') % {'slug': feature_slug})
+
+                    geometry = Geometry(feature.feature.geom).transform(srs)
 
                     if options['merge']:
                         try:
@@ -157,34 +156,14 @@ class Command(BaseCommand):
                             boundary.centroid = boundary.shape.centroid
                             boundary.extent = boundary.shape.extent
                             boundary.save()
-                            continue
                         except Boundary.DoesNotExist:
-                            pass
+                            boundary = feature.create_boundary(boundary_set, geometry)
+                    else:
+                        boundary = feature.create_boundary(boundary_set, geometry)
 
-                    boundary = Boundary.objects.create(
-                        set=boundary_set,
-                        set_name=boundary_set.singular,
-                        external_id=str(definition['id_func'](feature)),
-                        name=definition['name_func'](feature),
-                        slug=feature_slug,
-                        metadata=feature.metadata(),
-                        shape=geometry.wkt,
-                        simple_shape=geometry.simplify().wkt,
-                        centroid=geometry.centroid,
-                        extent=geometry.extent,
-                        label_point=definition['label_point_func'](feature),
-                    )
+                    boundary_set.extend(boundary.extent)
 
-                    if boundary_set.extent[0] is None or boundary.extent[0] < boundary_set.extent[0]:
-                        boundary_set.extent[0] = boundary.extent[0]
-                    if boundary_set.extent[1] is None or boundary.extent[1] < boundary_set.extent[1]:
-                        boundary_set.extent[1] = boundary.extent[1]
-                    if boundary_set.extent[2] is None or boundary.extent[2] > boundary_set.extent[2]:
-                        boundary_set.extent[2] = boundary.extent[2]
-                    if boundary_set.extent[3] is None or boundary.extent[3] > boundary_set.extent[3]:
-                        boundary_set.extent[3] = boundary.extent[3]
-
-            if None not in boundary_set.extent:
+            if None not in boundary_set.extent:  # if no data sources have layers
                 boundary_set.save()
 
             log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=boundary_set).count()})

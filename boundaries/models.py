@@ -1,4 +1,7 @@
+# coding: utf-8
 from __future__ import unicode_literals
+
+import re
 
 from django.contrib.gis.db import models
 from django.contrib.gis.gdal import CoordTransform, OGRGeometry, OGRGeomType, SpatialReference
@@ -110,6 +113,16 @@ class BoundarySet(models.Model):
                 'domain': s.domain,
             } for s in sets
         ]
+
+    def extend(self, extent):
+        if self.extent[0] is None or extent[0] < self.extent[0]:
+            self.extent[0] = extent[0]
+        if self.extent[1] is None or extent[1] < self.extent[1]:
+            self.extent[1] = extent[1]
+        if self.extent[2] is None or extent[2] > self.extent[2]:
+            self.extent[2] = extent[2]
+        if self.extent[3] is None or extent[3] > self.extent[3]:
+            self.extent[3] = extent[3]
 
 
 class Boundary(models.Model):
@@ -297,21 +310,61 @@ class Geometry(object):
             raise ValueError(_('The geometry is neither a Polygon nor a MultiPolygon.'))
 
 
-class UnicodeFeature(object):
+slug_re = re.compile('[–—]')  # n-dash, m-dash
 
-    def __init__(self, feature, encoding='ascii'):
+class Feature(object):
+
+    def __init__(self, feature, definition):
         self.feature = feature
-        self.encoding = encoding
-        self.geom = feature.geom
+        self.definition = definition
 
     def get(self, field):
         value = self.feature.get(field)
         if isinstance(value, bytes):
-            return value.decode(self.encoding)
+            return value.decode(self.definition['encoding'])
         return value
 
+    def is_valid(self):
+        return self.definition['is_valid_func'](self)
+
+    @property
+    def name(self):
+        return self.definition['name_func'](self)
+
+    @property
+    def id(self):
+        # Coerce to string, as the field in the feature from which the ID is
+        # derived may be numeric.
+        return str(self.definition['id_func'](self))
+
+    @property
+    def slug(self):
+        # Coerce to string, as the field in the feature from which the slug is
+        # derived may be numeric.
+        return slugify(slug_re.sub('-', str(self.definition['slug_func'](self))))
+
+    @property
+    def label_point(self):
+        return self.definition['label_point_func'](self)
+
+    @property
     def metadata(self):
         return dict((field, self.get(field)) for field in self.feature.fields)
+
+    def create_boundary(self, boundary_set, geometry):
+        return Boundary.objects.create(
+            set=boundary_set,
+            set_name=boundary_set.singular,
+            external_id=self.id,
+            name=self.name,
+            slug=self.slug,
+            metadata=self.metadata,
+            shape=geometry.wkt,
+            simple_shape=geometry.simplify().wkt,
+            centroid=geometry.centroid,
+            extent=geometry.extent,
+            label_point=self.label_point,
+        )
 
 
 class Definition(object):

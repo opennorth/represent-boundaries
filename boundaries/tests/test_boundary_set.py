@@ -102,3 +102,13 @@ class BoundarySetTestCase(TestCase):
             'end_date': None,
             'extra': None,
         })
+
+    def test_extend(self):
+        boundary_set = BoundarySet.objects.create(name='Foo Bar', last_updated=date(2000, 1, 1))
+        boundary_set.extent = [None, None, None, None]
+        boundary_set.extend((0.0, 0.0, 1.0, 1.0))
+        self.assertEqual(boundary_set.extent, [0.0, 0.0, 1.0, 1.0])
+        boundary_set.extend((0.25, 0.25, 0.75, 0.75))
+        self.assertEqual(boundary_set.extent, [0.0, 0.0, 1.0, 1.0])
+        boundary_set.extend((-1.0, -1.0, 2.0, 2.0))
+        self.assertEqual(boundary_set.extent, [-1.0, -1.0, 2.0, 2.0])
