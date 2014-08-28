@@ -1,13 +1,14 @@
 from __future__ import unicode_literals
 
 from django.contrib.gis.db import models
+from django.contrib.gis.gdal import CoordTransform, OGRGeometry, OGRGeomType, SpatialReference
 from django.contrib.gis.geos import GEOSGeometry
 from django.core import urlresolvers
 from django.template.defaultfilters import slugify
 from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
 from django.utils.six import text_type, string_types
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext as _, ugettext_lazy as t
 
 from appconf import AppConf
 from jsonfield import JSONField
@@ -39,36 +40,36 @@ class BoundarySet(models.Model):
     A set of boundaries, corresponding to one or more shapefiles.
     """
     slug = models.SlugField(max_length=200, primary_key=True, editable=False,
-        help_text=_("The boundary set's unique identifier, used as a path component in URLs."))
+        help_text=t("The boundary set's unique identifier, used as a path component in URLs."))
     name = models.CharField(max_length=100, unique=True,
-        help_text=_('The plural name of the boundary set.'))
+        help_text=t('The plural name of the boundary set.'))
     singular = models.CharField(max_length=100,
-        help_text=_('A generic singular name for a boundary in the set.'))
+        help_text=t('A generic singular name for a boundary in the set.'))
     authority = models.CharField(max_length=256,
-        help_text=_('The entity responsible for publishing the data.'))
+        help_text=t('The entity responsible for publishing the data.'))
     domain = models.CharField(max_length=256,
-        help_text=_("The geographic area covered by the boundary set."))
+        help_text=t("The geographic area covered by the boundary set."))
     last_updated = models.DateField(
-        help_text=_('The most recent date on which the data was updated.'))
+        help_text=t('The most recent date on which the data was updated.'))
     source_url = models.URLField(blank=True,
-        help_text=_('A URL to the source of the data.'))
+        help_text=t('A URL to the source of the data.'))
     notes = models.TextField(blank=True,
-        help_text=_('Free-form text notes, often used to describe changes that were made to the original source data.'))
+        help_text=t('Free-form text notes, often used to describe changes that were made to the original source data.'))
     licence_url = models.URLField(blank=True,
-        help_text=_('A URL to the licence under which the data is made available.'))
+        help_text=t('A URL to the licence under which the data is made available.'))
     extent = JSONField(blank=True, null=True,
-        help_text=_("The set's boundaries' bounding box as a list like [xmin, ymin, xmax, ymax] in EPSG:4326."))
+        help_text=t("The set's boundaries' bounding box as a list like [xmin, ymin, xmax, ymax] in EPSG:4326."))
     start_date = models.DateField(blank=True, null=True,
-        help_text=_("The date from which the set's boundaries are in effect."))
+        help_text=t("The date from which the set's boundaries are in effect."))
     end_date = models.DateField(blank=True, null=True,
-        help_text=_("The date until which the set's boundaries are in effect."))
+        help_text=t("The date until which the set's boundaries are in effect."))
     extra = JSONField(blank=True, null=True,
-        help_text=_("Any additional metadata."))
+        help_text=t("Any additional metadata."))
 
     class Meta:
         ordering = ('name',)
-        verbose_name = _('boundary set')
-        verbose_name_plural = _('boundary sets')
+        verbose_name = t('boundary set')
+        verbose_name_plural = t('boundary sets')
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -117,34 +118,34 @@ class Boundary(models.Model):
     A boundary, corresponding to a feature in a shapefile.
     """
     set = models.ForeignKey(BoundarySet, related_name='boundaries',
-        help_text=_('The set to which the boundary belongs.'))
+        help_text=t('The set to which the boundary belongs.'))
     set_name = models.CharField(max_length=100,
-        help_text=_('A generic singular name for the boundary.'))
+        help_text=t('A generic singular name for the boundary.'))
     slug = models.SlugField(max_length=200, db_index=True,
-        help_text=_("The boundary's unique identifier within the set, used as a path component in URLs."))
+        help_text=t("The boundary's unique identifier within the set, used as a path component in URLs."))
     external_id = models.CharField(max_length=64,
-        help_text=_("An identifier of the boundary, which should be unique within the set."))
+        help_text=t("An identifier of the boundary, which should be unique within the set."))
     name = models.CharField(max_length=192, db_index=True,
-        help_text=_('The name of the boundary.'))
+        help_text=t('The name of the boundary.'))
     metadata = JSONField(blank=True,
-        help_text=_('The attributes of the boundary from the shapefile, as a dictionary.'))
+        help_text=t('The attributes of the boundary from the shapefile, as a dictionary.'))
     shape = models.MultiPolygonField(
-        help_text=_('The geometry of the boundary in EPSG:4326.'))
+        help_text=t('The geometry of the boundary in EPSG:4326.'))
     simple_shape = models.MultiPolygonField(
-        help_text=_('The simplified geometry of the boundary in EPSG:4326.'))
+        help_text=t('The simplified geometry of the boundary in EPSG:4326.'))
     centroid = models.PointField(null=True,
-        help_text=_('The centroid of the boundary in EPSG:4326.'))
+        help_text=t('The centroid of the boundary in EPSG:4326.'))
     extent = JSONField(blank=True, null=True,
-        help_text=_('The bounding box of the boundary as a list like [xmin, ymin, xmax, ymax] in EPSG:4326.'))
+        help_text=t('The bounding box of the boundary as a list like [xmin, ymin, xmax, ymax] in EPSG:4326.'))
     label_point = models.PointField(blank=True, null=True, spatial_index=False,
-        help_text=_('The point at which to place a label for the boundary in EPSG:4326, used by represent-maps.'))
+        help_text=t('The point at which to place a label for the boundary in EPSG:4326, used by represent-maps.'))
 
     objects = models.GeoManager()
 
     class Meta:
         unique_together = (('slug', 'set'))
-        verbose_name = _('boundary')
-        verbose_name_plural = _('boundaries')  # avoids "boundarys"
+        verbose_name = t('boundary')
+        verbose_name_plural = t('boundaries')  # avoids "boundarys"
 
     def __str__(self):
         return "%s (%s)" % (self.name, self.set_name)
@@ -205,6 +206,96 @@ class Boundary(models.Model):
             } for b in boundaries
         ]
 
+    def merge(self, geometry):
+        """
+        Merges the boundary's shape with the geometry (EPSG:4326) and its
+        simple_shape with the geometry's simplification.
+        """
+        simple_geometry = geometry.simplify()
+
+        self.shape = Geometry(self.shape.ogr).merge(geometry).wkt
+        self.simple_shape = Geometry(self.simple_shape.ogr).merge(simple_geometry).wkt
+
+    def cascaded_union(self, geometry):
+        """
+        Merges the boundary's shape with the geometry (EPSG:4326) and performs a
+        union, then recalculates the shape's simplifications.
+        """
+        geometry = Geometry(self.shape.ogr).merge(geometry).cascaded_union()
+
+        self.shape = geometry.wkt
+        self.simple_shape = geometry.simplify().wkt
+
+
+class Geometry(object):
+    def __init__(self, geometry):
+        if hasattr(geometry, 'geometry'):
+            self.geometry = geometry.geometry
+        else:
+            self.geometry = geometry
+
+    def transform(self, srs):
+        """
+        Transforms the geometry to EPSG:4326 and ensures it's a MultiPolygon.
+        """
+        geometry = self.geometry_to_multipolygon(self.geometry)
+        geometry.transform(CoordTransform(srs, SpatialReference(4326)))
+        return Geometry(geometry)
+
+    def simplify(self):
+        """
+        Uses `ST_SimplifyPreserveTopology` to avoid invalid geometries and
+        ensures the result is a MultiPolygon.
+        """
+        geometry = self.geometry.geos.simplify(app_settings.SIMPLE_SHAPE_TOLERANCE, preserve_topology=True).ogr  # simplify is in GEOS
+        geometry = self.geometry_to_multipolygon(geometry)  # simplify can return a Polygon
+        return Geometry(geometry)
+
+    def cascaded_union(self):
+        geometry = self.geometry.geos.cascaded_union.ogr  # cascaded_union is in GEOS
+        geometry = self.geometry_to_multipolygon(geometry)  # cascaded_union will return a Polygon
+        return Geometry(geometry)
+
+    def merge(self, other):
+        """
+        Creates a new MultiPolygon from the Polygons of two MultiPolygons.
+        """
+        if hasattr(other, 'geometry'):
+            other = other.geometry
+
+        geometry = OGRGeometry(OGRGeomType('MultiPolygon'))
+        for polygon in self.geometry:
+            geometry.add(polygon)
+        for polygon in other:
+            geometry.add(polygon)
+        return Geometry(geometry)
+
+    @property
+    def wkt(self):
+        return self.geometry.wkt
+
+    @property
+    def centroid(self):
+        return self.geometry.geos.centroid  # centroid is in GEOS
+
+    @property
+    def extent(self):
+        return self.geometry.extent
+
+    @staticmethod
+    def geometry_to_multipolygon(geometry):
+        """
+        Converts a Polygon to a MultiPolygon.
+        """
+        if geometry.__class__.__name__ == 'MultiPolygon':
+            return geometry
+        elif geometry.__class__.__name__ == 'Polygon':
+            multipolygon = OGRGeometry(OGRGeomType('MultiPolygon'))
+            multipolygon.add(geometry)
+            return multipolygon
+        else:
+            raise ValueError(_('The geometry is neither a Polygon nor a MultiPolygon.'))
+
 
 class UnicodeFeature(object):
 
@@ -220,7 +311,7 @@ class UnicodeFeature(object):
         return value
 
     def metadata(self):
-        return dict((field, feature.get(field)) for field in self.feature.fields)
+        return dict((field, self.get(field)) for field in self.feature.fields)
 
 
 class Definition(object):

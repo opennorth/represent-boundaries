@@ -3,8 +3,9 @@ from __future__ import unicode_literals
 
 from django.test import TestCase
 from django.contrib.gis.geos import Point, MultiPolygon
+from django.contrib.gis.gdal import OGRGeometry
 
-from boundaries.models import BoundarySet, Boundary
+from boundaries.models import BoundarySet, Boundary, Geometry
 
 
 class BoundaryTestCase(TestCase):
@@ -114,3 +115,17 @@ class BoundaryTestCase(TestCase):
         self.assertEqual(list(Boundary.prepare_queryset_for_get_dicts(Boundary.objects)), [
             ('bar', 'foo', 'Bar', 'Foo', '1'),
         ])
+
+    def test_merge(self):
+        boundary = Boundary(shape='MULTIPOLYGON (((0 0,0 5,2.5 5.0001,5 5,0 0)))',simple_shape='MULTIPOLYGON (((0 0,0 5,5 5,0 0)))')
+        boundary.merge(Geometry(OGRGeometry('MULTIPOLYGON (((0 0,5 0,5.0001 2.5,5 5,0 0)))')))
+
+        self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0 5,2.5 5.0001,5 5,0 0)),((0 0,5 0,5.0001 2.5,5 5,0 0)))')
+        self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0 5,5 5,0 0)),((0 0,5 0,5 5,0 0)))')
+
+    def test_cascaded_union(self):
+        boundary = Boundary(shape='MULTIPOLYGON (((0 0,0 5,2.5 5.0001,5 5,0 0)))')
+        boundary.cascaded_union(Geometry(OGRGeometry('MULTIPOLYGON (((0 0,5 0,5 5,0 0)))')))
+
+        self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((5 5,5 0,0 0,0 5,2.5 5.0001,5 5)))')
+        self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((5 5,5 0,0 0,0 5,5 5)))')

@@ -13,15 +13,15 @@ from tempfile import mkdtemp
 from shutil import rmtree
 
 from django.conf import settings
-from django.contrib.gis.gdal import CoordTransform, DataSource, OGRGeometry, OGRGeomType
+from django.contrib.gis.gdal import DataSource
 from django.core.management.base import BaseCommand, CommandError
-from django.db import connections, DEFAULT_DB_ALIAS, transaction
+from django.db import transaction
 from django.template.defaultfilters import slugify
 from django.utils import six
 from django.utils.translation import ugettext as _, ugettext_lazy as t
 
 import boundaries
-from boundaries.models import app_settings, BoundarySet, Boundary, UnicodeFeature
+from boundaries.models import app_settings, BoundarySet, Boundary, Geometry, UnicodeFeature, Definition
 
 
 class Command(BaseCommand):
@@ -39,7 +39,7 @@ class Command(BaseCommand):
         make_option('-c', '--clean', action='store_true', dest='clean',
                     default=False, help=t('Clean shapefiles first with ogr2ogr.')),
         make_option('-m', '--merge', action='store', dest='merge',
-                    default=None, help=t('Merge method when there are duplicate slugs, either "combine" (preserve as a MultiPolygon) or "union" (union the polygons).')),
+                    default=None, help=t('Merge strategy when there are duplicate slugs, either "combine" (extend the MultiPolygon) or "union" (union the geometries).')),
     )
 
     def get_version(self):
@@ -131,17 +131,10 @@ class Command(BaseCommand):
                 layer = data_source[0]
                 layer.source = data_source  # to trace the layer back to its source
 
-                # @see https://github.com/django/django/blob/master/django/contrib/gis/utils/srs.py
-                SpatialRefSys = connections[DEFAULT_DB_ALIAS].ops.spatial_ref_sys()
-                target_srid = Boundary._meta.get_field_by_name('shape')[0].srid
-                target_srs = SpatialRefSys.objects.get(srid=target_srid).srs
-
                 if definition.get('srid'):
-                    source_srs = SpatialRefSys.objects.get(srid=definition['srid']).srs
+                    srs = SpatialReference(definition['srid'])
                 else:
-                    source_srs = layer.srs
-
-                transformer = CoordTransform(source_srs, target_srs)
+                    srs = layer.srs
 
                 for feature in layer:
                     feature = UnicodeFeature(feature, encoding=definition['encoding'])
@@ -154,46 +147,17 @@ class Command(BaseCommand):
 
                     feature.layer = layer  # to trace the feature back to its source
 
-                    geometry = self.polygon_to_multipolygon(feature.geom)
-                    # Transform the geometry to the correct SRS.
-                    geometry.transform(transformer)
-                    # Use `ST_SimplifyPreserveTopology` to avoid invalid geometries.
-                    simple_geometry = geometry.geos.simplify(app_settings.SIMPLE_SHAPE_TOLERANCE, preserve_topology=True)
-                    # The simplification may have simplified MultiPolygons to Polygons.
-                    simple_geometry = self.polygon_to_multipolygon(simple_geometry.ogr)
+                    geometry = Geometry(feature.geom).transform(srs)
 
                     if options['merge']:
                         try:
                             boundary = Boundary.objects.get(set=boundary_set, slug=feature_slug)
-
-                            # Extend the shape.
-                            g = OGRGeometry(OGRGeomType('MultiPolygon'))
-                            for p in boundary.shape:
-                                g.add(p.ogr)
-                            for p in geometry:
-                                g.add(p)
-                            boundary.shape = g.wkt
-
-                            if options['merge'] == 'union':
-                                # Union the shapes.
-                                g = self.polygon_to_multipolygon(boundary.shape.cascaded_union.ogr)
-                                boundary.shape = g.wkt
-
-                                # Simplify the union.
-                                boundary.simple_shape = self.polygon_to_multipolygon(g.geos.simplify(app_settings.SIMPLE_SHAPE_TOLERANCE, preserve_topology=True).ogr).wkt
-
-                            elif options['merge'] == 'combine':
-                                # Extend the simple_shape.
-                                g = OGRGeometry(OGRGeomType('MultiPolygon'))
-                                for p in boundary.simple_shape:
-                                    g.add(p.ogr)
-                                for p in simple_geometry:
-                                    g.add(p)
-                                boundary.simple_shape = g.wkt
-
+                            if options['merge'] == 'combine':
+                                boundary.merge(geometry)
+                            elif options['merge'] == 'union':
+                                boundary.cascaded_union(geometry)
                             else:
-                                raise ValueError(_('Invalid value for merge option.'))
-
+                                raise ValueError(_('Invalid merge strategy.'))
                             boundary.centroid = boundary.shape.centroid
                             boundary.extent = boundary.shape.extent
                             boundary.save()
@@ -209,10 +173,10 @@ class Command(BaseCommand):
                         slug=feature_slug,
                         metadata=feature.metadata(),
                         shape=geometry.wkt,
-                        simple_shape=simple_geometry.wkt,
-                        centroid=geometry.geos.centroid,
+                        simple_shape=geometry.simplify().wkt,
+                        centroid=geometry.centroid,
                         extent=geometry.extent,
-                        label_point=definition['label_point_func'](feature)
+                        label_point=definition['label_point_func'](feature),
                     )
 
                     if boundary_set.extent[0] is None or boundary.extent[0] < boundary_set.extent[0]:
@@ -224,30 +188,13 @@ class Command(BaseCommand):
                     if boundary_set.extent[3] is None or boundary.extent[3] > boundary_set.extent[3]:
                         boundary_set.extent[3] = boundary.extent[3]
 
-            if None in boundary_set.extent:
-                boundary_set.extent = None
-            else:  # Save the extents.
+            if None not in boundary_set.extent:
                 boundary_set.save()
 
             log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=boundary_set).count()})
         finally:
             for tmpdir in tmpdirs:
                 rmtree(tmpdir)
-
-    @staticmethod
-    def polygon_to_multipolygon(geometry):
-        """
-        Converts a Polygon to a MultiPolygon, so that all features are of the same type.
-        """
-
-        if geometry.__class__.__name__ == 'Polygon':
-            g = OGRGeometry(OGRGeomType('MultiPolygon'))
-            g.add(geometry)
-            return g
-        elif geometry.__class__.__name__ == 'MultiPolygon':
-            return geometry
-        else:
-            raise ValueError(_('The geometry is neither a Polygon nor a MultiPolygon.'))
 
 
 def create_data_sources(definition, path, convert_3d_to_2d):
