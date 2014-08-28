@@ -7,20 +7,20 @@ from optparse import make_option
 
 from django.core.management.base import BaseCommand
 from django.utils.six import text_type
-from django.utils.translation import ugettext as _, ugettext_lazy as t
+from django.utils.translation import ugettext as _, ugettext_lazy
 
 from boundaries.models import BoundarySet
 
 
 class Command(BaseCommand):
-    help = t('Create a report of the area of intersection of every pair of boundaries from two boundary sets specified by their slug.')
+    help = ugettext_lazy('Create a report of the area of intersection of every pair of boundaries from two boundary sets specified by their slug.')
     args = 'boundaryset1 boundaryset2'
 
     option_list = BaseCommand.option_list + (
         make_option('-f', '--format', action='store', dest='format', default="csv",
-                    help=t('Choose an output format: csv, json.')),
+                    help=ugettext_lazy('Choose an output format: csv, json.')),
         make_option('-m', '--metadata', action='store_true', dest='include_metadata', default=False,
-                    help=t('Includes the original shapefile metadata in the output.')),
+                    help=ugettext_lazy('Includes the original shapefile metadata in the output.')),
     )
 
     def handle(self, *args, **options):

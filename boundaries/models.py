@@ -8,7 +8,7 @@ from django.template.defaultfilters import slugify
 from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
 from django.utils.six import text_type, string_types
-from django.utils.translation import ugettext as _, ugettext_lazy as t
+from django.utils.translation import ugettext as _, ugettext_lazy
 
 from appconf import AppConf
 from jsonfield import JSONField
@@ -40,36 +40,36 @@ class BoundarySet(models.Model):
     A set of boundaries, corresponding to one or more shapefiles.
     """
     slug = models.SlugField(max_length=200, primary_key=True, editable=False,
-        help_text=t("The boundary set's unique identifier, used as a path component in URLs."))
+        help_text=ugettext_lazy("The boundary set's unique identifier, used as a path component in URLs."))
     name = models.CharField(max_length=100, unique=True,
-        help_text=t('The plural name of the boundary set.'))
+        help_text=ugettext_lazy('The plural name of the boundary set.'))
     singular = models.CharField(max_length=100,
-        help_text=t('A generic singular name for a boundary in the set.'))
+        help_text=ugettext_lazy('A generic singular name for a boundary in the set.'))
     authority = models.CharField(max_length=256,
-        help_text=t('The entity responsible for publishing the data.'))
+        help_text=ugettext_lazy('The entity responsible for publishing the data.'))
     domain = models.CharField(max_length=256,
-        help_text=t("The geographic area covered by the boundary set."))
+        help_text=ugettext_lazy("The geographic area covered by the boundary set."))
     last_updated = models.DateField(
-        help_text=t('The most recent date on which the data was updated.'))
+        help_text=ugettext_lazy('The most recent date on which the data was updated.'))
     source_url = models.URLField(blank=True,
-        help_text=t('A URL to the source of the data.'))
+        help_text=ugettext_lazy('A URL to the source of the data.'))
     notes = models.TextField(blank=True,
-        help_text=t('Free-form text notes, often used to describe changes that were made to the original source data.'))
+        help_text=ugettext_lazy('Free-form text notes, often used to describe changes that were made to the original source data.'))
     licence_url = models.URLField(blank=True,
-        help_text=t('A URL to the licence under which the data is made available.'))
+        help_text=ugettext_lazy('A URL to the licence under which the data is made available.'))
     extent = JSONField(blank=True, null=True,
-        help_text=t("The set's boundaries' bounding box as a list like [xmin, ymin, xmax, ymax] in EPSG:4326."))
+        help_text=ugettext_lazy("The set's boundaries' bounding box as a list like [xmin, ymin, xmax, ymax] in EPSG:4326."))
     start_date = models.DateField(blank=True, null=True,
-        help_text=t("The date from which the set's boundaries are in effect."))
+        help_text=ugettext_lazy("The date from which the set's boundaries are in effect."))
     end_date = models.DateField(blank=True, null=True,
-        help_text=t("The date until which the set's boundaries are in effect."))
+        help_text=ugettext_lazy("The date until which the set's boundaries are in effect."))
     extra = JSONField(blank=True, null=True,
-        help_text=t("Any additional metadata."))
+        help_text=ugettext_lazy("Any additional metadata."))
 
     class Meta:
         ordering = ('name',)
-        verbose_name = t('boundary set')
-        verbose_name_plural = t('boundary sets')
+        verbose_name = ugettext_lazy('boundary set')
+        verbose_name_plural = ugettext_lazy('boundary sets')
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -118,34 +118,34 @@ class Boundary(models.Model):
     A boundary, corresponding to a feature in a shapefile.
     """
     set = models.ForeignKey(BoundarySet, related_name='boundaries',
-        help_text=t('The set to which the boundary belongs.'))
+        help_text=ugettext_lazy('The set to which the boundary belongs.'))
     set_name = models.CharField(max_length=100,
-        help_text=t('A generic singular name for the boundary.'))
+        help_text=ugettext_lazy('A generic singular name for the boundary.'))
     slug = models.SlugField(max_length=200, db_index=True,
-        help_text=t("The boundary's unique identifier within the set, used as a path component in URLs."))
+        help_text=ugettext_lazy("The boundary's unique identifier within the set, used as a path component in URLs."))
     external_id = models.CharField(max_length=64,
-        help_text=t("An identifier of the boundary, which should be unique within the set."))
+        help_text=ugettext_lazy("An identifier of the boundary, which should be unique within the set."))
     name = models.CharField(max_length=192, db_index=True,
-        help_text=t('The name of the boundary.'))
+        help_text=ugettext_lazy('The name of the boundary.'))
     metadata = JSONField(blank=True,
-        help_text=t('The attributes of the boundary from the shapefile, as a dictionary.'))
+        help_text=ugettext_lazy('The attributes of the boundary from the shapefile, as a dictionary.'))
     shape = models.MultiPolygonField(
-        help_text=t('The geometry of the boundary in EPSG:4326.'))
+        help_text=ugettext_lazy('The geometry of the boundary in EPSG:4326.'))
     simple_shape = models.MultiPolygonField(
-        help_text=t('The simplified geometry of the boundary in EPSG:4326.'))
+        help_text=ugettext_lazy('The simplified geometry of the boundary in EPSG:4326.'))
     centroid = models.PointField(null=True,
-        help_text=t('The centroid of the boundary in EPSG:4326.'))
+        help_text=ugettext_lazy('The centroid of the boundary in EPSG:4326.'))
     extent = JSONField(blank=True, null=True,
-        help_text=t('The bounding box of the boundary as a list like [xmin, ymin, xmax, ymax] in EPSG:4326.'))
+        help_text=ugettext_lazy('The bounding box of the boundary as a list like [xmin, ymin, xmax, ymax] in EPSG:4326.'))
     label_point = models.PointField(blank=True, null=True, spatial_index=False,
-        help_text=t('The point at which to place a label for the boundary in EPSG:4326, used by represent-maps.'))
+        help_text=ugettext_lazy('The point at which to place a label for the boundary in EPSG:4326, used by represent-maps.'))
 
     objects = models.GeoManager()
 
     class Meta:
         unique_together = (('slug', 'set'))
-        verbose_name = t('boundary')
-        verbose_name_plural = t('boundaries')  # avoids "boundarys"
+        verbose_name = ugettext_lazy('boundary')
+        verbose_name_plural = ugettext_lazy('boundaries')  # avoids "boundarys"
 
     def __str__(self):
         return "%s (%s)" % (self.name, self.set_name)

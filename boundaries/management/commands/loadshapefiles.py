@@ -18,28 +18,28 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.template.defaultfilters import slugify
 from django.utils import six
-from django.utils.translation import ugettext as _, ugettext_lazy as t
+from django.utils.translation import ugettext as _, ugettext_lazy
 
 import boundaries
 from boundaries.models import app_settings, BoundarySet, Boundary, Geometry, UnicodeFeature, Definition
 
 
 class Command(BaseCommand):
-    help = t('Import boundaries described by shapefiles.')
+    help = ugettext_lazy('Import boundaries described by shapefiles.')
     option_list = BaseCommand.option_list + (
         make_option('-r', '--reload', action='store_true', dest='reload',
-                    help=t('Reload boundary sets that have already been imported.')),
+                    help=ugettext_lazy('Reload boundary sets that have already been imported.')),
         make_option('-d', '--data-dir', action='store', dest='data_dir',
                     default=app_settings.SHAPEFILES_DIR,
-                    help=t('Load shapefiles from this directory.')),
+                    help=ugettext_lazy('Load shapefiles from this directory.')),
         make_option('-e', '--except', action='store', dest='except',
-                    default='', help=t("Don't load these boundary set slugs (comma-delimited).")),
+                    default='', help=ugettext_lazy("Don't load these boundary set slugs (comma-delimited).")),
         make_option('-o', '--only', action='store', dest='only',
-                    default='', help=t('Only load these boundary set slugs (comma-delimited).')),
+                    default='', help=ugettext_lazy('Only load these boundary set slugs (comma-delimited).')),
         make_option('-c', '--clean', action='store_true', dest='clean',
-                    default=False, help=t('Clean shapefiles first with ogr2ogr.')),
+                    default=False, help=ugettext_lazy('Clean shapefiles first with ogr2ogr.')),
         make_option('-m', '--merge', action='store', dest='merge',
-                    default=None, help=t('Merge strategy when there are duplicate slugs, either "combine" (extend the MultiPolygon) or "union" (union the geometries).')),
+                    default=None, help=ugettext_lazy('Merge strategy when there are duplicate slugs, either "combine" (extend the MultiPolygon) or "union" (union the geometries).')),
     )
 
     def get_version(self):
@@ -47,7 +47,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if settings.DEBUG:
-            print(_('DEBUG is True - this can cause memory usage to balloon.  continue? [y/n]'))
+            print(_('DEBUG is True. This can cause memory usage to balloon. Continue? [y/n]'))
             if six.moves.input().lower() != 'y':
                 return
 
