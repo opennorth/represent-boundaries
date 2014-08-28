@@ -312,17 +312,16 @@ class Geometry(object):
 
 slug_re = re.compile(r'[–—]')  # n-dash, m-dash
 
+
 class Feature(object):
 
+    # @see https://github.com/django/django/blob/master/django/contrib/gis/gdal/feature.py
     def __init__(self, feature, definition):
         self.feature = feature
         self.definition = definition
 
     def get(self, field):
-        value = self.feature.get(field)
-        if isinstance(value, bytes):
-            return value.decode(self.definition['encoding'])
-        return value
+        return self.feature.get(field)
 
     def is_valid(self):
         return self.definition['is_valid_func'](self)
@@ -335,13 +334,13 @@ class Feature(object):
     def id(self):
         # Coerce to string, as the field in the feature from which the ID is
         # derived may be numeric.
-        return str(self.definition['id_func'](self))
+        return text_type(self.definition['id_func'](self))
 
     @property
     def slug(self):
         # Coerce to string, as the field in the feature from which the slug is
         # derived may be numeric.
-        return slugify(slug_re.sub('-', str(self.definition['slug_func'](self))))
+        return slugify(slug_re.sub('-', text_type(self.definition['slug_func'](self))))
 
     @property
     def label_point(self):
@@ -375,6 +374,8 @@ class Definition(object):
         self.dictionary = {}
 
         self.dictionary.update({
+            # DataSource's default encoding is "utf-8".
+            # @see https://github.com/django/django/blob/master/django/contrib/gis/gdal/datasource.py
             'encoding': 'ascii',
 
             # Boundary Set fields.

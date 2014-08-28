@@ -22,6 +22,8 @@ Represent Boundaries is one of many [Poplus Components](http://poplus.org/compon
 
 ## Documentation
 
+Represent Boundaries should work in a Django 1.4 project. However, Django 1.4 has poor encoding support for shapefiles.
+
 * [Installation](http://represent.poplus.org/docs/install/)
 * [Add data to the API](http://represent.poplus.org/docs/import/)
 * [Use the API](http://represent.poplus.org/docs/api/)
