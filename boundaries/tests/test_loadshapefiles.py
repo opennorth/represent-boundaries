@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import os.path
 import unittest
+from datetime import date
 from zipfile import BadZipfile
 from testfixtures import LogCapture
 
@@ -10,11 +11,40 @@ from django.contrib.gis.gdal import DataSource
 from django.core.management.base import CommandError
 from django.test import TestCase
 
-from boundaries.management.commands.loadshapefiles import create_data_sources, extract_shapefile_from_zip
+from boundaries.management.commands.loadshapefiles import Command, create_data_sources, extract_shapefile_from_zip
+from boundaries.models import BoundarySet
 
 
 def fixture(basename):
     return os.path.join(os.path.dirname(__file__), 'fixtures', basename)
+
+
+class SkipTestCase(TestCase):
+    def test_whitelist(self):
+        self.assertTrue(Command().skip('foo', date(2000, 1, 1), whitelist=set(['foo'])))
+        self.assertFalse(Command().skip('bar', date(2000, 1, 1), whitelist=set(['foo'])))
+
+    def test_blacklist(self):
+        self.assertFalse(Command().skip('foo', date(2000, 1, 1), blacklist=set(['foo'])))
+        self.assertTrue(Command().skip('bar', date(2000, 1, 1), blacklist=set(['foo'])))
+
+    def test_reload_existing(self):
+        BoundarySet.objects.create(name='Foo', last_updated=date(2010, 1, 1))
+        self.assertTrue(Command().skip('foo', date(2000, 1, 1), reload_existing=True))
+        self.assertFalse(Command().skip('foo', date(2000, 1, 1), reload_existing=False))
+
+    def test_out_of_date(self):
+        BoundarySet.objects.create(name='Foo', last_updated=date(2010, 1, 1))
+        self.assertTrue(Command().skip('foo', date(2020, 1, 1)))
+
+    def test_up_to_date(self):
+        BoundarySet.objects.create(name='Foo', last_updated=date(2010, 1, 1))
+        self.assertFalse(Command().skip('foo', date(2000, 1, 1)))
+
+    def test_nonexisting(self):
+        self.assertTrue(Command().skip('foo', date(2000, 1, 1)))
+        BoundarySet.objects.create(name='Foo', last_updated=date(2010, 1, 1))
+        self.assertFalse(Command().skip('foo', date(2000, 1, 1)))
 
 
 class ZipFileTestCase(TestCase):

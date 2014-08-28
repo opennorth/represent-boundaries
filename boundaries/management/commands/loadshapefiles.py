@@ -28,14 +28,14 @@ class Command(BaseCommand):
     help = t('Import boundaries described by shapefiles.')
     option_list = BaseCommand.option_list + (
         make_option('-r', '--reload', action='store_true', dest='reload',
-                    help=t('Reload BoundarySets that have already been imported.')),
+                    help=t('Reload boundary sets that have already been imported.')),
         make_option('-d', '--data-dir', action='store', dest='data_dir',
                     default=app_settings.SHAPEFILES_DIR,
-                    help=t('Load shapefiles from this directory')),
+                    help=t('Load shapefiles from this directory.')),
         make_option('-e', '--except', action='store', dest='except',
-                    default=False, help=t('Don\'t load these BoundarySet slugs, comma-delimited.')),
+                    default='', help=t("Don't load these boundary set slugs (comma-delimited).")),
         make_option('-o', '--only', action='store', dest='only',
-                    default=False, help=t('Only load these BoundarySet slugs, comma-delimited.')),
+                    default='', help=t('Only load these boundary set slugs (comma-delimited).')),
         make_option('-c', '--clean', action='store_true', dest='clean',
                     default=False, help=t('Clean shapefiles first with ogr2ogr.')),
         make_option('-m', '--merge', action='store', dest='merge',
@@ -53,41 +53,37 @@ class Command(BaseCommand):
 
         boundaries.autodiscover(options['data_dir'])
 
-        all_sources = boundaries.registry
+        whitelist = set(options['only'].split(','))
+        blacklist = set(options['except'].split(','))
 
-        all_slugs = set(slugify(s) for s in all_sources)
-
-        if options['only']:
-            only = set(options['only'].split(','))
-            sources = only.intersection(all_slugs)
-        elif options['except']:
-            exceptions = set(options['except'].split(','))
-            sources = all_slugs - exceptions
-        else:
-            sources = all_slugs
-
-        for slug, definition in all_sources.items():
+        for slug, definition in boundaries.registry.items():
             slug = slugify(slug)
 
-            if slug not in sources:
+            if self.skip(slug, definition['last_updated'], whitelist, blacklist, options['reload']):
                 log.debug(_('Skipping %(slug)s.') % {'slug': slug})
-                continue
+            else:
+                # Backwards-compatibility with having the name, instead of the slug,
+                # as the first argument to `boundaries.register`.
+                definition.setdefault('name', slug)
+                definition = Definition(definition)
 
-            # Backwards-compatibility with having the name, instead of the slug,
-            # as the first argument to `boundaries.register`.
-            definition.setdefault('name', slug)
+                self.load_set(slug, definition, options)
 
-            definition = Definition(definition)
-
+    def skip(self, slug, last_updated, whitelist=[], blacklist=[], reload_existing=False):
+        """
+        Allows through boundary sets that are in the whitelist (if set) and are
+        not in the blacklist. Unless the `reload_existing` argument is True, it
+        further limits to those that don't exist or are out-of-date.
+        """
+        if whitelist and slug not in whitelist or slug in blacklist:
+            return False
+        elif reload_existing:
+            return True
+        else:
             try:
-                existing_set = BoundarySet.objects.get(slug=slug)
-                if not options['reload'] and existing_set.last_updated >= definition['last_updated']:
-                    log.info(_('Already loaded %(slug)s, skipping.') % {'slug': slug})
-                    continue
+                return BoundarySet.objects.get(slug=slug).last_updated < last_updated
             except BoundarySet.DoesNotExist:
-                pass
-
-            self.load_set(slug, definition, options)
+                return True
 
     @transaction.commit_on_success
     def load_set(self, slug, definition, options):
