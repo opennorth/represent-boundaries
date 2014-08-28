@@ -8,6 +8,9 @@ from django.test import TestCase
 from boundaries.models import Definition
 
 
+if not hasattr(TestCase, 'assertCountEqual'):  # Python < 3.2
+    TestCase.assertCountEqual = TestCase.assertItemsEqual
+
 class DefinitionTestCase(TestCase):
     maxDiff = None
 
@@ -17,7 +20,7 @@ class DefinitionTestCase(TestCase):
             'name_func': lambda feature: None,
         })
 
-        self.assertItemsEqual(definition.dictionary.keys(), [
+        self.assertCountEqual(definition.dictionary.keys(), [
             'name',
             'name_func',
             'encoding',
@@ -70,7 +73,7 @@ class DefinitionTestCase(TestCase):
             'label_point_func': lambda feature: '',
         })
 
-        self.assertItemsEqual(definition.dictionary.keys(), [
+        self.assertCountEqual(definition.dictionary.keys(), [
             'name',
             'name_func',
             'encoding',

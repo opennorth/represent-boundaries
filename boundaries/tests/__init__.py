@@ -255,3 +255,7 @@ from boundaries.tests.test_boundary_set import *
 from boundaries.tests.test_boundary_set_detail import *
 from boundaries.tests.test_boundary_set_list import *
 from boundaries.tests.test_boundary_set_list_filter import *
+from boundaries.tests.test_compute_intersections import *
+from boundaries.tests.test_definition import *
+from boundaries.tests.test_geometry import *
+from boundaries.tests.test_loadshapefiles import *
