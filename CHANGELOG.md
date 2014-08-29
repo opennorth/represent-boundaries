@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.0
+## 0.5.0 (2014-08-28)
 
-* Removes the `--database` (`-u`) option from the `loadshapefiles` management command, which would specify the database in which to find the `spatial_ref_sys` table.
+* Removes the `--database` (`-u`) option from the `loadshapefiles` management command, which would only specify the database in which to find the `spatial_ref_sys` table.
 * Make non-integer `offset` error message consistent with non-integer `limit` error message.
 * `format=wkt` and `format=kml` no longer error in Django 1.7.
 * I18n support.
