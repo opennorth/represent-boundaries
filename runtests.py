@@ -32,7 +32,7 @@ if __name__ == '__main__':
     try:
         from django.test.runner import DiscoverRunner
         runner = DiscoverRunner(failfast=False)
-    except ImportError:
+    except ImportError:  # Django < 1.6
         from django.test.simple import DjangoTestSuiteRunner
         runner = DjangoTestSuiteRunner(failfast=False)
     failures = runner.run_tests(['boundaries'])
