@@ -34,21 +34,12 @@ class BoundarySetListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationT
 
         response = self.client.get(self.url, {'limit': 1})
         self.assertResponse(response)
-        try:
-            self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/bar/", "domain": "", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}], "meta": {"next": "/boundary-sets/?limit=1&offset=1", "total_count": 3, "previous": null, "limit": 1, "offset": 0}}')
-        except AssertionError:
-            self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/bar/", "domain": "", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}], "meta": {"next": "/boundary-sets/?offset=1&limit=1", "total_count": 3, "previous": null, "limit": 1, "offset": 0}}')
+        self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/bar/", "domain": "", "name": "Bar", "related": {"boundaries_url": "/boundaries/bar/"}}], "meta": {"next": "/boundary-sets/?limit=1&offset=1", "total_count": 3, "previous": null, "limit": 1, "offset": 0}}')
 
         response = self.client.get(self.url, {'limit': 1, 'offset': 1})
         self.assertResponse(response)
-        try:
-            self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}], "meta": {"next": "/boundary-sets/?limit=1&offset=2", "total_count": 3, "previous": "/boundary-sets/?limit=1&offset=0", "limit": 1, "offset": 1}}')
-        except AssertionError:
-            self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}], "meta": {"next": "/boundary-sets/?offset=2&limit=1", "total_count": 3, "previous": "/boundary-sets/?offset=0&limit=1", "limit": 1, "offset": 1}}')
+        self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/baz/", "domain": "", "name": "Baz", "related": {"boundaries_url": "/boundaries/baz/"}}], "meta": {"next": "/boundary-sets/?limit=1&offset=2", "total_count": 3, "previous": "/boundary-sets/?limit=1&offset=0", "limit": 1, "offset": 1}}')
 
         response = self.client.get(self.url, {'limit': 1, 'offset': 2})
         self.assertResponse(response)
-        try:
-            self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/foo/", "domain": "", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], "meta": {"next": null, "total_count": 3, "previous": "/boundary-sets/?limit=1&offset=1", "limit": 1, "offset": 2}}')
-        except AssertionError:
-            self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/foo/", "domain": "", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], "meta": {"next": null, "total_count": 3, "previous": "/boundary-sets/?offset=1&limit=1", "limit": 1, "offset": 2}}')
+        self.assertJSONEqual(response, '{"objects": [{"url": "/boundary-sets/foo/", "domain": "", "name": "Foo", "related": {"boundaries_url": "/boundaries/foo/"}}], "meta": {"next": null, "total_count": 3, "previous": "/boundary-sets/?limit=1&offset=1", "limit": 1, "offset": 2}}')
