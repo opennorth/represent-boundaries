@@ -8,6 +8,7 @@ from django.contrib.gis.gdal import CoordTransform, OGRGeometry, OGRGeomType, Sp
 from django.contrib.gis.geos import GEOSGeometry
 from django.core import urlresolvers
 from django.template.defaultfilters import slugify
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
 from django.utils.six import text_type, string_types
@@ -37,6 +38,7 @@ class MyAppConf(AppConf):
 app_settings = MyAppConf()
 
 
+@python_2_unicode_compatible
 class BoundarySet(models.Model):
 
     """
@@ -81,7 +83,6 @@ class BoundarySet(models.Model):
 
     def __str__(self):
         return self.name
-    __unicode__ = __str__
 
     name_plural = property(lambda s: s.name)
     name_singular = property(lambda s: s.singular)
@@ -125,6 +126,7 @@ class BoundarySet(models.Model):
             self.extent[3] = extent[3]
 
 
+@python_2_unicode_compatible
 class Boundary(models.Model):
 
     """
@@ -162,7 +164,6 @@ class Boundary(models.Model):
 
     def __str__(self):
         return "%s (%s)" % (self.name, self.set_name)
-    __unicode__ = __str__
 
     @models.permalink
     def get_absolute_url(self):
@@ -240,12 +241,16 @@ class Boundary(models.Model):
         self.simple_shape = geometry.simplify().wkt
 
 
+@python_2_unicode_compatible
 class Geometry(object):
     def __init__(self, geometry):
         if hasattr(geometry, 'geometry'):
             self.geometry = geometry.geometry
         else:
             self.geometry = geometry
+
+    def __str__(self):
+        return str(self.geometry)
 
     def transform(self, srs):
         """
@@ -313,12 +318,16 @@ class Geometry(object):
 slug_re = re.compile(r'[–—]')  # n-dash, m-dash
 
 
+@python_2_unicode_compatible
 class Feature(object):
 
     # @see https://github.com/django/django/blob/master/django/contrib/gis/gdal/feature.py
     def __init__(self, feature, definition):
         self.feature = feature
         self.definition = definition
+
+    def __str__(self):
+        return str(self.feature)
 
     def get(self, field):
         return self.feature.get(field)
@@ -366,6 +375,7 @@ class Feature(object):
         )
 
 
+@python_2_unicode_compatible
 class Definition(object):
     """
     The dictionary must have `name` and `name_func` keys.
@@ -399,6 +409,9 @@ class Definition(object):
             self.dictionary['singular'] = dictionary['name'][:-1]
 
         self.dictionary.update(dictionary)
+
+    def __str__(self):
+        return str(self.dictionary)
 
     def __getitem__(self, key):
         return self.dictionary[key]
