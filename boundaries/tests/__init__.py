@@ -8,7 +8,7 @@ from copy import deepcopy
 from django.conf import settings
 from django.contrib.gis.geos import MultiPolygon
 from django.test import TestCase
-from django.utils.six import assertRegex, text_type
+from django.utils.six import assertRegex, string_types
 from django.utils.six.moves.urllib.parse import parse_qsl, unquote_plus, urlparse
 
 from boundaries.models import app_settings, Boundary
@@ -44,11 +44,11 @@ class ViewTestCase(TestCase):
         self.assertNotIn('Access-Control-Allow-Origin', response)
 
     def assertJSONEqual(self, actual, expected):
-        if isinstance(actual, text_type):
+        if isinstance(actual, string_types):
             actual = json.loads(actual)
         else:  # It's a response.
             actual = json.loads(actual.content.decode('utf-8'))
-        if isinstance(expected, text_type):
+        if isinstance(expected, string_types):
             expected = json.loads(expected)
         self.assertEqual(comparable(actual), comparable(expected))
 
@@ -60,7 +60,7 @@ class URL(object):
     """
 
     def __init__(self, url):
-        if isinstance(url, text_type):
+        if isinstance(url, string_types):
             parsed = urlparse(url)
             self.parsed = parsed._replace(query=frozenset(parse_qsl(parsed.query)), path=unquote_plus(parsed.path))
         else:  # It's already a URL.
