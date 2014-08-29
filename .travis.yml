@@ -10,6 +10,11 @@ env:
   - DJANGO="Django>=1.6,<1.7"
   - DJANGO="https://www.djangoproject.com/download/1.7c1/tarball/"
 # - DJANGO="git+https://github.com/django/django.git@master#egg=django"
+matrix:
+  exclude:
+    # @see https://docs.djangoproject.com/en/dev/releases/1.7/#python-compatibility
+    - python: "2.6"
+      env: DJANGO="https://www.djangoproject.com/download/1.7c1/tarball/"
 install:
   - pip install $DJANGO
   - pip install psycopg2
