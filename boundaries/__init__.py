@@ -2,33 +2,40 @@
 from __future__ import unicode_literals
 
 import logging
+log = logging.getLogger(__name__)
 import os
 import re
 
-logger = logging.getLogger(__name__)
+from django.utils.translation import ugettext as _
 
 registry = {}
 _basepath = '.'
 
 
 def register(slug, **kwargs):
-    """Called by definition files: adds a boundary definition to our list
-    during the loadshapefiles command."""
+    """
+    Adds a definition file to the list during the loadshapefiles management
+    command. Called by definition files.
+    """
     kwargs['file'] = os.path.join(_basepath, kwargs.get('file', ''))
+    if slug in registry:
+        log.warning(_('Multiple definitions of %(slug)s found.') % {'slug': slug})
     registry[slug] = kwargs
 
 
+definition_file_re = re.compile(r'definitions?\.py\Z')
+
+
 def autodiscover(base_dir):
-    """Walk the directory tree and load all definition files present.
-    Definition files are all files ending in "definition.py" or "definitions.py"
+    """
+    Walks the directory tree, loading definition files. Definition files are any
+    files ending in "definition.py" or "definitions.py".
     """
     global _basepath
-    definition_file_re = re.compile(r'definitions?\.py$')
     for (dirpath, dirnames, filenames) in os.walk(base_dir, followlinks=True):
         _basepath = dirpath
         for filename in filenames:
             if definition_file_re.search(filename):
-                logger.debug(filename)
                 exec(open(os.path.join(dirpath, filename)).read())
 
 
