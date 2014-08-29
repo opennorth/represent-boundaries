@@ -8,6 +8,7 @@ from copy import deepcopy
 from django.conf import settings
 from django.contrib.gis.geos import MultiPolygon
 from django.test import TestCase
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.six import assertRegex, string_types
 from django.utils.six.moves.urllib.parse import parse_qsl, unquote_plus, urlparse
 
@@ -53,6 +54,7 @@ class ViewTestCase(TestCase):
         self.assertEqual(comparable(actual), comparable(expected))
 
 
+@python_2_unicode_compatible
 class URL(object):
 
     """
@@ -72,6 +74,9 @@ class URL(object):
     def __hash__(self):
         return hash(self.parsed)
 
+    def __str__(self):
+        return self.parsed.geturl()
+
 
 def comparable(o):
     """
@@ -81,7 +86,9 @@ def comparable(o):
 
     if isinstance(o, dict):
         for k, v in o.items():
-            if k.endswith('url'):
+            if v is None:
+                o[k] = None
+            elif k.endswith('url') or k in ('next', 'previous'):
                 o[k] = URL(v)
             else:
                 o[k] = comparable(v)
