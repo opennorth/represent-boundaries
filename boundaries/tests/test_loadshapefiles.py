@@ -2,20 +2,33 @@
 from __future__ import unicode_literals
 
 import os.path
+import traceback
 from datetime import date
 from zipfile import BadZipfile
 from testfixtures import LogCapture
 
 from django.contrib.gis.gdal import DataSource
+from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase
 
+import boundaries
 from boundaries.management.commands.loadshapefiles import Command, create_data_sources, extract_shapefile_from_zip
 from boundaries.models import BoundarySet
 
 
 def fixture(basename):
     return os.path.join(os.path.dirname(__file__), 'fixtures', basename)
+
+
+class LoadShapefilesTestCase(TestCase):
+    def test_command(self):  # @todo This only ensures there's no gross error. Need more tests. 
+        boundaries.registry = {}
+        boundaries._basepath = '.'
+        try:
+            call_command('loadshapefiles')
+        except Exception as e:
+            self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
 
 
 class SkipTestCase(TestCase):

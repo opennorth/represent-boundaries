@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from datetime import date
 from testfixtures import LogCapture
 
 from django.test import TestCase
@@ -14,15 +15,15 @@ class BoundariesTestCase(TestCase):
     def test_register(self):
         boundaries.registry = {}
         boundaries._basepath = '.'
-        boundaries.register('foo', file='bar')
-        self.assertEqual(boundaries.registry, {'foo': {'file': './bar'}})
+        boundaries.register('foo', file='bar', last_updated=date(2000, 1, 1))
+        self.assertEqual(boundaries.registry, {'foo': {'file': './bar', 'last_updated': date(2000, 1, 1)}})
 
     def test_autodiscover(self):
         boundaries.registry = {}
         boundaries._basepath = '.'
         with LogCapture() as l:
             boundaries.autodiscover('.')
-            self.assertEqual(boundaries.registry, {'Districts': {'file': './boundaries/tests/fixtures/'}})
+            self.assertEqual(boundaries.registry, {'Districts': {'file': './boundaries/tests/fixtures/', 'last_updated': date(2000, 1, 1)}})
 
         l.check(('boundaries', 'WARNING', 'Multiple definitions of Districts found.'))
 
