@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import os.path
-import unittest
 from datetime import date
 from zipfile import BadZipfile
 from testfixtures import LogCapture
@@ -133,6 +132,5 @@ class DataSourcesTestCase(TestCase):
         self.assertEqual(tmpdirs, [])
         self.assertEqual(data_sources, [])
 
-    @unittest.skip('TODO')
     def test_converts_3d_to_2d(self):
-        pass
+        pass  # @todo

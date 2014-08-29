@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import unittest
-
 from django.test import TestCase
 
 from boundaries import registry, register, attr, clean_attr, dashed_attr
@@ -15,9 +13,8 @@ class BoundariesTestCase(TestCase):
         register('foo', file='bar')
         self.assertEqual(registry, {'foo': {'file': './bar'}})
 
-    @unittest.skip('TODO')
     def test_autodiscover(self):
-        pass
+        pass  # @todo
 
     def test_attr(self):
         self.assertEqual(attr('foo')({'foo': 'bar'}), 'bar')

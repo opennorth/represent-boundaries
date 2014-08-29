@@ -1,7 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import unittest
 from datetime import date
 
 from django.contrib.gis.geos import GEOSGeometry
@@ -111,6 +110,5 @@ class BoundaryListSetGeoFilterTestCase(ViewTestCase):
         self.assertError(response)
         self.assertEqual(response.content, b"""Invalid latitude,longitude '' provided.""")
 
-    @unittest.skip('This filter is undocumented.')
     def test_near(self):
-        pass
+        pass  # @note This filter is undocumented.
