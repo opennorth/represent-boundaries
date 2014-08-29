@@ -28,6 +28,7 @@ class Command(BaseCommand):
     help = ugettext_lazy('Import boundaries described by shapefiles.')
     option_list = BaseCommand.option_list + (
         make_option('-r', '--reload', action='store_true', dest='reload',
+                    default=False,
                     help=ugettext_lazy('Reload boundary sets that have already been imported.')),
         make_option('-d', '--data-dir', action='store', dest='data_dir',
                     default=app_settings.SHAPEFILES_DIR,
@@ -66,6 +67,8 @@ class Command(BaseCommand):
             if self.skip(slug, definition['last_updated'], whitelist, blacklist, options['reload']):
                 log.debug(_('Skipping %(slug)s.') % {'slug': slug})
             else:
+                log.info(_('Processing %(slug)s.') % {'slug': slug})
+
                 # Backwards-compatibility with having the name, instead of the slug,
                 # as the first argument to `boundaries.register`.
                 definition.setdefault('name', slug)
@@ -91,8 +94,6 @@ class Command(BaseCommand):
 
     @transaction.commit_on_success
     def load_set(self, slug, definition, options):
-        log.info(_('Processing %(slug)s.') % {'slug': slug})
-
         BoundarySet.objects.filter(slug=slug).delete()  # also deletes boundaries
 
         data_sources, tmpdirs = create_data_sources(definition, definition['file'], options['clean'])
