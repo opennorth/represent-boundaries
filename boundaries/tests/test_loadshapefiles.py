@@ -31,32 +31,32 @@ class LoadShapefilesTestCase(TestCase):
             self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
 
 
-class SkipTestCase(TestCase):
+class LoadableTestCase(TestCase):
     def test_whitelist(self):
-        self.assertTrue(Command().skip('foo', date(2000, 1, 1), whitelist=set(['foo'])))
-        self.assertFalse(Command().skip('bar', date(2000, 1, 1), whitelist=set(['foo'])))
+        self.assertTrue(Command().loadable('foo', date(2000, 1, 1), whitelist=set(['foo'])))
+        self.assertFalse(Command().loadable('bar', date(2000, 1, 1), whitelist=set(['foo'])))
 
     def test_blacklist(self):
-        self.assertFalse(Command().skip('foo', date(2000, 1, 1), blacklist=set(['foo'])))
-        self.assertTrue(Command().skip('bar', date(2000, 1, 1), blacklist=set(['foo'])))
+        self.assertFalse(Command().loadable('foo', date(2000, 1, 1), blacklist=set(['foo'])))
+        self.assertTrue(Command().loadable('bar', date(2000, 1, 1), blacklist=set(['foo'])))
 
     def test_reload_existing(self):
         BoundarySet.objects.create(name='Foo', last_updated=date(2010, 1, 1))
-        self.assertTrue(Command().skip('foo', date(2000, 1, 1), reload_existing=True))
-        self.assertFalse(Command().skip('foo', date(2000, 1, 1), reload_existing=False))
+        self.assertTrue(Command().loadable('foo', date(2000, 1, 1), reload_existing=True))
+        self.assertFalse(Command().loadable('foo', date(2000, 1, 1), reload_existing=False))
 
     def test_out_of_date(self):
         BoundarySet.objects.create(name='Foo', last_updated=date(2010, 1, 1))
-        self.assertTrue(Command().skip('foo', date(2020, 1, 1)))
+        self.assertTrue(Command().loadable('foo', date(2020, 1, 1)))
 
     def test_up_to_date(self):
         BoundarySet.objects.create(name='Foo', last_updated=date(2010, 1, 1))
-        self.assertFalse(Command().skip('foo', date(2000, 1, 1)))
+        self.assertFalse(Command().loadable('foo', date(2000, 1, 1)))
 
     def test_nonexisting(self):
-        self.assertTrue(Command().skip('foo', date(2000, 1, 1)))
+        self.assertTrue(Command().loadable('foo', date(2000, 1, 1)))
         BoundarySet.objects.create(name='Foo', last_updated=date(2010, 1, 1))
-        self.assertFalse(Command().skip('foo', date(2000, 1, 1)))
+        self.assertFalse(Command().loadable('foo', date(2000, 1, 1)))
 
 
 class ZipFileTestCase(TestCase):

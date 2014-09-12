@@ -58,15 +58,19 @@ class Command(BaseCommand):
 
         boundaries.autodiscover(options['data_dir'])
 
-        whitelist = set(options['only'].split(','))
-        blacklist = set(options['except'].split(','))
+        if options['only']:
+            whitelist = set(options['only'].split(','))
+        else:
+            whitelist = set()
+        if options['except']:
+            blacklist = set(options['except'].split(','))
+        else:
+            blacklist = set()
 
         for slug, definition in boundaries.registry.items():
             slug = slugify(slug)
 
-            if self.skip(slug, definition['last_updated'], whitelist, blacklist, options['reload']):
-                log.debug(_('Skipping %(slug)s.') % {'slug': slug})
-            else:
+            if self.loadable(slug, definition['last_updated'], whitelist, blacklist, options['reload']):
                 log.info(_('Processing %(slug)s.') % {'slug': slug})
 
                 # Backwards-compatibility with having the name, instead of the slug,
@@ -75,8 +79,10 @@ class Command(BaseCommand):
                 definition = Definition(definition)
 
                 self.load_set(slug, definition, options)
+            else:
+                log.debug(_('Skipping %(slug)s.') % {'slug': slug})
 
-    def skip(self, slug, last_updated, whitelist=[], blacklist=[], reload_existing=False):
+    def loadable(self, slug, last_updated, whitelist=[], blacklist=[], reload_existing=False):
         """
         Allows through boundary sets that are in the whitelist (if set) and are
         not in the blacklist. Unless the `reload_existing` argument is True, it
