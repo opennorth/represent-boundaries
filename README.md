@@ -1,6 +1,8 @@
 # Represent Boundaries
 
+[![PyPI version](https://badge.fury.io/py/represent-boundaries.svg)](http://badge.fury.io/py/represent-boundaries)
 [![Build Status](https://secure.travis-ci.org/opennorth/represent-boundaries.png)](http://travis-ci.org/opennorth/represent-boundaries)
+[![Dependency Status](https://gemnasium.com/opennorth/represent-boundaries.png)](https://gemnasium.com/opennorth/represent-boundaries)
 
 Represent Boundaries is a web API to geographic areas, like electoral districts. It allows you to easily find the areas that cover your users' locations to display location-based information, like profiles of electoral candidates.
 
