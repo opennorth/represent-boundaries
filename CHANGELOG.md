@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1 (2014-09-12)
+
+* Fix regression with `loadshapefiles` skip logic.
+
 ## 0.5.0 (2014-08-28)
 
 * Removes the `--database` (`-u`) option from the `loadshapefiles` management command, which would only specify the database in which to find the `spatial_ref_sys` table.
