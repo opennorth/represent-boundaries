@@ -65,7 +65,7 @@ class BoundaryListGeoFilterTestCase(ViewTestCase):
     def test_filter_intersects(self):
         response = self.client.get(self.url, {'intersects': 'abc/bar'})
         self.assertResponse(response)
-        self.assertJSONEqual(response, '{"objects": [{"shape": {"type": "MultiPolygon", "coordinates": [[[[0.0, 0.0], [0.0, 5.0], [5.0, 5.0], [0.0, 0.0]]]]}, "name": "Foo"}, {"shape": {"type": "MultiPolygon", "coordinates": [[[[1.0, 2.0], [1.0, 4.0], [3.0, 4.0], [1.0, 2.0]]]]}, "name": "Bar"}]}')
+        self.assertJSONEqual(response, '{"objects": [{"shape": {"type": "MultiPolygon", "coordinates": [[[[1.0, 2.0], [1.0, 4.0], [3.0, 4.0], [1.0, 2.0]]]]}, "name": "Bar"}, {"shape": {"type": "MultiPolygon", "coordinates": [[[[0.0, 0.0], [0.0, 5.0], [5.0, 5.0], [0.0, 0.0]]]]}, "name": "Foo"}]}')
 
     def test_filter_intersects_404(self):
         response = self.client.get(self.url, {'intersects': 'inc/nonexistent'})
