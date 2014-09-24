@@ -51,7 +51,7 @@ class ViewTestCase(TestCase):
             actual = json.loads(actual.content.decode('utf-8'))
         if isinstance(expected, string_types):
             expected = json.loads(expected)
-        self.assertEqual(comparable(actual), comparable(expected))
+        self.assertItemsEqual(comparable(actual), comparable(expected))
 
 
 @python_2_unicode_compatible
