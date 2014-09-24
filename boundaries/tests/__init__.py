@@ -18,6 +18,10 @@ jsonp_re = re.compile(r'\AabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ12
 pretty_re = re.compile(r'\n    ')
 
 
+if not hasattr(TestCase, 'assertCountEqual'):  # Python < 3.2
+    TestCase.assertCountEqual = TestCase.assertItemsEqual
+
+
 class ViewTestCase(TestCase):
     non_integers = ('', '1.0', '0b1', '0o1', '0x1')  # '01' is okay
 
@@ -53,7 +57,7 @@ class ViewTestCase(TestCase):
             expected = json.loads(expected)
         else:
             expected = deepcopy(expected)
-        self.assertItemsEqual(comparable(actual), comparable(expected))
+        self.assertCountEqual(comparable(actual), comparable(expected))
 
 
 @python_2_unicode_compatible
