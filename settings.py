@@ -18,3 +18,5 @@ INSTALLED_APPS = (
     'django.contrib.gis',
     'boundaries',
 )
+
+MIDDLEWARE_CLASSES=()
