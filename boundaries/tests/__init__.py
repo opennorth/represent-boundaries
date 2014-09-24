@@ -48,9 +48,11 @@ class ViewTestCase(TestCase):
         if isinstance(actual, string_types):
             actual = json.loads(actual)
         else:  # It's a response.
-            actual = json.loads(actual.content.decode('utf-8'))
+            actual = load_response(actual)
         if isinstance(expected, string_types):
             expected = json.loads(expected)
+        else:
+            expected = deepcopy(expected)
         self.assertItemsEqual(comparable(actual), comparable(expected))
 
 
@@ -97,19 +99,22 @@ def comparable(o):
     return o
 
 
+def load_response(response):
+    return json.loads(response.content.decode('utf-8'))
+
 class ViewsTests(object):
 
     def test_get(self):
         response = self.client.get(self.url)
         self.assertResponse(response)
-        self.assertJSONEqual(response, self.json)
+        self.assertEqual(load_response(response), self.json)
 
     def test_allow_origin(self):
         app_settings.ALLOW_ORIGIN, _ = None, app_settings.ALLOW_ORIGIN
 
         response = self.client.get(self.url)
         self.assertResponse(response)
-        self.assertJSONEqual(response, self.json)
+        self.assertEqual(load_response(response), self.json)
 
         app_settings.ALLOW_ORIGIN = _
 
@@ -130,7 +135,7 @@ class PrettyTests(object):
     def test_pretty(self):
         response = self.client.get(self.url, {'pretty': 1})
         self.assertResponse(response)
-        self.assertJSONEqual(response, self.json)
+        self.assertEqual(load_response(response), self.json)
         assertRegex(self, response.content.decode('utf-8'), pretty_re)
 
     def test_jsonp_and_pretty(self):
@@ -149,28 +154,28 @@ class PaginationTests(object):
         self.assertResponse(response)
         data = deepcopy(self.json)
         data['meta']['limit'] = 10
-        self.assertJSONEqual(response, data)
+        self.assertEqual(load_response(response), data)
 
     def test_offset_is_set(self):
         response = self.client.get(self.url, {'offset': 10})
         self.assertResponse(response)
         data = deepcopy(self.json)
         data['meta']['offset'] = 10
-        self.assertJSONEqual(response, data)
+        self.assertEqual(load_response(response), data)
 
     def test_limit_is_set_to_maximum_if_zero(self):
         response = self.client.get(self.url, {'limit': 0})
         self.assertResponse(response)
         data = deepcopy(self.json)
         data['meta']['limit'] = 1000
-        self.assertJSONEqual(response, data)
+        self.assertEqual(load_response(response), data)
 
     def test_limit_is_set_to_maximum_if_greater_than_maximum(self):
         response = self.client.get(self.url, {'limit': 2000})
         self.assertResponse(response)
         data = deepcopy(self.json)
         data['meta']['limit'] = 1000
-        self.assertJSONEqual(response, data)
+        self.assertEqual(load_response(response), data)
 
     def test_api_limit_per_page(self):
         settings.API_LIMIT_PER_PAGE, _ = 1, getattr(settings, 'API_LIMIT_PER_PAGE', 20)
@@ -179,7 +184,7 @@ class PaginationTests(object):
         self.assertResponse(response)
         data = deepcopy(self.json)
         data['meta']['limit'] = 1
-        self.assertJSONEqual(response, data)
+        self.assertEqual(load_response(response), data)
 
         settings.API_LIMIT_PER_PAGE = _
 
