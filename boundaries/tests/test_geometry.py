@@ -9,6 +9,10 @@ from boundaries.models import Geometry
 class GeometryTestCase(TestCase):
     maxDiff = None
 
+    def test_str(self):
+        wkt = 'MULTIPOLYGON (((0 0,0 5,5 5,0 0)))'
+        self.assertEqual(str(Geometry(OGRGeometry(wkt))), wkt)
+
     def test_init_with_ogrgeometry(self):
         geometry = OGRGeometry('MULTIPOLYGON (((0 0,0 5,5 5,0 0)))')
         self.assertEqual(Geometry(geometry).geometry, geometry)

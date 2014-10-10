@@ -330,7 +330,7 @@ class Feature(object):
         self.boundary_set = boundary_set
 
     def __str__(self):
-        return str(self.feature)
+        return self.name
 
     def get(self, field):
         return self.feature.get(field)
@@ -422,7 +422,7 @@ class Definition(object):
         self.dictionary.update(dictionary)
 
     def __str__(self):
-        return str(self.dictionary)
+        return self.dictionary['name']
 
     def __getitem__(self, key):
         return self.dictionary[key]

@@ -15,6 +15,14 @@ if not hasattr(TestCase, 'assertCountEqual'):  # Python < 3.2
 class DefinitionTestCase(TestCase):
     maxDiff = None
 
+    def test_str(self):
+        definition = Definition({
+            'name': 'Test',
+            'name_func': lambda feature: '',
+        })
+
+        self.assertEqual(str(definition), 'Test')
+
     def test_defaults(self):
         definition = Definition({
             'name': '',

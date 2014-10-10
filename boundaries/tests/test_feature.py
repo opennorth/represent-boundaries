@@ -48,6 +48,10 @@ class FeatureTestCase(TestCase):
         self.assertEqual(self.feature.boundary_set, None)
         self.assertEqual(self.other.boundary_set, self.boundary_set)
 
+    def test_str(self):
+        self.assertEqual(str(self.feature), 'Valid')
+        self.assertEqual(str(self.other), 'Invalid')
+
     def test_get(self):
         self.assertEqual(self.feature.get('Name'), 'VALID')
 
