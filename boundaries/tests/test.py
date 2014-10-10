@@ -19,6 +19,7 @@ class BoundariesTestCase(TestCase):
         self.assertEqual(boundaries.registry, {'foo': {'file': './bar', 'last_updated': date(2000, 1, 1)}})
 
     def test_autodiscover(self):
+        # Uses bar_definition.py and foo_definition.py fixtures.
         boundaries.registry = {}
         boundaries._basepath = '.'
         with LogCapture() as l:
