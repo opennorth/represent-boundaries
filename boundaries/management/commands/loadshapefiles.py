@@ -228,7 +228,7 @@ def create_data_sources(path, encoding='ascii', convert_3d_to_2d=False, zipfile=
 
     for (dirpath, dirnames, filenames) in os.walk(path, followlinks=True):
         dirnames.sort()  # force a constant order
-        for basename in filenames:
+        for basename in sorted(filenames):
             filename = os.path.join(dirpath, basename)
             if filename.endswith('.shp'):
                 if '_cleaned_' not in filename:  # don't load the cleaned copy twice
