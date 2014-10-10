@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from datetime import date
 
-from django.contrib.gis.gdal import OGRGeometry
+from django.contrib.gis.gdal import OGRGeometry, SpatialReference
 from django.contrib.gis.geos import Point
 from django.test import TestCase
 
@@ -18,6 +18,10 @@ class FeatureProxy(dict):
     @property
     def fields(self):
         return self.keys()
+
+    @property
+    def geom(self):
+        return Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)))'))
 
 
 class FeatureTestCase(TestCase):
@@ -50,7 +54,7 @@ class FeatureTestCase(TestCase):
         'Name': 'INVALID',
         'ID': 100,
         'Code': 3,
-    }), definition, boundary_set)
+    }), definition, SpatialReference(4269), boundary_set)
 
     def test_init(self):
         self.assertEqual(self.feature.boundary_set, None)
@@ -91,8 +95,7 @@ class FeatureTestCase(TestCase):
     def test_create_boundary(self):
         self.feature.boundary_set = self.boundary_set
 
-        geometry = Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)))'))
-        boundary = self.feature.create_boundary(geometry)
+        boundary = self.feature.create_boundary()
 
         self.assertEqual(boundary.set, self.boundary_set)
         self.assertEqual(boundary.set_name, 'District')
@@ -102,8 +105,8 @@ class FeatureTestCase(TestCase):
         self.assertEqual(boundary.metadata, self.fields)
         self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)))')
         self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0 5,5 5,0 0)))')
-        self.assertEqual(boundary.centroid.ogr.wkt, 'POINT (1.6667 3.333366666666667)')
-        self.assertEqual(boundary.extent, (0.0, 0.0, 5.0, 5.0))
+        self.assertEqual(boundary.centroid.ogr.wkt, 'POINT (1.6667 3.333366666666666)')
+        self.assertEqual(boundary.extent, (0.0, 0.0, 4.999999999999999, 4.999999999999999))
         self.assertEqual(boundary.label_point, Point(0, 1))
 
         self.feature.boundary_set = None

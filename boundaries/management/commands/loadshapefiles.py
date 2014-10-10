@@ -147,7 +147,7 @@ class Command(BaseCommand):
                 srs = layer.srs
 
             for feature in layer:
-                feature = Feature(feature, definition, boundary_set)
+                feature = Feature(feature, definition, srs, boundary_set)
                 feature.layer = layer  # to trace the feature back to its source
 
                 if not feature.is_valid():
@@ -155,24 +155,22 @@ class Command(BaseCommand):
 
                 log.info(_('%(slug)s...') % {'slug': feature.slug})
 
-                geometry = Geometry(feature.feature.geom).transform(srs)
-
                 if options['merge']:
                     try:
                         boundary = Boundary.objects.get(set=feature.boundary_set, slug=feature.slug)
                         if options['merge'] == 'combine':
-                            boundary.merge(geometry)
+                            boundary.merge(feature.geometry)
                         elif options['merge'] == 'union':
-                            boundary.cascaded_union(geometry)
+                            boundary.cascaded_union(feature.geometry)
                         else:
                             raise ValueError(_('Invalid merge strategy.'))
                         boundary.centroid = boundary.shape.centroid
                         boundary.extent = boundary.shape.extent
                         boundary.save()
                     except Boundary.DoesNotExist:
-                        boundary = feature.create_boundary(geometry)
+                        boundary = feature.create_boundary()
                 else:
-                    boundary = feature.create_boundary(geometry)
+                    boundary = feature.create_boundary()
 
                 boundary_set.extend(boundary.extent)
 
