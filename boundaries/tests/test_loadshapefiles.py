@@ -13,7 +13,7 @@ from django.core.management.base import CommandError
 from django.test import TestCase
 
 import boundaries
-from boundaries.management.commands.loadshapefiles import Command, create_data_sources, extract_shapefile_from_zip
+from boundaries.management.commands.loadshapefiles import Command, create_data_sources
 from boundaries.models import BoundarySet, Definition, Feature
 from boundaries.tests import FeatureProxy
 
@@ -123,91 +123,105 @@ class LoadBoundaryTestCase(TestCase):
         self.assertEqual(boundary.extent, (0.0, 0.0001, 5.0, 5.0))
 
 
-class ZipFileTestCase(TestCase):
-
-    def test_raises_error_if_bad_zip_file(self):
-        self.assertRaisesRegexp(BadZipfile, r'\AFile is not a zip file: .+/boundaries/tests/fixtures/bad.zip\Z', extract_shapefile_from_zip, fixture('bad.zip'))
-
-    def test_logs_warning_if_multiple_shapefiles_in_zip(self):
-        with LogCapture() as l:
-            path = fixture('multiple.zip')
-            shp_filepath, tmpdir = extract_shapefile_from_zip(path)
-            # A quirk of this method is that it returns only one shapefile.
-            self.assertEqual(shp_filepath, os.path.join(tmpdir, 'bar.shp'))
-            self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.shp')))
-            self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'bar.shp')))
-
-        l.check(('boundaries.management.commands.loadshapefiles', 'WARNING', 'Multiple shapefiles found in zip file: %s' % path))
-
-    def test_returns_shapefile_from_zip(self):
-        path = fixture('nested.zip')
-        shp_filepath, tmpdir = extract_shapefile_from_zip(path)
-        self.assertEqual(shp_filepath, os.path.join(tmpdir, 'foo.shp'))
-        for extension in ('dbf', 'prj', 'shx', 'shp'):
-            self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'foo.' + extension)))
-
-    def test_returns_nothing_from_empty_zip(self):
-        path = fixture('empty.zip')
-        shp_filepath, tmpdir = extract_shapefile_from_zip(path)
-        self.assertIsNone(shp_filepath)
-        self.assertTrue(os.path.isfile(os.path.join(tmpdir, 'empty.txt')))
-
-
 class DataSourcesTestCase(TestCase):
 
-    def test_returns_shapefile(self):
+    def test_foo_shp(self):
         path = fixture('foo.shp')
-        data_sources, tmpdirs = create_data_sources({'encoding': 'ascii'}, path, False)
-        self.assertEqual(tmpdirs, [])
+        data_sources, tmpdirs = create_data_sources(path)
         self.assertEqual(len(data_sources), 1)
+        self.assertEqual(tmpdirs, [])
         self.assertEqual(data_sources[0].name, path)
         self.assertEqual(data_sources[0].layer_count, 1)
 
-    def test_returns_shapefile_from_zip(self):
-        path = fixture('flat.zip')
-        data_sources, tmpdirs = create_data_sources({'encoding': 'ascii'}, path, False)
-        self.assertEqual(len(tmpdirs), 1)
+    def test_flat_zip(self):
+        path = fixture('flat.zip')  # foo.shp, etc.
+        data_sources, tmpdirs = create_data_sources(path)
         self.assertEqual(len(data_sources), 1)
+        self.assertEqual(len(tmpdirs), 1)
         self.assertEqual(data_sources[0].name, os.path.join(tmpdirs[0], 'foo.shp'))
         self.assertEqual(data_sources[0].layer_count, 1)
 
-    def test_returns_nothing_from_empty_zip(self):
-        result = create_data_sources({}, fixture('empty.zip'), False)
-        self.assertIsNone(result)
+    def test_bad_zip(self):
+        self.assertRaisesRegexp(BadZipfile, r"\AFile is not a zip file\Z", create_data_sources, fixture('bad.zip'))
 
-    def test_returns_shapefiles_from_directory(self):
+    def test_empty(self):
+        data_sources, tmpdirs = create_data_sources(fixture('empty'))
+        self.assertEqual(data_sources, [])
+        self.assertEqual(len(tmpdirs), 1)
+
+    def test_empty_zip(self):
+        data_sources, tmpdirs = create_data_sources(fixture('empty.zip'))  # empty.txt
+        self.assertEqual(data_sources, [])
+        self.assertEqual(len(tmpdirs), 1)
+
+    def test_multiple(self):
         path = fixture('multiple')
-        data_sources, tmpdirs = create_data_sources({'encoding': 'ascii'}, path, False)
-        self.assertEqual(len(tmpdirs), 2)
-        self.assertEqual(len(data_sources), 4)
+        data_sources, tmpdirs = create_data_sources(path)
+        self.assertEqual(len(tmpdirs), 3)
+        self.assertEqual(len(data_sources), 5)
 
         paths = [
             os.path.join(path, 'bar.shp'),
             os.path.join(path, 'foo.shp'),
+            os.path.join(path, 'dir.zip', 'foo.shp'),
             os.path.join(tmpdirs[0], 'foo.shp'),
             os.path.join(tmpdirs[1], 'foo.shp'),
+            os.path.join(tmpdirs[2], 'dir.zip', 'foo.shp'),
         ]
 
         zipfiles = [
             os.path.join(path, 'flat.zip'),
-            os.path.join(path, 'nested.zip')
+            os.path.join(path, 'nested.zip'),
         ]
 
         for data_source in data_sources:
-            self.assertTrue(data_source.name in paths)
+            self.assertIn(data_source.name, paths)
             self.assertEqual(data_source.layer_count, 1)
             if hasattr(data_source, 'zipfile'):
-                self.assertTrue(data_source.zipfile in zipfiles)
+                self.assertIn(data_source.zipfile, zipfiles)
 
-    def test_returns_nothing_from_empty_directory(self):
-        data_sources, tmpdirs = create_data_sources({}, fixture('empty'), False)
-        self.assertEqual(tmpdirs, [])
-        self.assertEqual(data_sources, [])
+    def test_multiple_zip(self):
+        path = fixture('multiple.zip')
+        data_sources, tmpdirs = create_data_sources(path)
+        self.assertEqual(len(tmpdirs), 4)
+        self.assertEqual(len(data_sources), 5)
 
-    def test_returns_nothing_from_nested_directory(self):
-        data_sources, tmpdirs = create_data_sources({}, fixture('nested'), False)
+        paths = [
+            os.path.join(tmpdirs[0], 'bar.shp'),
+            os.path.join(tmpdirs[0], 'foo.shp'),
+            os.path.join(tmpdirs[0], 'dir.zip', 'foo.shp'),
+            os.path.join(tmpdirs[1], 'foo.shp'),
+            os.path.join(tmpdirs[2], 'foo.shp'),
+            os.path.join(tmpdirs[3], 'dir.zip', 'foo.shp'),
+        ]
+
+        zipfiles = [
+            path,
+            os.path.join(tmpdirs[0], 'flat.zip'),
+            os.path.join(tmpdirs[0], 'nested.zip'),
+        ]
+
+        for data_source in data_sources:
+            self.assertIn(data_source.name, paths)
+            self.assertEqual(data_source.layer_count, 1)
+            if hasattr(data_source, 'zipfile'):
+                self.assertIn(data_source.zipfile, zipfiles)
+
+    def test_nested(self):
+        path = fixture('nested')
+        data_sources, tmpdirs = create_data_sources(path)
+        self.assertEqual(len(data_sources), 1)
         self.assertEqual(tmpdirs, [])
-        self.assertEqual(data_sources, [])
+        self.assertEqual(data_sources[0].name, os.path.join(path, 'dir.zip', 'foo.shp'))
+        self.assertEqual(data_sources[0].layer_count, 1)
+
+    def test_nested_zip(self):
+        path = fixture('nested.zip')
+        data_sources, tmpdirs = create_data_sources(path)
+        self.assertEqual(len(data_sources), 1)
+        self.assertEqual(len(tmpdirs), 1)
+        self.assertEqual(data_sources[0].name, os.path.join(tmpdirs[0], 'dir.zip', 'foo.shp'))
+        self.assertEqual(data_sources[0].layer_count, 1)
 
     def test_converts_3d_to_2d(self):
         pass  # @todo

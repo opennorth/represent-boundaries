@@ -2,7 +2,12 @@
 
 ## 0.6.0
 
+* Recurse directories and ZIP files in `loadshapefiles`.
 * `loadshapefiles` will not create a boundary set if no shapefiles are found.
+
+Identified quirks:
+
+* If a shapefile has `_cleaned_` in its name, it will not be loaded, unless created by Represent Boundaries.
 
 ## 0.5.1 (2014-09-12)
 

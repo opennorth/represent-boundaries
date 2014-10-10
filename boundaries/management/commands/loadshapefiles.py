@@ -78,7 +78,7 @@ class Command(BaseCommand):
                 definition.setdefault('name', slug)
                 definition = Definition(definition)
 
-                data_sources, tmpdirs = create_data_sources(definition, definition['file'], options['clean'])
+                data_sources, tmpdirs = create_data_sources(definition['file'], definition['encoding'], options['clean'])
 
                 try:
                     if not data_sources:
@@ -180,88 +180,64 @@ class Command(BaseCommand):
         else:
             return feature.create_boundary()
 
-def create_data_sources(definition, path, convert_3d_to_2d):
+def create_data_sources(path, encoding='ascii', convert_3d_to_2d=False, zipfile=None):
     """
     If the path is to a shapefile, returns a DataSource for the shapefile. If
-    the path is to a ZIP file, returns a DataSource for the shapefile that it
-    contains. If the path is to a directory, returns DataSources for all
-    shapefiles in the directory, without traversing the directory's tree.
+    the path is to a directory or ZIP file, returns DataSources for shapefiles
+    in the directory or ZIP file.
     """
 
-    def make_data_source(path):
+    def create_data_source(path):
+        if convert_3d_to_2d and '_cleaned_' not in path:
+            source = path
+            path = path.replace('.shp', '._cleaned_.shp')
+            subprocess.call(['ogr2ogr', '-f', 'ESRI Shapefile', path, source, '-nlt', 'POLYGON'])
+
         try:
-            return DataSource(path, encoding=definition['encoding'])
+            return DataSource(path, encoding=encoding)
         except TypeError:  # DataSource only includes the encoding option in Django >= 1.5.
             return DataSource(path)
 
+    def create_data_sources_from_zip(path):
+        """
+        Decompresses a ZIP file into a temporary directory and returns the data
+        sources it contains, along with all temporary directories created.
+        """
+
+        tmpdir = mkdtemp()
+
+        with ZipFile(path) as z:
+            z.extractall(tmpdir)
+
+        data_sources, tmpdirs = create_data_sources(tmpdir, encoding, convert_3d_to_2d, path)
+
+        tmpdirs.insert(0, tmpdir)
+
+        return data_sources, tmpdirs
+
+    if os.path.isfile(path):
+        if path.endswith('.shp'):
+            return [create_data_source(path)], []
+        elif path.endswith('.zip'):
+            return create_data_sources_from_zip(path)
+        else:
+            raise ValueError(_("The path must be a shapefile, a ZIP file, or a directory: %(value)s.") % {'value': path})
+
+    data_sources = []
     tmpdirs = []
 
-    if path.endswith('.zip'):
-        path, tmpdir = extract_shapefile_from_zip(path)
-        if not path:  # The only other option is that `path` ends in ".shp".
-            return
-        tmpdirs.append(tmpdir)
-
-    if path.endswith('.shp'):
-        return [make_data_source(path)], tmpdirs
-
-    # Otherwise, it should be a directory.
-    data_sources = []
-    for name in os.listdir(path):  # This will not recurse directories.
-        filepath = os.path.join(path, name)
-        if os.path.isfile(filepath):
-            zip_filepath = None
-
-            if filepath.endswith('.zip'):
-                zip_filepath = filepath
-
-                filepath, tmpdir = extract_shapefile_from_zip(filepath)
-                if not filepath:
-                    continue
-                tmpdirs.append(tmpdir)
-
-            if filepath.endswith('.shp') and not '_cleaned_' in filepath:
-                if convert_3d_to_2d:
-                    original_filepath = filepath
-                    filepath = filepath.replace('.shp', '._cleaned_.shp')
-                    subprocess.call(['ogr2ogr', '-f', 'ESRI Shapefile', filepath, original_filepath, '-nlt', 'POLYGON'])
-
-                data_source = make_data_source(filepath)
-
-                if zip_filepath:
-                    data_source.zipfile = zip_filepath  # to trace the data source back to its ZIP file
-
-                data_sources.append(data_source)
+    for (dirpath, dirnames, filenames) in os.walk(path, followlinks=True):
+        for basename in filenames:
+            filename = os.path.join(dirpath, basename)
+            if filename.endswith('.shp'):
+                if '_cleaned_' not in filename:  # don't load the cleaned copy twice
+                    data_source = create_data_source(filename)
+                    if zipfile:
+                        data_source.zipfile = zipfile  # to trace the data source back to its ZIP file
+                    data_sources.append(data_source)
+            elif filename.endswith('.zip'):
+                _data_sources, _tmpdirs = create_data_sources_from_zip(filename)
+                data_sources += _data_sources
+                tmpdirs += _tmpdirs
 
     return data_sources, tmpdirs
-
-
-def extract_shapefile_from_zip(zip_filepath):
-    """
-    Decompresses a ZIP file into a temporary directory and returns the temporary
-    directory and the path to the shapefile that the ZIP file contains, if any.
-    """
-
-    try:
-        zip_file = ZipFile(zip_filepath)
-    except BadZipfile as e:
-        raise BadZipfile(str(e) + ': ' + zip_filepath)  # e.g. "File is not a zip file: /path/to/file.zip"
-
-    tmpdir = mkdtemp()
-    shp_filepath = None
-
-    for name in zip_file.namelist():
-        if name.endswith('/'):
-            continue
-
-        filepath = os.path.join(tmpdir, os.path.basename(name))
-
-        if filepath.endswith('.shp'):
-            if shp_filepath:
-                log.warning(_('Multiple shapefiles found in zip file: %(path)s') % {'path': zip_filepath})
-            shp_filepath = filepath
-
-        with open(filepath, 'wb') as f:
-            f.write(zip_file.read(name))
-
-    return shp_filepath, tmpdir
