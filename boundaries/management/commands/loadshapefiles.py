@@ -7,7 +7,7 @@ from optparse import make_option
 import os
 import os.path
 import subprocess
-
+from contextlib import closing
 from zipfile import ZipFile, BadZipfile
 from tempfile import mkdtemp
 from shutil import rmtree
@@ -206,7 +206,7 @@ def create_data_sources(path, encoding='ascii', convert_3d_to_2d=False, zipfile=
 
         tmpdir = mkdtemp()
 
-        with ZipFile(path) as z:
+        with closing(ZipFile(path)) as z:
             z.extractall(tmpdir)
 
         data_sources, tmpdirs = create_data_sources(tmpdir, encoding, convert_3d_to_2d, path)
