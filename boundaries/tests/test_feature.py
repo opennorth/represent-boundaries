@@ -38,13 +38,23 @@ class FeatureTestCase(TestCase):
         'Code': '\tFoo—Bar–Baz \r Bzz\n', # m-dash, n-dash
     }
 
+    boundary_set = BoundarySet(
+        last_updated=definition['last_updated'],
+        name=definition['name'],
+        singular=definition['singular'],
+    )
+
     feature = Feature(FeatureProxy(fields), definition)
 
     other = Feature(FeatureProxy({
         'Name': 'INVALID',
         'ID': 100,
         'Code': 3,
-    }), definition)
+    }), definition, boundary_set)
+
+    def test_init(self):
+        self.assertEqual(self.feature.boundary_set, None)
+        self.assertEqual(self.other.boundary_set, self.boundary_set)
 
     def test_get(self):
         self.assertEqual(self.feature.get('Name'), 'VALID')
@@ -71,16 +81,20 @@ class FeatureTestCase(TestCase):
     def test_metadata(self):
         self.assertEqual(self.feature.metadata, self.fields)
 
-    def test_create_boundary(self):
-        boundary_set = BoundarySet.objects.create(
-            last_updated=self.definition['last_updated'],
-            name=self.definition['name'],
-            singular=self.definition['singular'],
-        )
-        geometry = Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)))'))
-        boundary = self.feature.create_boundary(boundary_set, geometry)
+    def test_boundary_set(self):
+        self.feature.boundary_set = self.boundary_set
 
-        self.assertEqual(boundary.set, boundary_set)
+        self.assertEqual(self.feature.boundary_set, self.boundary_set)
+
+        self.feature.boundary_set = None
+
+    def test_create_boundary(self):
+        self.feature.boundary_set = self.boundary_set
+
+        geometry = Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)))'))
+        boundary = self.feature.create_boundary(geometry)
+
+        self.assertEqual(boundary.set, self.boundary_set)
         self.assertEqual(boundary.set_name, 'District')
         self.assertEqual(boundary.external_id, '1')
         self.assertEqual(boundary.name, 'Valid')
@@ -91,3 +105,5 @@ class FeatureTestCase(TestCase):
         self.assertEqual(boundary.centroid.ogr.wkt, 'POINT (1.6667 3.333366666666667)')
         self.assertEqual(boundary.extent, (0.0, 0.0, 5.0, 5.0))
         self.assertEqual(boundary.label_point, Point(0, 1))
+
+        self.feature.boundary_set = None

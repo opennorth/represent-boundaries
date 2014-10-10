@@ -147,20 +147,19 @@ class Command(BaseCommand):
                 srs = layer.srs
 
             for feature in layer:
-                feature = Feature(feature, definition)
+                feature = Feature(feature, definition, boundary_set)
                 feature.layer = layer  # to trace the feature back to its source
 
                 if not feature.is_valid():
                     continue
 
-                feature_slug = feature.slug
-                log.info(_('%(slug)s...') % {'slug': feature_slug})
+                log.info(_('%(slug)s...') % {'slug': feature.slug})
 
                 geometry = Geometry(feature.feature.geom).transform(srs)
 
                 if options['merge']:
                     try:
-                        boundary = Boundary.objects.get(set=boundary_set, slug=feature_slug)
+                        boundary = Boundary.objects.get(set=feature.boundary_set, slug=feature.slug)
                         if options['merge'] == 'combine':
                             boundary.merge(geometry)
                         elif options['merge'] == 'union':
@@ -171,9 +170,9 @@ class Command(BaseCommand):
                         boundary.extent = boundary.shape.extent
                         boundary.save()
                     except Boundary.DoesNotExist:
-                        boundary = feature.create_boundary(boundary_set, geometry)
+                        boundary = feature.create_boundary(geometry)
                 else:
-                    boundary = feature.create_boundary(boundary_set, geometry)
+                    boundary = feature.create_boundary(geometry)
 
                 boundary_set.extend(boundary.extent)
 

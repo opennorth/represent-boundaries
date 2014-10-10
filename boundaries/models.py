@@ -322,9 +322,10 @@ slug_re = re.compile(r'[–—]')  # n-dash, m-dash
 class Feature(object):
 
     # @see https://github.com/django/django/blob/master/django/contrib/gis/gdal/feature.py
-    def __init__(self, feature, definition):
+    def __init__(self, feature, definition, boundary_set=None):
         self.feature = feature
         self.definition = definition
+        self.boundary_set = boundary_set
 
     def __str__(self):
         return str(self.feature)
@@ -359,10 +360,18 @@ class Feature(object):
     def metadata(self):
         return dict((field, self.get(field)) for field in self.feature.fields)
 
-    def create_boundary(self, boundary_set, geometry):
+    @property
+    def boundary_set(self):
+        return self._boundary_set
+
+    @boundary_set.setter
+    def boundary_set(self, value):
+        self._boundary_set = value
+
+    def create_boundary(self, geometry):
         return Boundary.objects.create(
-            set=boundary_set,
-            set_name=boundary_set.singular,
+            set=self.boundary_set,
+            set_name=self.boundary_set.singular,
             external_id=self.id,
             name=self.name,
             slug=self.slug,
