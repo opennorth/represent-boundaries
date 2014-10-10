@@ -24,7 +24,9 @@ class BoundariesTestCase(TestCase):
         boundaries._basepath = '.'
         with LogCapture() as l:
             boundaries.autodiscover('.')
-            self.assertEqual(boundaries.registry, {'Districts': {'file': './boundaries/tests/fixtures/', 'last_updated': date(2000, 1, 1)}})
+            self.assertEqual(len(boundaries.registry), 1)
+            self.assertEqual(boundaries.registry['Districts']['file'], './boundaries/tests/fixtures/foo.shp')
+            self.assertEqual(boundaries.registry['Districts']['last_updated'], date(2000, 1, 1))
 
         l.check(('boundaries', 'WARNING', 'Multiple definitions of Districts found.'))
 

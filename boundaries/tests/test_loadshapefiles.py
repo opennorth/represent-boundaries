@@ -28,7 +28,7 @@ class LoadShapefilesTestCase(TestCase):
         boundaries.registry = {}
         boundaries._basepath = '.'
         try:
-            call_command('loadshapefiles')
+            call_command('loadshapefiles', data_dir='boundaries/tests/fixtures')
         except Exception as e:
             self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
 
