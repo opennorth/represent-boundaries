@@ -150,35 +150,35 @@ class Command(BaseCommand):
                 feature = Feature(feature, definition, srs, boundary_set)
                 feature.layer = layer  # to trace the feature back to its source
 
-                if not feature.is_valid():
-                    continue
+                if feature.is_valid():
+                    log.info(_('%(slug)s...') % {'slug': feature.slug})
 
-                log.info(_('%(slug)s...') % {'slug': feature.slug})
-
-                if options['merge']:
-                    try:
-                        boundary = Boundary.objects.get(set=feature.boundary_set, slug=feature.slug)
-                        if options['merge'] == 'combine':
-                            boundary.merge(feature.geometry)
-                        elif options['merge'] == 'union':
-                            boundary.cascaded_union(feature.geometry)
-                        else:
-                            raise ValueError(_('Invalid merge strategy.'))
-                        boundary.centroid = boundary.shape.centroid
-                        boundary.extent = boundary.shape.extent
-                        boundary.save()
-                    except Boundary.DoesNotExist:
-                        boundary = feature.create_boundary()
-                else:
-                    boundary = feature.create_boundary()
-
-                boundary_set.extend(boundary.extent)
+                    boundary = self.load_boundary(feature, options['merge'])
+                    boundary_set.extend(boundary.extent)
 
         if None not in boundary_set.extent:  # unless there are no features
             boundary_set.save()
 
         log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=boundary_set).count()})
 
+    def load_boundary(self, feature, merge_strategy=None):
+        if merge_strategy:
+            try:
+                boundary = Boundary.objects.get(set=feature.boundary_set, slug=feature.slug)
+                if merge_strategy == 'combine':
+                    boundary.merge(feature.geometry)
+                elif merge_strategy == 'union':
+                    boundary.cascaded_union(feature.geometry)
+                else:
+                    raise ValueError(_("The merge strategy '%(value)s' must be 'combine' or 'union'.") % {'value': merge_strategy})
+                boundary.centroid = boundary.shape.centroid
+                boundary.extent = boundary.shape.extent
+                boundary.save()
+                return boundary
+            except Boundary.DoesNotExist:
+                return feature.create_boundary()
+        else:
+            return feature.create_boundary()
 
 def create_data_sources(definition, path, convert_3d_to_2d):
     """

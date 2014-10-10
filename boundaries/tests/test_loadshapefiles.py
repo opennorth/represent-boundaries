@@ -14,7 +14,8 @@ from django.test import TestCase
 
 import boundaries
 from boundaries.management.commands.loadshapefiles import Command, create_data_sources, extract_shapefile_from_zip
-from boundaries.models import BoundarySet
+from boundaries.models import BoundarySet, Definition, Feature
+from boundaries.tests import FeatureProxy
 
 
 def fixture(basename):
@@ -22,6 +23,7 @@ def fixture(basename):
 
 
 class LoadShapefilesTestCase(TestCase):
+
     def test_command(self):  # @todo This only ensures there's no gross error. Need more tests. 
         boundaries.registry = {}
         boundaries._basepath = '.'
@@ -32,6 +34,7 @@ class LoadShapefilesTestCase(TestCase):
 
 
 class LoadableTestCase(TestCase):
+
     def test_whitelist(self):
         self.assertTrue(Command().loadable('foo', date(2000, 1, 1), whitelist=set(['foo'])))
         self.assertFalse(Command().loadable('bar', date(2000, 1, 1), whitelist=set(['foo'])))
@@ -57,6 +60,67 @@ class LoadableTestCase(TestCase):
         self.assertTrue(Command().loadable('foo', date(2000, 1, 1)))
         BoundarySet.objects.create(name='Foo', last_updated=date(2010, 1, 1))
         self.assertFalse(Command().loadable('foo', date(2000, 1, 1)))
+
+
+class LoadBoundaryTestCase(TestCase):
+    definition = Definition({
+        'last_updated': date(2000, 1, 1),
+        'name': 'Districts',
+        'name_func': lambda feature: 'Test',
+    })
+
+    boundary_set = BoundarySet(
+        last_updated=definition['last_updated'],
+        name=definition['name'],
+        singular=definition['singular'],
+    )
+
+    feature = Feature(FeatureProxy({}), definition, boundary_set=boundary_set)
+
+    def test_no_merge_strategy(self):
+        boundary = Command().load_boundary(self.feature)
+        self.assertEqual(boundary.set, self.boundary_set)
+        self.assertEqual(boundary.set_name, 'District')
+        self.assertEqual(boundary.external_id, '')
+        self.assertEqual(boundary.name, 'Test')
+        self.assertEqual(boundary.slug, 'test')
+        self.assertEqual(boundary.metadata, {})
+        self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)))')
+        self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0 5,5 5,0 0)))')
+        self.assertEqual(boundary.centroid.ogr.wkt, 'POINT (1.6667 3.333366666666666)')
+        self.assertEqual(boundary.extent, (0.0, 0.0, 4.999999999999999, 4.999999999999999))
+        self.assertEqual(boundary.label_point, None)
+
+    def test_invalid_merge_strategy_when_nothing_to_merge(self):
+        try:
+            Command().load_boundary(self.feature, 'invalid')
+        except Exception as e:
+            self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+
+    def test_invalid_merge_strategy(self):
+        Command().load_boundary(self.feature, 'invalid')
+
+        self.assertRaisesRegexp(ValueError, r"\AThe merge strategy 'invalid' must be 'combine' or 'union'.\Z", Command().load_boundary, self.feature, 'invalid')
+
+    def test_combine_merge_strategy(self):
+        self.boundary_set.save()
+        Command().load_boundary(self.feature, 'invalid')
+
+        boundary = Command().load_boundary(self.feature, 'combine')
+        self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)),((0 0,0.0001 0.0001,0 5,5 5,0 0)))')
+        self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0 5,5 5,0 0)),((0 0,0 5,5 5,0 0)))')
+        self.assertEqual(boundary.centroid.ogr.wkt, 'POINT (1.6667 3.333366666666667)')
+        self.assertEqual(boundary.extent, (0.0, 0.0, 5.0, 5.0))
+
+    def test_union_merge_strategy(self):
+        self.boundary_set.save()
+        Command().load_boundary(self.feature, 'invalid')
+
+        boundary = Command().load_boundary(self.feature, 'union')
+        self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,0 5,0 5,5 5,5 5,0.0001 0.0001)))')
+        self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,5 5,5 5,0.0001 0.0001)))')
+        self.assertEqual(boundary.centroid.ogr.wkt, 'POINT (1.6667 3.333366666666667)')
+        self.assertEqual(boundary.extent, (0.0, 0.0001, 5.0, 5.0))
 
 
 class ZipFileTestCase(TestCase):
