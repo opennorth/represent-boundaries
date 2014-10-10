@@ -78,7 +78,16 @@ class Command(BaseCommand):
                 definition.setdefault('name', slug)
                 definition = Definition(definition)
 
-                self.load_set(slug, definition, options)
+                data_sources, tmpdirs = create_data_sources(definition, definition['file'], options['clean'])
+
+                try:
+                    if not data_sources:
+                        log.warning(_('No shapefiles found.'))
+                    else:
+                        self.load_boundary_set(slug, definition, data_sources, options)
+                finally:
+                    for tmpdir in tmpdirs:
+                        rmtree(tmpdir)
             else:
                 log.debug(_('Skipping %(slug)s.') % {'slug': slug})
 
@@ -99,88 +108,79 @@ class Command(BaseCommand):
                 return True
 
     @transaction.commit_on_success
-    def load_set(self, slug, definition, options):
+    def load_boundary_set(self, slug, definition, data_sources, options):
         BoundarySet.objects.filter(slug=slug).delete()  # also deletes boundaries
 
-        data_sources, tmpdirs = create_data_sources(definition, definition['file'], options['clean'])
+        boundary_set = BoundarySet.objects.create(
+            slug=slug,
+            last_updated=definition['last_updated'],
+            name=definition['name'],
+            singular=definition['singular'],
+            domain=definition['domain'],
+            authority=definition['authority'],
+            source_url=definition['source_url'],
+            licence_url=definition['licence_url'],
+            start_date=definition['start_date'],
+            end_date=definition['end_date'],
+            notes=definition['notes'],
+            extra=definition['extra'],
+        )
 
-        if not data_sources:
-            log.warning(_('No shapefiles found.'))
+        boundary_set.extent = [None, None, None, None]  # [xmin, ymin, xmax, ymax]
 
-        try:
-            boundary_set = BoundarySet.objects.create(
-                slug=slug,
-                last_updated=definition['last_updated'],
-                name=definition['name'],
-                singular=definition['singular'],
-                domain=definition['domain'],
-                authority=definition['authority'],
-                source_url=definition['source_url'],
-                licence_url=definition['licence_url'],
-                start_date=definition['start_date'],
-                end_date=definition['end_date'],
-                notes=definition['notes'],
-                extra=definition['extra'],
-            )
+        for data_source in data_sources:
+            log.info(_('Loading %(slug)s from %(source)s') % {'slug': slug, 'source': data_source.name})
 
-            boundary_set.extent = [None, None, None, None]  # [xmin, ymin, xmax, ymax]
+            if data_source.layer_count == 0:
+                log.error(_('%(source)s shapefile [%(slug)s] has no layers, skipping.') % {'slug': slug, 'source': data_source.name})
+                continue
 
-            for data_source in data_sources:
-                log.info(_('Loading %(slug)s from %(source)s') % {'slug': slug, 'source': data_source.name})
+            if data_source.layer_count > 1:
+                log.warning(_('%(source)s shapefile [%(slug)s] has multiple layers, using first.') % {'slug': slug, 'source': data_source.name})
 
-                if data_source.layer_count == 0:
-                    log.error(_('%(source)s shapefile [%(slug)s] has no layers, skipping.') % {'slug': slug, 'source': data_source.name})
+            layer = data_source[0]
+            layer.source = data_source  # to trace the layer back to its source
+
+            if definition.get('srid'):
+                srs = SpatialReference(definition['srid'])
+            else:
+                srs = layer.srs
+
+            for feature in layer:
+                feature = Feature(feature, definition)
+                feature.layer = layer  # to trace the feature back to its source
+
+                if not feature.is_valid():
                     continue
 
-                if data_source.layer_count > 1:
-                    log.warning(_('%(source)s shapefile [%(slug)s] has multiple layers, using first.') % {'slug': slug, 'source': data_source.name})
+                feature_slug = feature.slug
+                log.info(_('%(slug)s...') % {'slug': feature_slug})
 
-                layer = data_source[0]
-                layer.source = data_source  # to trace the layer back to its source
+                geometry = Geometry(feature.feature.geom).transform(srs)
 
-                if definition.get('srid'):
-                    srs = SpatialReference(definition['srid'])
-                else:
-                    srs = layer.srs
-
-                for feature in layer:
-                    feature = Feature(feature, definition)
-                    feature.layer = layer  # to trace the feature back to its source
-
-                    if not feature.is_valid():
-                        continue
-
-                    feature_slug = feature.slug
-                    log.info(_('%(slug)s...') % {'slug': feature_slug})
-
-                    geometry = Geometry(feature.feature.geom).transform(srs)
-
-                    if options['merge']:
-                        try:
-                            boundary = Boundary.objects.get(set=boundary_set, slug=feature_slug)
-                            if options['merge'] == 'combine':
-                                boundary.merge(geometry)
-                            elif options['merge'] == 'union':
-                                boundary.cascaded_union(geometry)
-                            else:
-                                raise ValueError(_('Invalid merge strategy.'))
-                            boundary.centroid = boundary.shape.centroid
-                            boundary.extent = boundary.shape.extent
-                            boundary.save()
-                        except Boundary.DoesNotExist:
-                            boundary = feature.create_boundary(boundary_set, geometry)
-                    else:
+                if options['merge']:
+                    try:
+                        boundary = Boundary.objects.get(set=boundary_set, slug=feature_slug)
+                        if options['merge'] == 'combine':
+                            boundary.merge(geometry)
+                        elif options['merge'] == 'union':
+                            boundary.cascaded_union(geometry)
+                        else:
+                            raise ValueError(_('Invalid merge strategy.'))
+                        boundary.centroid = boundary.shape.centroid
+                        boundary.extent = boundary.shape.extent
+                        boundary.save()
+                    except Boundary.DoesNotExist:
                         boundary = feature.create_boundary(boundary_set, geometry)
+                else:
+                    boundary = feature.create_boundary(boundary_set, geometry)
 
-                    boundary_set.extend(boundary.extent)
+                boundary_set.extend(boundary.extent)
 
-            if None not in boundary_set.extent:  # if no data sources have layers
-                boundary_set.save()
+        if None not in boundary_set.extent:  # unless there are no features
+            boundary_set.save()
 
-            log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=boundary_set).count()})
-        finally:
-            for tmpdir in tmpdirs:
-                rmtree(tmpdir)
+        log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=boundary_set).count()})
 
 
 def create_data_sources(definition, path, convert_3d_to_2d):
