@@ -305,14 +305,15 @@ class Geometry(object):
         """
         Converts a Polygon to a MultiPolygon.
         """
-        if geometry.__class__.__name__ == 'MultiPolygon':
+        value = geometry.__class__.__name__
+        if value == 'MultiPolygon':
             return geometry
-        elif geometry.__class__.__name__ == 'Polygon':
+        elif value == 'Polygon':
             multipolygon = OGRGeometry(OGRGeomType('MultiPolygon'))
             multipolygon.add(geometry)
             return multipolygon
         else:
-            raise ValueError(_('The geometry is neither a Polygon nor a MultiPolygon.'))
+            raise ValueError(_('The geometry is a %(value)s but must be a Polygon or a MultiPolygon.') % {'value': value})
 
 
 slug_re = re.compile(r'[–—]')  # n-dash, m-dash

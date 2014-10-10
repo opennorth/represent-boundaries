@@ -30,7 +30,7 @@ class GeometryTestCase(TestCase):
         self.assertEqual(geometry.wkt, 'MULTIPOLYGON (((-85.488743884706892 0.0,-85.488743884708271 0.000045096879048,-85.488699089723454 0.000045096881835,-85.488743884706892 0.0)))')
 
     def test_transform_nonpolygon(self):
-        self.assertRaisesRegexp(ValueError, r'\AThe geometry is neither a Polygon nor a MultiPolygon\.\Z', Geometry(OGRGeometry('POINT (0 0)')).transform, SpatialReference(26917))
+        self.assertRaisesRegexp(ValueError, r'\AThe geometry is a Point but must be a Polygon or a MultiPolygon\.\Z', Geometry(OGRGeometry('POINT (0 0)')).transform, SpatialReference(26917))
 
     def test_simplify(self):
         geometry = Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)))')).simplify()
