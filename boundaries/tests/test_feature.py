@@ -87,8 +87,8 @@ class FeatureTestCase(TestCase):
     def test_create_boundary(self):
         self.feature.boundary_set = self.boundary_set
 
+        self.boundary_set.save()
         boundary = self.feature.create_boundary()
-
         self.assertEqual(boundary.set, self.boundary_set)
         self.assertEqual(boundary.set_name, 'District')
         self.assertEqual(boundary.external_id, '1')
