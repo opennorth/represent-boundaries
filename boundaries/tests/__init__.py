@@ -6,6 +6,7 @@ import re
 from copy import deepcopy
 
 from django.conf import settings
+from django.contrib.gis.gdal import OGRGeometry
 from django.contrib.gis.geos import MultiPolygon
 from django.test import TestCase
 from django.utils.encoding import python_2_unicode_compatible
@@ -20,6 +21,19 @@ pretty_re = re.compile(r'\n    ')
 
 if not hasattr(TestCase, 'assertCountEqual'):  # Python < 3.2
     TestCase.assertCountEqual = TestCase.assertItemsEqual
+
+
+class FeatureProxy(dict):
+    def __init__(self, fields):
+        self.update(fields)
+
+    @property
+    def fields(self):
+        return self.keys()
+
+    @property
+    def geom(self):
+        return OGRGeometry('MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)))')
 
 
 class ViewTestCase(TestCase):

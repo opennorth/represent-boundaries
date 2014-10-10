@@ -8,20 +8,8 @@ from django.contrib.gis.geos import Point
 from django.test import TestCase
 
 from boundaries import attr, clean_attr
-from boundaries.models import BoundarySet, Definition, Geometry, Feature
-
-
-class FeatureProxy(dict):
-    def __init__(self, fields):
-        self.update(fields)
-
-    @property
-    def fields(self):
-        return self.keys()
-
-    @property
-    def geom(self):
-        return Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)))'))
+from boundaries.models import BoundarySet, Definition, Feature
+from boundaries.tests import FeatureProxy
 
 
 class FeatureTestCase(TestCase):
