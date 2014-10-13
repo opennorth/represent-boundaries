@@ -23,9 +23,18 @@ def fixture(basename):
     return os.path.join(os.path.dirname(__file__), 'fixtures', basename)
 
 
-class LoadShapefilesTestCase(TestCase):
+class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gross error. Need more tests.
 
-    def test_command(self):  # @todo This only ensures there's no gross error. Need more tests. 
+    def test_without_arguments(self):
+        boundaries.registry = {}
+        boundaries._basepath = '.'
+        try:
+            call_command('loadshapefiles', data_dir='boundaries/tests/fixtures')
+        except Exception as e:
+            if e.errno != os.errno.ENOENT:  # ogr2ogr won't be available on Travis
+                self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+
+    def test_with_arguments(self):
         boundaries.registry = {}
         boundaries._basepath = '.'
         try:
