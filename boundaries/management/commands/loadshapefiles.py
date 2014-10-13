@@ -191,7 +191,7 @@ def create_data_sources(path, encoding='ascii', convert_3d_to_2d=False, zipfile=
         if convert_3d_to_2d and '_cleaned_' not in path:
             source = path
             path = path.replace('.shp', '._cleaned_.shp')
-            subprocess.call(['ogr2ogr', '-f', 'ESRI Shapefile', path, source, '-nlt', 'POLYGON'])
+            subprocess.call(['ogr2ogr', '-f', 'ESRI Shapefile', path, source, '-nlt', 'POLYGON', '-overwrite'])
 
         try:
             return DataSource(path, encoding=encoding)

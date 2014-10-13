@@ -28,9 +28,12 @@ class LoadShapefilesTestCase(TestCase):
         boundaries.registry = {}
         boundaries._basepath = '.'
         try:
-            call_command('loadshapefiles', data_dir='boundaries/tests/fixtures')
+            call_command('loadshapefiles', **{'data_dir': 'boundaries/tests/fixtures', 'clean': True, 'only': 'districts', 'except': 'unknown'})
         except Exception as e:
             self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+
+    def test_get_version(self):
+        self.assertEqual(Command().get_version(), '0.5.1')
 
 
 class LoadableTestCase(TestCase):
@@ -124,6 +127,9 @@ class LoadBoundaryTestCase(TestCase):
 
 
 class DataSourcesTestCase(TestCase):
+
+    def test_empty_txt(self):
+        self.assertRaisesRegexp(ValueError, r"\AThe path must be a shapefile, a ZIP file, or a directory: .+/boundaries/tests/fixtures/empty/empty\.txt\.\Z", create_data_sources, fixture('empty/empty.txt'))
 
     def test_foo_shp(self):
         path = fixture('foo.shp')
