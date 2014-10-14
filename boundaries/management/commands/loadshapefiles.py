@@ -13,7 +13,7 @@ from tempfile import mkdtemp
 from shutil import rmtree
 
 from django.conf import settings
-from django.contrib.gis.gdal import DataSource
+from django.contrib.gis.gdal import DataSource, SpatialReference
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.template.defaultfilters import slugify
