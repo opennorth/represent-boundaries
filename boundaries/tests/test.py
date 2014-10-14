@@ -23,7 +23,7 @@ class BoundariesTestCase(TestCase):
         boundaries.registry = {}
         boundaries._basepath = '.'
         with LogCapture() as l:
-            boundaries.autodiscover('.')
+            boundaries.autodiscover('./boundaries/tests/fixtures')
             self.assertEqual(len(boundaries.registry), 1)
             self.assertEqual(boundaries.registry['Districts']['file'], './boundaries/tests/fixtures/foo.shp')
             self.assertEqual(boundaries.registry['Districts']['last_updated'], date(2000, 1, 1))

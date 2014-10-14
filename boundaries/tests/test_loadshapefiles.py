@@ -8,6 +8,7 @@ from datetime import date
 from zipfile import BadZipfile
 from testfixtures import LogCapture
 
+from django.conf import settings
 from django.contrib.gis.gdal import DataSource
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -25,23 +26,82 @@ def fixture(basename):
 
 class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gross error. Need more tests.
 
-    def test_without_arguments(self):
+    def setUp(self):
         boundaries.registry = {}
         boundaries._basepath = '.'
-        try:
-            call_command('loadshapefiles', data_dir='boundaries/tests/fixtures')
-        except Exception as e:
-            if e.errno != os.errno.ENOENT:  # ogr2ogr won't be available on Travis
-                self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
 
-    def test_with_arguments(self):
-        boundaries.registry = {}
-        boundaries._basepath = '.'
-        try:
-            call_command('loadshapefiles', **{'data_dir': 'boundaries/tests/fixtures', 'clean': True, 'only': 'districts', 'except': 'unknown'})
-        except Exception as e:
-            if e.errno != os.errno.ENOENT:  # ogr2ogr won't be available on Travis
-                self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+    def test_loadshapefiles(self):
+        with LogCapture() as l:
+            try:
+                call_command('loadshapefiles', data_dir='boundaries/tests/definitions/polygons')
+            except Exception as e:
+                if not hasattr(e, 'errno') or e.errno != os.errno.ENOENT:
+                    self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+        l.check(
+            ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing polygons.'),
+            ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading polygons from boundaries/tests/definitions/polygons/test_poly.shp'),
+            ('boundaries.management.commands.loadshapefiles', 'INFO', '1...'),
+            ('boundaries.management.commands.loadshapefiles', 'INFO', '2...'),
+            ('boundaries.management.commands.loadshapefiles', 'INFO', '3...'),
+            ('boundaries.management.commands.loadshapefiles', 'INFO', 'polygons count: 3'),
+        )
+
+    def test_no_features(self):
+        with LogCapture() as l:
+            try:
+                call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features')
+            except Exception as e:
+                if not hasattr(e, 'errno') or e.errno != os.errno.ENOENT:
+                    self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+        l.check(
+            ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'),
+            ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading districts from boundaries/tests/definitions/no_features/../../fixtures/foo.shp'),
+            ('boundaries.management.commands.loadshapefiles', 'INFO', 'districts count: 0'),
+        )
+
+    def test_srid(self):
+        with LogCapture() as l:
+            try:
+                call_command('loadshapefiles', data_dir='boundaries/tests/definitions/srid')
+            except Exception as e:
+                if not hasattr(e, 'errno') or e.errno != os.errno.ENOENT:
+                    self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+        l.check(
+            ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing wards.'),
+            ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading wards from boundaries/tests/definitions/srid/../../fixtures/foo.shp'),
+            ('boundaries.management.commands.loadshapefiles', 'INFO', 'wards count: 0'),
+        )
+
+    def test_clean(self):
+        with LogCapture() as l:
+            try:
+                call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features', clean=True)
+            except Exception as e:
+                if not hasattr(e, 'errno') or e.errno != os.errno.ENOENT:
+                    self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+        l.check(
+            ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'),
+            ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading districts from boundaries/tests/definitions/no_features/../../fixtures/foo._cleaned_.shp'),
+            ('boundaries.management.commands.loadshapefiles', 'INFO', 'districts count: 0'),
+        )
+
+    def test_only(self):
+        with LogCapture() as l:
+            call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features', only='unknown')
+        l.check(('boundaries.management.commands.loadshapefiles', 'DEBUG', 'Skipping districts.'))
+
+    def test_except(self):
+        with LogCapture() as l:
+            call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features', **{'except': 'districts'})
+        l.check(('boundaries.management.commands.loadshapefiles', 'DEBUG', 'Skipping districts.'))
+
+    def test_no_data_sources(self):
+        with LogCapture() as l:
+            call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_data_sources')
+        l.check(
+            ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing empty.'),
+            ('boundaries.management.commands.loadshapefiles', 'WARNING', 'No shapefiles found.'),
+        )
 
     def test_get_version(self):
         self.assertEqual(Command().get_version(), '0.5.1')

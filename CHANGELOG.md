@@ -2,6 +2,7 @@
 
 ## 0.6.0
 
+* Support shapefiles with binary field names.
 * Recurse directories and ZIP files in `loadshapefiles`.
 * `loadshapefiles` will not create a boundary set if no shapefiles are found.
 

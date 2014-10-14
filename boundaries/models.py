@@ -11,7 +11,7 @@ from django.template.defaultfilters import slugify
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.functional import lazy
 from django.utils.safestring import mark_safe
-from django.utils.six import text_type, string_types
+from django.utils.six import binary_type, string_types, text_type
 from django.utils.translation import ugettext as _, ugettext_lazy
 
 from appconf import AppConf
@@ -360,7 +360,14 @@ class Feature(object):
 
     @property
     def metadata(self):
-        return dict((field, self.get(field)) for field in self.feature.fields)
+        d = {}
+        for field in self.feature.fields:
+            if isinstance(field, binary_type):
+                key = field.decode()
+            else:
+                key = field
+            d[key] = self.get(key)
+        return d
 
     @property
     def boundary_set(self):
