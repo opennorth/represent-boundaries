@@ -131,13 +131,6 @@ class Command(BaseCommand):
         for data_source in data_sources:
             log.info(_('Loading %(slug)s from %(source)s') % {'slug': slug, 'source': data_source.name})
 
-            if data_source.layer_count == 0:
-                log.error(_('%(source)s shapefile [%(slug)s] has no layers, skipping.') % {'slug': slug, 'source': data_source.name})
-                continue
-
-            if data_source.layer_count > 1:
-                log.warning(_('%(source)s shapefile [%(slug)s] has multiple layers, using first.') % {'slug': slug, 'source': data_source.name})
-
             layer = data_source[0]
             layer.source = data_source  # to trace the layer back to its source
 
