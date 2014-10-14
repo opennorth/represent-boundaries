@@ -76,14 +76,18 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
         with LogCapture() as l:
             try:
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features', clean=True)
+                l.check(
+                    ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'),
+                    ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading districts from boundaries/tests/definitions/no_features/../../fixtures/foo._cleaned_.shp'),
+                    ('boundaries.management.commands.loadshapefiles', 'INFO', 'districts count: 0'),
+                )
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != os.errno.ENOENT:
                     self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
-        l.check(
-            ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'),
-            ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading districts from boundaries/tests/definitions/no_features/../../fixtures/foo._cleaned_.shp'),
-            ('boundaries.management.commands.loadshapefiles', 'INFO', 'districts count: 0'),
-        )
+                else:
+                    l.check(
+                        ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'),
+                    )
 
     def test_only(self):
         with LogCapture() as l:
