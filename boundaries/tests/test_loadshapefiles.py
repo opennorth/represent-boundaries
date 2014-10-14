@@ -85,9 +85,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
                 if not hasattr(e, 'errno') or e.errno != os.errno.ENOENT:
                     self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
                 else:
-                    l.check(
-                        ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'),
-                    )
+                    l.check(('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'))
 
     def test_only(self):
         with LogCapture() as l:
