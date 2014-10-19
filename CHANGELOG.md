@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.6.0
+## 0.6.0 (2014-10-19)
 
 * Support shapefiles with binary field names.
 * Recurse directories and ZIP files in `loadshapefiles`.

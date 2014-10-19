@@ -106,7 +106,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
         )
 
     def test_get_version(self):
-        self.assertEqual(Command().get_version(), '0.5.1')
+        self.assertEqual(Command().get_version(), '0.6.0')
 
 
 class LoadableTestCase(TestCase):
