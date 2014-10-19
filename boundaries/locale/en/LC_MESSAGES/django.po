@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-10-10 13:22-0400\n"
+"POT-Creation-Date: 2014-10-19 10:53-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -131,34 +131,24 @@ msgstr ""
 msgid "Loading %(slug)s from %(source)s"
 msgstr ""
 
-#: management/commands/loadshapefiles.py:135
-#, python-format
-msgid "%(source)s shapefile [%(slug)s] has no layers, skipping."
-msgstr ""
-
-#: management/commands/loadshapefiles.py:139
-#, python-format
-msgid "%(source)s shapefile [%(slug)s] has multiple layers, using first."
-msgstr ""
-
-#: management/commands/loadshapefiles.py:160
-#, python-format
-msgid "%(slug)s count: %(count)i"
-msgstr ""
-
-#: management/commands/loadshapefiles.py:163
+#: management/commands/loadshapefiles.py:147
 #, python-format
 msgid "%(slug)s..."
 msgstr ""
 
-#: management/commands/loadshapefiles.py:173
+#: management/commands/loadshapefiles.py:155
+#, python-format
+msgid "%(slug)s count: %(count)i"
+msgstr ""
+
+#: management/commands/loadshapefiles.py:166
 #, python-format
 msgid "The merge strategy '%(value)s' must be 'combine' or 'union'."
 msgstr ""
 
-#: management/commands/loadshapefiles.py:261
+#: management/commands/loadshapefiles.py:220
 #, python-format
-msgid "Multiple shapefiles found in zip file: %(path)s"
+msgid "The path must be a shapefile, a ZIP file, or a directory: %(value)s."
 msgstr ""
 
 #: models.py:48
