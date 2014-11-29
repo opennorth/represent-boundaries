@@ -26,5 +26,5 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Framework :: Django',
         'Topic :: Scientific/Engineering :: GIS',
-    ]
+    ],
 )
