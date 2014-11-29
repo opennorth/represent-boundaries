@@ -5,7 +5,7 @@ import json
 
 from optparse import make_option
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils.six import text_type
 from django.utils.translation import ugettext as _, ugettext_lazy
 
@@ -14,7 +14,7 @@ from boundaries.models import BoundarySet
 
 class Command(BaseCommand):
     help = ugettext_lazy('Create a report of the area of intersection of every pair of boundaries from two boundary sets specified by their slug.')
-    args = 'boundaryset1 boundaryset2'
+    args = '<boundary-set-slug> <boundary-set-slug>'
 
     option_list = BaseCommand.option_list + (
         make_option('-f', '--format', action='store', dest='format', default="csv",
@@ -25,8 +25,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if len(args) < 2:
-            print(_("Specify two boundaryset slugs."))
-            return
+            raise CommandError(_("Missing boundary set slugs."))
 
         bset_a = BoundarySet.objects.get(slug=args[0])
         bset_b = BoundarySet.objects.get(slug=args[1])
