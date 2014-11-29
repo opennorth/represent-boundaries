@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import re
 
+from appconf import AppConf
 from django.contrib.gis.db import models
 from django.contrib.gis.gdal import CoordTransform, OGRGeometry, OGRGeomType, SpatialReference
 from django.contrib.gis.geos import GEOSGeometry
@@ -11,8 +12,6 @@ from django.template.defaultfilters import slugify
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.six import binary_type, string_types, text_type
 from django.utils.translation import ugettext as _, ugettext_lazy
-
-from appconf import AppConf
 from jsonfield import JSONField
 
 
@@ -69,24 +68,24 @@ class BoundarySet(models.Model):
     extra = JSONField(blank=True, null=True,
         help_text=ugettext_lazy("Any additional metadata."))
 
-    class Meta:
-        ordering = ('name',)
-        verbose_name = ugettext_lazy('boundary set')
-        verbose_name_plural = ugettext_lazy('boundary sets')
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        return super(BoundarySet, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
-
     name_plural = property(lambda s: s.name)
     name_singular = property(lambda s: s.singular)
 
     api_fields = ('name_plural', 'name_singular', 'authority', 'domain', 'source_url', 'notes', 'licence_url', 'last_updated', 'extent', 'extra', 'start_date', 'end_date')
     api_fields_doc_from = {'name_plural': 'name', 'name_singular': 'singular'}
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = ugettext_lazy('boundary set')
+        verbose_name_plural = ugettext_lazy('boundary sets')
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        return super(BoundarySet, self).save(*args, **kwargs)
 
     def as_dict(self):
         r = {
@@ -94,10 +93,10 @@ class BoundarySet(models.Model):
                 'boundaries_url': urlresolvers.reverse('boundaries_boundary_list', kwargs={'set_slug': self.slug}),
             },
         }
-        for f in self.api_fields:
-            r[f] = getattr(self, f)
-            if not isinstance(r[f], (string_types, int, list, tuple, dict)) and r[f] is not None:
-                r[f] = text_type(r[f])
+        for field in self.api_fields:
+            r[field] = getattr(self, field)
+            if not isinstance(r[field], (string_types, int, list, tuple, dict)) and r[field] is not None:
+                r[field] = text_type(r[field])
         return r
 
     @staticmethod
@@ -153,6 +152,9 @@ class Boundary(models.Model):
     label_point = models.PointField(blank=True, null=True, spatial_index=False,
         help_text=ugettext_lazy('The point at which to place a label for the boundary in EPSG:4326, used by represent-maps.'))
 
+    api_fields = ['boundary_set_name', 'name', 'metadata', 'external_id', 'extent', 'centroid']
+    api_fields_doc_from = {'boundary_set_name': 'set_name'}
+
     objects = models.GeoManager()
 
     class Meta:
@@ -166,9 +168,6 @@ class Boundary(models.Model):
     @models.permalink
     def get_absolute_url(self):
         return 'boundaries_boundary_detail', [], {'set_slug': self.set_id, 'slug': self.slug}
-
-    api_fields = ['boundary_set_name', 'name', 'metadata', 'external_id', 'extent', 'centroid']
-    api_fields_doc_from = {'boundary_set_name': 'set_name'}
 
     @property
     def boundary_set(self):
@@ -189,15 +188,15 @@ class Boundary(models.Model):
                 'boundaries_url': urlresolvers.reverse('boundaries_boundary_list', kwargs={'set_slug': self.set_id}),
             }
         }
-        for f in self.api_fields:
-            r[f] = getattr(self, f)
-            if isinstance(r[f], GEOSGeometry):
-                r[f] = {
+        for field in self.api_fields:
+            r[field] = getattr(self, field)
+            if isinstance(r[field], GEOSGeometry):
+                r[field] = {
                     "type": "Point",
-                    "coordinates": r[f].coords
+                    "coordinates": r[field].coords
                 }
-            if not isinstance(r[f], (string_types, int, list, tuple, dict)) and r[f] is not None:
-                r[f] = text_type(r[f])
+            if not isinstance(r[field], (string_types, int, list, tuple, dict)) and r[field] is not None:
+                r[field] = text_type(r[field])
         return r
 
     @staticmethod

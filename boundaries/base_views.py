@@ -86,7 +86,7 @@ class APIView(View):
             'json': jsonresult,
             'resource_name': self.model.__name__,
             'is_list': isinstance(self, ModelListView),
-            'json_url': json_url
+            'json_url': json_url,
         }
         if ctx['is_list']:
             ctx['title'] = self.model._meta.verbose_name_plural
@@ -178,20 +178,20 @@ class ModelGeoListView(ModelListView):
         if self.default_geo_filter_field:
             if 'contains' in request.GET:
                 try:
-                    lat, lon = re.sub(r'[^\d.,-]', '', request.GET['contains']).split(',')
-                    wkt_pt = 'POINT(%s %s)' % (lon, lat)
-                    qs = qs.filter(**{self.default_geo_filter_field + "__contains": wkt_pt})
+                    latitude, longitude = re.sub(r'[^\d.,-]', '', request.GET['contains']).split(',')
+                    wkt = 'POINT(%s %s)' % (longitude, latitude)
+                    qs = qs.filter(**{self.default_geo_filter_field + "__contains": wkt})
                 except ValueError:
                     raise BadRequest(_("Invalid latitude,longitude '%(value)s' provided.") % {'value': request.GET['contains']})
 
             if 'near' in request.GET:
-                lat, lon, range = request.GET['near'].split(',')
-                wkt_pt = 'POINT(%s %s)' % (float(lon), float(lat))
+                latitude, longitude, range = request.GET['near'].split(',')
+                wkt = 'POINT(%s %s)' % (longitude, latitude)
                 numeral = re.match('([0-9]+)', range).group(1)
                 unit = range[len(numeral):]
                 numeral = int(numeral)
                 kwargs = {unit: numeral}
-                qs = qs.filter(**{self.default_geo_filter_field + "__distance_lte": (wkt_pt, D(**kwargs))})
+                qs = qs.filter(**{self.default_geo_filter_field + "__distance_lte": (wkt, D(**kwargs))})
 
         return qs
 
