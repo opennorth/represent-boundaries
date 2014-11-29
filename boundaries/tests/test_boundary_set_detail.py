@@ -16,7 +16,7 @@ class BoundarySetDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
         'licence_url': '',
         'end_date': None,
         'name_singular': '',
-        'extra': None,
+        'extra': {},
         'notes': '',
         'authority': '',
         'source_url': '',

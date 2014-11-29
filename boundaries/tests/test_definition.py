@@ -57,7 +57,7 @@ class DefinitionTestCase(TestCase):
         self.assertEqual(definition['start_date'], None)
         self.assertEqual(definition['end_date'], None)
         self.assertEqual(definition['notes'], '')
-        self.assertEqual(definition['extra'], None)
+        self.assertEqual(definition['extra'], {})
         self.assertEqual(definition['id_func']({}), '')
         self.assertEqual(definition['slug_func']({}), 'Test')
         self.assertEqual(definition['is_valid_func']({}), True)

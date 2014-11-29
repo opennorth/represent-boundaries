@@ -65,7 +65,7 @@ class BoundarySet(models.Model):
         help_text=ugettext_lazy("The date from which the set's boundaries are in effect."))
     end_date = models.DateField(blank=True, null=True,
         help_text=ugettext_lazy("The date until which the set's boundaries are in effect."))
-    extra = JSONField(blank=True, null=True,
+    extra = JSONField(default={},
         help_text=ugettext_lazy("Any additional metadata."))
 
     name_plural = property(lambda s: s.name)
@@ -139,7 +139,7 @@ class Boundary(models.Model):
         help_text=ugettext_lazy("An identifier of the boundary, which should be unique within the set."))
     name = models.CharField(max_length=192, db_index=True,
         help_text=ugettext_lazy('The name of the boundary.'))
-    metadata = JSONField(blank=True,
+    metadata = JSONField(default={},
         help_text=ugettext_lazy('The attributes of the boundary from the shapefile, as a dictionary.'))
     shape = models.MultiPolygonField(
         help_text=ugettext_lazy('The geometry of the boundary in EPSG:4326.'))
@@ -411,7 +411,7 @@ class Definition(object):
             'start_date': None,
             'end_date': None,
             'notes': '',
-            'extra': dictionary.pop('metadata', None),
+            'extra': dictionary.pop('metadata', {}),
 
             # Boundary functions.
             'id_func': lambda feature: '',

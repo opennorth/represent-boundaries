@@ -100,7 +100,7 @@ class BoundarySetTestCase(TestCase):
             'extent': None,
             'start_date': None,
             'end_date': None,
-            'extra': None,
+            'extra': {},
         })
 
     def test_extend(self):
