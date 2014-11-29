@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2 (2014-11-29)
+
+* Set default value on `jsonfield` fields.
+
 ## 0.6.1 (2014-11-29)
 
 * Use `jsonfield` instead of `django-jsonfield`.
