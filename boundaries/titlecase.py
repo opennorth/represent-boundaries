@@ -71,7 +71,7 @@ def titlecase(text):
                                          match.group(2).capitalize()))
                 continue
 
-            if "/" in word and not "//" in word:
+            if "/" in word and "//" not in word:
                 slashed = []
                 for item in word.split('/'):
                     slashed.append(CAPFIRST.sub(lambda m: m.group(0).upper(), item))

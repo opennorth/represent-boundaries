@@ -9,8 +9,6 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.core import urlresolvers
 from django.template.defaultfilters import slugify
 from django.utils.encoding import python_2_unicode_compatible
-from django.utils.functional import lazy
-from django.utils.safestring import mark_safe
 from django.utils.six import binary_type, string_types, text_type
 from django.utils.translation import ugettext as _, ugettext_lazy
 

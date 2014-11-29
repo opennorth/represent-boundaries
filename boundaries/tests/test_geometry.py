@@ -6,6 +6,7 @@ from django.test import TestCase
 
 from boundaries.models import Geometry
 
+
 class GeometryTestCase(TestCase):
     maxDiff = None
 

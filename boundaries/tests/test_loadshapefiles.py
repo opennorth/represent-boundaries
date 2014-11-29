@@ -8,10 +8,7 @@ from datetime import date
 from zipfile import BadZipfile
 from testfixtures import LogCapture
 
-from django.conf import settings
-from django.contrib.gis.gdal import DataSource
 from django.core.management import call_command
-from django.core.management.base import CommandError
 from django.test import TestCase
 
 import boundaries

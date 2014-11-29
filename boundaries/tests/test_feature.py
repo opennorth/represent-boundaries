@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from datetime import date
 
-from django.contrib.gis.gdal import OGRGeometry, SpatialReference
+from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import Point
 from django.test import TestCase
 
@@ -27,7 +27,7 @@ class FeatureTestCase(TestCase):
     fields = {
         'Name': 'VALID',
         'ID': '1',
-        'Code': '\tFoo—Bar–Baz \r Bzz\n', # m-dash, n-dash
+        'Code': '\tFoo—Bar–Baz \r Bzz\n',  # m-dash, n-dash
     }
 
     boundary_set = BoundarySet(

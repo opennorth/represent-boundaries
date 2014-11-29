@@ -117,7 +117,7 @@ class BoundaryTestCase(TestCase):
         ])
 
     def test_merge(self):
-        boundary = Boundary(shape='MULTIPOLYGON (((0 0,0 5,2.5 5.0001,5 5,0 0)))',simple_shape='MULTIPOLYGON (((0 0,0 5,5 5,0 0)))')
+        boundary = Boundary(shape='MULTIPOLYGON (((0 0,0 5,2.5 5.0001,5 5,0 0)))', simple_shape='MULTIPOLYGON (((0 0,0 5,5 5,0 0)))')
         boundary.merge(Geometry(OGRGeometry('MULTIPOLYGON (((0 0,5 0,5.0001 2.5,5 5,0 0)))')))
 
         self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0 5,2.5 5.0001,5 5,0 0)),((0 0,5 0,5.0001 2.5,5 5,0 0)))')

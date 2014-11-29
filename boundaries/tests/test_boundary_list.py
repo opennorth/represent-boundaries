@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from datetime import date
-
 from django.contrib.gis.geos import MultiPolygon
 
 from boundaries.models import Boundary

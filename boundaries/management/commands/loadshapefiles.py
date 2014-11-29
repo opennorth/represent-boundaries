@@ -8,20 +8,20 @@ import os
 import os.path
 import subprocess
 from contextlib import closing
-from zipfile import ZipFile, BadZipfile
+from zipfile import ZipFile
 from tempfile import mkdtemp
 from shutil import rmtree
 
 from django.conf import settings
 from django.contrib.gis.gdal import DataSource, SpatialReference
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.template.defaultfilters import slugify
 from django.utils import six
 from django.utils.translation import ugettext as _, ugettext_lazy
 
 import boundaries
-from boundaries.models import app_settings, BoundarySet, Boundary, Definition, Feature, Geometry
+from boundaries.models import app_settings, BoundarySet, Boundary, Definition, Feature
 
 
 class Command(BaseCommand):
@@ -172,6 +172,7 @@ class Command(BaseCommand):
                 return feature.create_boundary()
         else:
             return feature.create_boundary()
+
 
 def create_data_sources(path, encoding='ascii', convert_3d_to_2d=False, zipfile=None):
     """

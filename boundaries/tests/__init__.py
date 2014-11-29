@@ -120,6 +120,7 @@ def comparable(o):
 def load_response(response):
     return json.loads(response.content.decode('utf-8'))
 
+
 class ViewsTests(object):
 
     def test_get(self):
