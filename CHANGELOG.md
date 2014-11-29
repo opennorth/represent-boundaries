@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1 (2014-11-29)
+
+* Use `jsonfield` instead of `django-jsonfield`.
+
 ## 0.6.0 (2014-10-19)
 
 * Support shapefiles with binary field names.
