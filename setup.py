@@ -11,7 +11,7 @@ setup(
     packages=[
         'boundaries',
         'boundaries.management',
-        'boundaries.management.commands'
+        'boundaries.management.commands',
     ],
     install_requires=[
         'django-jsonfield>=0.7.1',
