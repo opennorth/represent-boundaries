@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.3 (2014-12-29)
+
+* Eliminate Django 1.7 deprecation warning.
+
 ## 0.6.2 (2014-11-29)
 
 * Set default value on `jsonfield` fields.
