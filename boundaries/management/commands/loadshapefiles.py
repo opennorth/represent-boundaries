@@ -23,6 +23,9 @@ from django.utils.translation import ugettext as _, ugettext_lazy
 import boundaries
 from boundaries.models import app_settings, BoundarySet, Boundary, Definition, Feature
 
+if not hasattr(transaction, 'atomic'):  # Django < 1.6
+    transaction.atomic = transaction.commit_on_success
+
 
 class Command(BaseCommand):
     help = ugettext_lazy('Import boundaries described by shapefiles.')
@@ -107,7 +110,7 @@ class Command(BaseCommand):
             except BoundarySet.DoesNotExist:
                 return True
 
-    @transaction.commit_on_success
+    @transaction.atomic
     def load_boundary_set(self, slug, definition, data_sources, options):
         BoundarySet.objects.filter(slug=slug).delete()  # also deletes boundaries
 
