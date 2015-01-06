@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.4 (2015-01-06)
+
+* Fix regression in slugless definition files.
+
 ## 0.6.3 (2014-12-29)
 
 * Eliminate Django 1.7 deprecation warning.

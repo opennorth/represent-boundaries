@@ -71,6 +71,7 @@ class Command(BaseCommand):
             blacklist = set()
 
         for slug, definition in boundaries.registry.items():
+            name = slug
             slug = slugify(slug)
 
             if self.loadable(slug, definition['last_updated'], whitelist, blacklist, options['reload']):
@@ -78,7 +79,7 @@ class Command(BaseCommand):
 
                 # Backwards-compatibility with having the name, instead of the slug,
                 # as the first argument to `boundaries.register`.
-                definition.setdefault('name', slug)
+                definition.setdefault('name', name)
                 definition = Definition(definition)
 
                 data_sources, tmpdirs = create_data_sources(definition['file'], definition['encoding'], options['clean'])
