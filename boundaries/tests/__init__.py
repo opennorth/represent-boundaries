@@ -7,7 +7,7 @@ from copy import deepcopy
 
 from django.conf import settings
 from django.contrib.gis.gdal import OGRGeometry
-from django.contrib.gis.geos import MultiPolygon
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 from django.test import TestCase
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.six import assertRegex, string_types
@@ -235,7 +235,8 @@ class BoundaryListTests(object):
     def test_omits_meta_if_too_many_items_match(self):
         app_settings.MAX_GEO_LIST_RESULTS, _ = 0, app_settings.MAX_GEO_LIST_RESULTS
 
-        Boundary.objects.create(slug='foo', set_id='inc', shape=MultiPolygon(()), simple_shape=MultiPolygon(()))
+        geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
+        Boundary.objects.create(slug='foo', set_id='inc', shape=geom, simple_shape=geom)
 
         response = self.client.get(self.url)
         self.assertResponse(response)

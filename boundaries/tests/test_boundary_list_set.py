@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from datetime import date
 
-from django.contrib.gis.geos import MultiPolygon
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 
 from boundaries.models import BoundarySet, Boundary
 from boundaries.tests import ViewTestCase, ViewsTests, PrettyTests, PaginationTests, BoundaryListTests
@@ -33,9 +33,10 @@ class BoundaryListSetTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationT
         BoundarySet.objects.create(slug='inc', last_updated=date(2000, 1, 1))
 
     def test_pagination(self):
-        Boundary.objects.create(slug='foo', set_id='inc', shape=MultiPolygon(()), simple_shape=MultiPolygon(()))
-        Boundary.objects.create(slug='bar', set_id='inc', shape=MultiPolygon(()), simple_shape=MultiPolygon(()))
-        Boundary.objects.create(slug='baz', set_id='inc', shape=MultiPolygon(()), simple_shape=MultiPolygon(()))
+        geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
+        Boundary.objects.create(slug='foo', set_id='inc', shape=geom, simple_shape=geom)
+        Boundary.objects.create(slug='bar', set_id='inc', shape=geom, simple_shape=geom)
+        Boundary.objects.create(slug='baz', set_id='inc', shape=geom, simple_shape=geom)
 
         response = self.client.get(self.url, {'limit': 1})
         self.assertResponse(response)

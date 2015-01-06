@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 
 from django.test import TestCase
-from django.contrib.gis.geos import Point, MultiPolygon
 from django.contrib.gis.gdal import OGRGeometry
+from django.contrib.gis.geos import Point, GEOSGeometry, MultiPolygon
 
 from boundaries.models import BoundarySet, Boundary, Geometry
 
@@ -102,14 +102,15 @@ class BoundaryTestCase(TestCase):
         })
 
     def test_prepare_queryset_for_get_dicts(self):
+        geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
         Boundary.objects.create(
             slug='bar',
             set=BoundarySet(slug='foo'),
             name='Bar',
             set_name='Foo',
             external_id=1,
-            shape=MultiPolygon(()),
-            simple_shape=MultiPolygon(()),
+            shape=geom,
+            simple_shape=geom,
         )
         # Coerce the django.contrib.gis.db.models.query.GeoValuesListQuerySet.
         self.assertEqual(list(Boundary.prepare_queryset_for_get_dicts(Boundary.objects)), [

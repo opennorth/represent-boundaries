@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from datetime import date
 
-from django.contrib.gis.geos import MultiPolygon
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 
 from boundaries.models import BoundarySet, Boundary
 from boundaries.tests import ViewTestCase, ViewsTests, PrettyTests
@@ -30,8 +30,9 @@ class BoundaryDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
     }
 
     def setUp(self):
+        geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
         BoundarySet.objects.create(slug='inc', last_updated=date(2000, 1, 1))
-        Boundary.objects.create(slug='foo', set_id='inc', shape=MultiPolygon(()), simple_shape=MultiPolygon(()))
+        Boundary.objects.create(slug='foo', set_id='inc', shape=geom, simple_shape=geom)
 
     def test_404(self):
         response = self.client.get('/boundaries/inc/nonexistent/')
