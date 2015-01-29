@@ -14,7 +14,7 @@ setup(
         'boundaries.management.commands',
     ],
     install_requires=[
-        'jsonfield==0.9.23',
+        'jsonfield>=0.9.20,<1',
         'django-appconf',
     ],
     extras_require={
