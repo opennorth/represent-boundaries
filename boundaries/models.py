@@ -320,7 +320,8 @@ slug_re = re.compile(r'[–—]')  # n-dash, m-dash
 class Feature(object):
 
     # @see https://github.com/django/django/blob/master/django/contrib/gis/gdal/feature.py
-    def __init__(self, feature, definition, srs=SpatialReference(4326), boundary_set=None):
+    def __init__(self, feature, definition, srs=None, boundary_set=None):
+        srs = srs or SpatialReference(4326)
         self.feature = feature
         self.definition = definition
         self.geometry = Geometry(feature.geom).transform(srs)
