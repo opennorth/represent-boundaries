@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.5 (2015-01-30)
+
+* Relax `jsonfield` version requirements.
+* Fix assignment of default `srs` in `Feature` class, which was breaking Heroku static assets.
+
 ## 0.6.4 (2015-01-06)
 
 * Fix regression in slugless definition files.
