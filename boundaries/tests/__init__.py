@@ -78,7 +78,7 @@ class ViewTestCase(TestCase):
 class URL(object):
 
     """
-    http://stackoverflow.com/questions/5371992/comparing-two-urls-in-python
+    https://stackoverflow.com/questions/5371992/comparing-two-urls-in-python
     """
 
     def __init__(self, url):

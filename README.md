@@ -1,7 +1,7 @@
 # Represent Boundaries
 
-[![PyPI version](https://badge.fury.io/py/represent-boundaries.svg)](http://badge.fury.io/py/represent-boundaries)
-[![Build Status](https://secure.travis-ci.org/opennorth/represent-boundaries.png)](http://travis-ci.org/opennorth/represent-boundaries)
+[![PyPI version](https://badge.fury.io/py/represent-boundaries.svg)](https://badge.fury.io/py/represent-boundaries)
+[![Build Status](https://secure.travis-ci.org/opennorth/represent-boundaries.png)](https://travis-ci.org/opennorth/represent-boundaries)
 [![Dependency Status](https://gemnasium.com/opennorth/represent-boundaries.png)](https://gemnasium.com/opennorth/represent-boundaries)
 [![Coverage Status](https://coveralls.io/repos/opennorth/represent-boundaries/badge.png?branch=master)](https://coveralls.io/r/opennorth/represent-boundaries)
 
@@ -44,10 +44,10 @@ python runtests.py
 
 ## Acknowledgements
 
-Represent Boundaries is based on the Chicago Tribune's [django-boundaryservice](http://github.com/newsapps/django-boundaryservice).
+Represent Boundaries is based on the Chicago Tribune's [django-boundaryservice](https://github.com/newsapps/django-boundaryservice).
 
 ## Bugs? Questions?
 
-This project's main repository is on GitHub: [http://github.com/opennorth/represent-boundaries](http://github.com/opennorth/represent-boundaries), where your contributions, forks, bug reports, feature requests, and feedback are greatly welcomed.
+This project's main repository is on GitHub: [https://github.com/opennorth/represent-boundaries](https://github.com/opennorth/represent-boundaries), where your contributions, forks, bug reports, feature requests, and feedback are greatly welcomed.
 
 Released under the MIT license
