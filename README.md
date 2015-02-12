@@ -46,8 +46,4 @@ python runtests.py
 
 Represent Boundaries is based on the Chicago Tribune's [django-boundaryservice](https://github.com/newsapps/django-boundaryservice).
 
-## Bugs? Questions?
-
-This project's main repository is on GitHub: [https://github.com/opennorth/represent-boundaries](https://github.com/opennorth/represent-boundaries), where your contributions, forks, bug reports, feature requests, and feedback are greatly welcomed.
-
 Released under the MIT license
