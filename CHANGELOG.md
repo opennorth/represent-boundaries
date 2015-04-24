@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.6 (2015-04-24)
+
+* Fix definition file loader to use an importer instead of `eval` [#30](https://github.com/opennorth/represent-boundaries/pull/30) (@paultag)
+
 ## 0.6.5 (2015-01-30)
 
 * Relax `jsonfield` version requirements.
