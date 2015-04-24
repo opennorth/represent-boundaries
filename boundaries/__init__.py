@@ -66,30 +66,28 @@ def dashed_attr(name):
 
 
 def import_file(path):
-    module = ":definition-py:"
-    # We'll give this module this invalid name for two reasons:
-    #  1. By giving it a top level module, we can avoid issues where we
-    #     import a module (`foo.bar`) and don't have it's parent imported
-    #     (`foo`)
-    #  2. By giving it an *invalid* name to Python, we can use that to pop
-    #     the module back in and out without fear of blowing out userland
-    #     code.
+    module = ':definition-py:'
+    # This module name has two benefits:
+    #  1. Using a top-level module name avoid issues when importing a definition
+    #     file at a path like `path/to/definition.py`, which would otherwise
+    #     issue warnings about its parent modules not being found in Python 2.7.
+    #  2. We remove the module name from `sys.modules` in order to reuse the
+    #     module name for another definition file. Using an invalid module name
+    #     makes it unlikely that this would interfere with third-party code.
     #
-    # Basically, this will let us keep importing random files into this
-    # name, and poping the module back out after we're done with it (but
-    # anyone that wants to hang on to a ref can point to the module object
-    # that falls out of our return.)
+    # The module object is returned, but this return value is unused by this
+    # package.
 
     if sys.version_info > (3,):
         """
-        If we're in Python 3, we'll use the PEP 302 import loader to handle
-        the import and bringup of the module.
+        If we're in Python 3, we'll use the PEP 302 import loader.
         """
         import importlib.machinery
         loader = importlib.machinery.SourceFileLoader(module, path)
         obj = loader.load_module()
         sys.modules.pop(module)
         return obj
+
     """
     If we're in Python 2, we'll use the `imp` module.
     """
