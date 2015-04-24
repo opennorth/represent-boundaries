@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import logging
 log = logging.getLogger(__name__)
+import sys
 import os
 import re
 
@@ -36,7 +37,7 @@ def autodiscover(base_dir):
         _basepath = dirpath
         for filename in filenames:
             if definition_file_re.search(filename):
-                exec(open(os.path.join(dirpath, filename)).read())
+                import_file(os.path.join(dirpath, filename))
 
 
 def attr(name):
@@ -62,3 +63,37 @@ def dashed_attr(name):
     # Replaces all hyphens with em dashes
     attr_getter = clean_attr(name)
     return lambda f: attr_getter(f).replace('-', '—')
+
+
+def import_file(path):
+    module = ":definition-py:"
+    # We'll give this module this invalid name for two reasons:
+    #  1. By giving it a top level module, we can avoid issues where we
+    #     import a module (`foo.bar`) and don't have it's parent imported
+    #     (`foo`)
+    #  2. By giving it an *invalid* name to Python, we can use that to pop
+    #     the module back in and out without fear of blowing out userland
+    #     code.
+    #
+    # Basically, this will let us keep importing random files into this
+    # name, and poping the module back out after we're done with it (but
+    # anyone that wants to hang on to a ref can point to the module object
+    # that falls out of our return.)
+
+    if sys.version_info > (3,):
+        """
+        If we're in Python 3, we'll use the PEP 302 import loader to handle
+        the import and bringup of the module.
+        """
+        import importlib.machinery
+        loader = importlib.machinery.SourceFileLoader(module, path)
+        obj = loader.load_module()
+        sys.modules.pop(module)
+        return obj
+    """
+    If we're in Python 2, we'll use the `imp` module.
+    """
+    import imp
+    obj = imp.load_source(module, path)
+    sys.modules.pop(module)
+    return obj
