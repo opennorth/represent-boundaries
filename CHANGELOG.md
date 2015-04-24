@@ -1,8 +1,9 @@
 # Changelog
 
-## 0.6.6 (2015-04-24)
+## 0.7.0 (2015-04-24)
 
 * Fix definition file loader to use an importer instead of `eval` [#30](https://github.com/opennorth/represent-boundaries/pull/30) (@paultag)
+  * If you were using `re` or other modules imported by `boundaries/__init__.py` in your definition files without importing them in your definition files, you must now import them in your definition files.
 
 ## 0.6.5 (2015-01-30)
 

@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="represent-boundaries",
-    version="0.6.6",
+    version="0.7.0",
     description="A web API to geographic boundaries loaded from shapefiles, packaged as a Django app.",
     author="Open North Inc.",
     author_email="represent@opennorth.ca",
