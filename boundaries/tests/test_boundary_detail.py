@@ -26,6 +26,8 @@ class BoundaryDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
         'centroid': None,
         'extent': None,
         'external_id': '',
+        'start_date': None,
+        'end_date': None,
         'metadata': {},
     }
 

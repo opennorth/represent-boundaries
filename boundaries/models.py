@@ -151,8 +151,12 @@ class Boundary(models.Model):
         help_text=ugettext_lazy('The bounding box of the boundary as a list like [xmin, ymin, xmax, ymax] in EPSG:4326.'))
     label_point = models.PointField(blank=True, null=True, spatial_index=False,
         help_text=ugettext_lazy('The point at which to place a label for the boundary in EPSG:4326, used by represent-maps.'))
+    start_date = models.DateField(blank=True, null=True,
+        help_text=ugettext_lazy("The date from which the boundary is in effect."))
+    end_date = models.DateField(blank=True, null=True,
+        help_text=ugettext_lazy("The date until which the boundary is in effect."))
 
-    api_fields = ['boundary_set_name', 'name', 'metadata', 'external_id', 'extent', 'centroid']
+    api_fields = ['boundary_set_name', 'name', 'metadata', 'external_id', 'extent', 'centroid', 'start_date', 'end_date']
     api_fields_doc_from = {'boundary_set_name': 'set_name'}
 
     objects = models.GeoManager()
@@ -320,12 +324,14 @@ slug_re = re.compile(r'[–—]')  # n-dash, m-dash
 class Feature(object):
 
     # @see https://github.com/django/django/blob/master/django/contrib/gis/gdal/feature.py
-    def __init__(self, feature, definition, srs=None, boundary_set=None):
+    def __init__(self, feature, definition, srs=None, boundary_set=None, start_date=None, end_date=None):
         srs = srs or SpatialReference(4326)
         self.feature = feature
         self.definition = definition
         self.geometry = Geometry(feature.geom).transform(srs)
         self.boundary_set = boundary_set
+        self.start_date = start_date
+        self.end_date = end_date
 
     def __str__(self):
         return self.name
@@ -388,6 +394,8 @@ class Feature(object):
             centroid=self.geometry.centroid,
             extent=self.geometry.extent,
             label_point=self.label_point,
+            start_date=self.start_date,
+            end_date=self.end_date,
         )
 
 
