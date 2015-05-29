@@ -1,5 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
+import datetime
 
 from django.test import TestCase
 from django.contrib.gis.gdal import OGRGeometry
@@ -61,6 +62,8 @@ class BoundaryTestCase(TestCase):
             external_id=1,
             extent=[0, 0, 1, 1],
             centroid=Point(0, 1),
+            start_date=datetime.date(2000, 1, 1),
+            end_date=datetime.date(2010, 1, 1),
         ).as_dict(), {
             'related': {
                 'boundary_set_url': '/boundary-sets/foo/',
@@ -80,6 +83,8 @@ class BoundaryTestCase(TestCase):
                 'type': 'Point',
                 'coordinates': (0.0, 1.0),
             },
+            'start_date': '2000-01-01',
+            'end_date': '2010-01-01',
         })
 
         self.assertEqual(Boundary(
@@ -99,6 +104,8 @@ class BoundaryTestCase(TestCase):
             'external_id': '',
             'extent': None,
             'centroid': None,
+            'start_date': None,
+            'end_date': None,
         })
 
     def test_prepare_queryset_for_get_dicts(self):
