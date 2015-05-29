@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1
+
+* Add `start_date` and `end_date` to boundaries. [#31](https://github.com/opennorth/represent-boundaries/pull/31) (@mileswwatkins)
+
 ## 0.7.0 (2015-04-24)
 
 * Fix definition file loader to use an importer instead of `eval` [#30](https://github.com/opennorth/represent-boundaries/pull/30) (@paultag)
