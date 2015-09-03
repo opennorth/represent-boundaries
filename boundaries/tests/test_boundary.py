@@ -4,7 +4,7 @@ import datetime
 
 from django.test import TestCase
 from django.contrib.gis.gdal import OGRGeometry
-from django.contrib.gis.geos import Point, GEOSGeometry, MultiPolygon
+from django.contrib.gis.geos import Point, GEOSGeometry
 
 from boundaries.models import BoundarySet, Boundary, Geometry
 

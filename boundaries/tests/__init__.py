@@ -7,7 +7,7 @@ from copy import deepcopy
 
 from django.conf import settings
 from django.contrib.gis.gdal import OGRGeometry
-from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
+from django.contrib.gis.geos import GEOSGeometry
 from django.test import TestCase
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.six import assertRegex, string_types
