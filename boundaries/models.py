@@ -135,7 +135,7 @@ class Boundary(models.Model):
         help_text=ugettext_lazy('A generic singular name for the boundary.'))
     slug = models.SlugField(max_length=200, db_index=True,
         help_text=ugettext_lazy("The boundary's unique identifier within the set, used as a path component in URLs."))
-    external_id = models.CharField(max_length=64,
+    external_id = models.CharField(max_length=255,
         help_text=ugettext_lazy("An identifier of the boundary, which should be unique within the set."))
     name = models.CharField(max_length=192, db_index=True,
         help_text=ugettext_lazy('The name of the boundary.'))
