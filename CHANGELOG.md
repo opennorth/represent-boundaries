@@ -1,8 +1,10 @@
 # Changelog
 
-## 0.7.1
+## 0.7.1 (2015-09-25)
 
 * Add `start_date` and `end_date` to boundaries. [#31](https://github.com/opennorth/represent-boundaries/pull/31) (@mileswwatkins)
+* Increase length of `external_id` to 255 characters. [#32](https://github.com/opennorth/represent-boundaries/pull/32) (@evz)
+* Add `blank=True` to `JSONField` for Django 1.9. [#33](https://github.com/opennorth/represent-boundaries/pull/33) (@jamesturk)
 
 ## 0.7.0 (2015-04-24)
 
