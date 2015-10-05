@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.3 (2015-10-05)
+
+* Fix `SourceFileLoader` being unavailable prior to Python 3.3.
+
 ## 0.7.2 (2015-10-05)
 
 * Drop support for undocumented `metadata` key in definition files.
