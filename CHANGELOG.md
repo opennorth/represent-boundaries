@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.2 (2015-10-05)
+
+* Drop support for undocumented `metadata` key in definition files.
+
 ## 0.7.1 (2015-09-25)
 
 * Add `start_date` and `end_date` to boundaries. [#31](https://github.com/opennorth/represent-boundaries/pull/31) (@mileswwatkins)
