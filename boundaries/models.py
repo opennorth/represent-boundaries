@@ -420,7 +420,7 @@ class Definition(object):
             'start_date': None,
             'end_date': None,
             'notes': '',
-            'extra': dictionary.pop('metadata', {}),
+            'extra': {},
 
             # Boundary functions.
             'id_func': lambda feature: '',

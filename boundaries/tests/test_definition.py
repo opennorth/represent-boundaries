@@ -135,20 +135,9 @@ class DefinitionTestCase(TestCase):
         definition = Definition({
             'name': '',
             'name_func': lambda feature: None,
-            'metadata': {'id': 'ocd-division/country:ca'},
+            'extra': {'id': 'ocd-division/country:ca'},
         })
         self.assertEqual(definition['extra'], {'id': 'ocd-division/country:ca'})
-        self.assertNotIn('metadata', definition)
-
-    def test_extra_override(self):
-        definition = Definition({
-            'name': '',
-            'name_func': lambda feature: None,
-            'metadata': {'id': 'ocd-division/country:ca'},
-            'extra': {'extra': 'extra'},
-        })
-        self.assertEqual(definition['extra'], {'extra': 'extra'})
-        self.assertNotIn('metadata', definition)
 
     def test_get(self):
         definition = Definition({
