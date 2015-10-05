@@ -45,7 +45,7 @@ boundaries.register('Federal electoral districts',  # The string to be used for
     # made to the original source data, e.g. deleted or merged features.
     notes='',
     # (Optional) Any additional metadata to include in API responses.
-    extra={'geographic_code': '01'},
+    extra={'id': 'ocd-division/country:ca'},
 
 
     # The following Boundary functions take a feature as an argument and return

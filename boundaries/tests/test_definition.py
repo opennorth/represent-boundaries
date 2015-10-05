@@ -75,7 +75,7 @@ class DefinitionTestCase(TestCase):
             'start_date': date(2000, 1, 1),
             'end_date': date(2010, 1, 1),
             'notes': 'Notes',
-            'extra': {'geographic_code': '01'},
+            'extra': {'id': 'ocd-division/country:ca'},
             'id_func': lambda feature: 'ID',
             'slug_func': lambda feature: 'Slug',
             'is_valid_func': lambda feature: False,
@@ -110,7 +110,7 @@ class DefinitionTestCase(TestCase):
         self.assertEqual(definition['start_date'], date(2000, 1, 1))
         self.assertEqual(definition['end_date'], date(2010, 1, 1))
         self.assertEqual(definition['notes'], 'Notes')
-        self.assertEqual(definition['extra'], {'geographic_code': '01'})
+        self.assertEqual(definition['extra'], {'id': 'ocd-division/country:ca'})
         self.assertEqual(definition['id_func']({}), 'ID')
         self.assertEqual(definition['slug_func']({}), 'Slug')
         self.assertEqual(definition['is_valid_func']({}), False)
@@ -135,16 +135,16 @@ class DefinitionTestCase(TestCase):
         definition = Definition({
             'name': '',
             'name_func': lambda feature: None,
-            'metadata': {'geographic_code': '01'},
+            'metadata': {'id': 'ocd-division/country:ca'},
         })
-        self.assertEqual(definition['extra'], {'geographic_code': '01'})
+        self.assertEqual(definition['extra'], {'id': 'ocd-division/country:ca'})
         self.assertNotIn('metadata', definition)
 
     def test_extra_override(self):
         definition = Definition({
             'name': '',
             'name_func': lambda feature: None,
-            'metadata': {'geographic_code': '01'},
+            'metadata': {'id': 'ocd-division/country:ca'},
             'extra': {'extra': 'extra'},
         })
         self.assertEqual(definition['extra'], {'extra': 'extra'})
