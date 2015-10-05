@@ -12,6 +12,7 @@ setup(
         'boundaries',
         'boundaries.management',
         'boundaries.management.commands',
+        'boundaries.migrations',
     ],
     install_requires=[
         'jsonfield>=0.9.20,<1',
