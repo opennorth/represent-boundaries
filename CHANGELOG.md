@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.4 (2015-10-05)
+
+* Add `boundaries.migrations` to package.
+
 ## 0.7.3 (2015-10-05)
 
 * Fix `SourceFileLoader` being unavailable prior to Python 3.3.
