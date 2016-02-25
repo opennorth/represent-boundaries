@@ -60,7 +60,7 @@ class APIView(View):
         # JSONP
         callback = ''
         if self.allow_jsonp and 'callback' in request.GET:
-            callback = re.sub(r'[^a-zA-Z0-9_]', '', request.GET['callback'])
+            callback = re.sub(r'[^a-zA-Z0-9$._]', '', request.GET['callback'])
             resp.write(callback + '(')
         if isinstance(result, RawJSONResponse):
             resp.write(result.content)

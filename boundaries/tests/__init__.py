@@ -15,7 +15,7 @@ from django.utils.six.moves.urllib.parse import parse_qsl, unquote_plus, urlpars
 
 from boundaries.models import app_settings, Boundary
 
-jsonp_re = re.compile(r'\AabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_\((.+)\);\Z', re.DOTALL)
+jsonp_re = re.compile(r'\Aabcdefghijklmnopqrstuvwxyz\.ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\$_\((.+)\);\Z', re.DOTALL)
 pretty_re = re.compile(r'\n    ')
 
 
@@ -138,7 +138,7 @@ class ViewsTests(object):
         app_settings.ALLOW_ORIGIN = _
 
     def test_jsonp(self):
-        response = self.client.get(self.url, {'callback': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?'})
+        response = self.client.get(self.url, {'callback': 'abcdefghijklmnopqrstuvwxyz.ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890$`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?'})
         self.assertResponse(response)
         content = response.content.decode('utf-8')
         self.assertJSONEqual(content[64:-2], self.json)
@@ -158,7 +158,7 @@ class PrettyTests(object):
         assertRegex(self, response.content.decode('utf-8'), pretty_re)
 
     def test_jsonp_and_pretty(self):
-        response = self.client.get(self.url, {'callback': 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?', 'pretty': 1})
+        response = self.client.get(self.url, {'callback': 'abcdefghijklmnopqrstuvwxyz.ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890$`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?', 'pretty': 1})
         self.assertResponse(response)
         content = response.content.decode('utf-8')
         self.assertJSONEqual(content[64:-2], self.json)
