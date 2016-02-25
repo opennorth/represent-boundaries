@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.5 (2016-02-25)
+
+* Allow `$` and `.` in JSONP callback. The callback validation can be [further improved](http://tav.espians.com/sanitising-jsonp-callback-identifiers-for-security.html).
+
 ## 0.7.4 (2015-10-05)
 
 * Add `boundaries.migrations` to package.
