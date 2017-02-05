@@ -272,27 +272,3 @@ class GeoTests(object):
 
     def test_invalid(self):
         self.assertRaises(NotImplementedError, self.client.get, self.url, {'format': 'invalid'})
-
-
-# For Django < 1.6
-from boundaries.tests.test import *
-from boundaries.tests.test_boundary import *
-from boundaries.tests.test_boundary_detail import *
-from boundaries.tests.test_boundary_geo_detail import *
-from boundaries.tests.test_boundary_list import *
-from boundaries.tests.test_boundary_list_filter import *
-from boundaries.tests.test_boundary_list_geo import *
-from boundaries.tests.test_boundary_list_geo_filter import *
-from boundaries.tests.test_boundary_list_set import *
-from boundaries.tests.test_boundary_list_set_filter import *
-from boundaries.tests.test_boundary_list_set_geo import *
-from boundaries.tests.test_boundary_list_set_geo_filter import *
-from boundaries.tests.test_boundary_set import *
-from boundaries.tests.test_boundary_set_detail import *
-from boundaries.tests.test_boundary_set_list import *
-from boundaries.tests.test_boundary_set_list_filter import *
-from boundaries.tests.test_compute_intersections import *
-from boundaries.tests.test_definition import *
-from boundaries.tests.test_feature import *
-from boundaries.tests.test_geometry import *
-from boundaries.tests.test_loadshapefiles import *

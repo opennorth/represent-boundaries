@@ -9,8 +9,6 @@ python:
   - "3.4"
   - "3.5"
 env:
-  - DJANGO="Django>=1.5,<1.6"
-  - DJANGO="Django>=1.6,<1.7"
   - DJANGO="Django>=1.7,<1.8"
   - DJANGO="Django>=1.8,<1.9"
 # - DJANGO="git+https://github.com/django/django.git@master#egg=django"
@@ -22,10 +20,6 @@ matrix:
     # @see https://docs.djangoproject.com/en/dev/releases/1.8/#python-compatibility
     - python: "2.6"
       env: DJANGO="Django>=1.8,<1.9"
-    - python: "3.5"
-      env: DJANGO="Django>=1.5,<1.6"
-    - python: "3.5"
-      env: DJANGO="Django>=1.6,<1.7"
     - python: "3.5"
       env: DJANGO="Django>=1.7,<1.8"
 install:

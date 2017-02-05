@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import logging
-log = logging.getLogger(__name__)
 from optparse import make_option
 import os
 import os.path
@@ -23,8 +22,7 @@ from django.utils.translation import ugettext as _, ugettext_lazy
 import boundaries
 from boundaries.models import app_settings, BoundarySet, Boundary, Definition, Feature
 
-if not hasattr(transaction, 'atomic'):  # Django < 1.6
-    transaction.atomic = transaction.commit_on_success
+log = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -194,10 +192,7 @@ def create_data_sources(path, encoding='ascii', convert_3d_to_2d=False, zipfile=
                 args.append('-overwrite')
             subprocess.call(args)
 
-        try:
-            return DataSource(path, encoding=encoding)
-        except TypeError:  # DataSource only includes the encoding option in Django >= 1.5.
-            return DataSource(path)
+        return DataSource(path, encoding=encoding)
 
     def create_data_sources_from_zip(path):
         """
