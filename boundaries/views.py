@@ -5,8 +5,7 @@ from django.http import Http404
 from django.utils.translation import ugettext as _
 
 from boundaries.base_views import (ModelListView, ModelDetailView,
-                                   ModelGeoListView, ModelGeoDetailView,
-                                   BadRequest)
+    ModelGeoListView, ModelGeoDetailView, BadRequest)
 from boundaries.models import BoundarySet, Boundary, app_settings
 
 

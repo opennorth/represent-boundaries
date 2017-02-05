@@ -2,13 +2,13 @@
 from __future__ import unicode_literals
 
 import logging
-log = logging.getLogger(__name__)
 import sys
 import os
 import re
 
 from django.utils.translation import ugettext as _
 
+log = logging.getLogger(__name__)
 registry = {}
 _basepath = '.'
 
@@ -78,7 +78,7 @@ def import_file(path):
     # The module object is returned, but this return value is unused by this
     # package.
 
-    if sys.version_info > (3,3):
+    if sys.version_info > (3, 3):
         """
         If we're in Python 3, we'll use the PEP 302 import loader.
         """

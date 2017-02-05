@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, url
 
-from boundaries.views import *
+from boundaries.views import (BoundarySetListView, BoundarySetDetailView,
+    BoundaryListView, BoundaryDetailView, BoundaryGeoDetailView)
 
 urlpatterns = patterns('',
     url(r'^boundary-sets/$',
