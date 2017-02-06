@@ -80,7 +80,7 @@ class Command(BaseCommand):
                 definition.setdefault('name', name)
                 definition = Definition(definition)
 
-                data_sources, tmpdirs = create_data_sources(definition['file'], definition['encoding'], options['clean'])
+                data_sources, tmpdirs = create_data_sources(definition['file'], encoding=definition['encoding'], convert_3d_to_2d=options['clean'])
 
                 try:
                     if not data_sources:
