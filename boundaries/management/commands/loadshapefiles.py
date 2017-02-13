@@ -2,14 +2,14 @@
 from __future__ import unicode_literals
 
 import logging
-from optparse import make_option
 import os
 import os.path
 import subprocess
 from contextlib import closing
-from zipfile import ZipFile
-from tempfile import mkdtemp
+from optparse import make_option
 from shutil import rmtree
+from tempfile import mkdtemp
+from zipfile import ZipFile
 
 from django.conf import settings
 from django.contrib.gis.gdal import DataSource, SpatialReference

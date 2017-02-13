@@ -1,8 +1,7 @@
 from __future__ import print_function
 
-import sys
 import json
-
+import sys
 from optparse import make_option
 
 from django.core.management.base import BaseCommand, CommandError

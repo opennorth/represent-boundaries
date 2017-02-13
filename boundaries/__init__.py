@@ -2,9 +2,9 @@
 from __future__ import unicode_literals
 
 import logging
-import sys
 import os
 import re
+import sys
 
 from django.utils.translation import ugettext as _
 
