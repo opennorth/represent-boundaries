@@ -1,5 +1,5 @@
 """
-To run `django-admin.py syncdb --settings settings --noinput` before testing.
+To run `django-admin.py migrate --settings settings --noinput` before testing.
 """
 
 SECRET_KEY = 'x'

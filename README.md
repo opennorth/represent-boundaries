@@ -33,12 +33,10 @@ Represent Boundaries is one of many [Poplus Components](http://poplus.org/compon
 
 ## Testing
 
-```
-createdb travis_ci_test
-psql travis_ci_test -c 'CREATE EXTENSION postgis;'
-django-admin.py syncdb --settings settings --noinput
-python runtests.py
-```
+    createdb travis_ci_test
+    psql travis_ci_test -c 'CREATE EXTENSION postgis;'
+    django-admin.py migrate --settings settings --noinput
+    python runtests.py
 
 ## Acknowledgements
 

@@ -22,7 +22,7 @@ before_script:
   - psql -c 'CREATE EXTENSION postgis' -U postgres template_postgis
   - createdb -U postgres travis_ci_test
   - psql -c 'CREATE EXTENSION postgis' -U postgres travis_ci_test
-  - django-admin.py syncdb --settings settings --noinput
+  - django-admin.py migrate --settings settings --noinput
 script:
   - coverage run --source=boundaries runtests.py
 after_success:
