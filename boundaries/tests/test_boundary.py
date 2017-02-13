@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
-import datetime
+
+from datetime import date
 
 from django.test import TestCase
 from django.contrib.gis.gdal import OGRGeometry
@@ -62,8 +63,8 @@ class BoundaryTestCase(TestCase):
             external_id=1,
             extent=[0, 0, 1, 1],
             centroid=Point(0, 1),
-            start_date=datetime.date(2000, 1, 1),
-            end_date=datetime.date(2010, 1, 1),
+            start_date=date(2000, 1, 1),
+            end_date=date(2010, 1, 1),
         ).as_dict(), {
             'related': {
                 'boundary_set_url': '/boundary-sets/foo/',
@@ -109,6 +110,8 @@ class BoundaryTestCase(TestCase):
         })
 
     def test_prepare_queryset_for_get_dicts(self):
+        BoundarySet.objects.create(slug='foo', last_updated=date(2000, 1, 1))
+
         geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
         Boundary.objects.create(
             slug='bar',

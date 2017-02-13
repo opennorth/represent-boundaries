@@ -153,6 +153,9 @@ class LoadBoundaryTestCase(TestCase):
 
     feature = Feature(FeatureProxy({}), definition, boundary_set=boundary_set)
 
+    def setUp(self):
+        self.boundary_set.save()
+
     def test_no_merge_strategy(self):
         boundary = Command().load_boundary(self.feature)
         self.assertEqual(boundary.set, self.boundary_set)

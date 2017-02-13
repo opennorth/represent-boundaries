@@ -32,8 +32,9 @@ class BoundaryDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):
     }
 
     def setUp(self):
-        geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
         BoundarySet.objects.create(slug='inc', last_updated=date(2000, 1, 1))
+
+        geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
         Boundary.objects.create(slug='foo', set_id='inc', shape=geom, simple_shape=geom)
 
     def test_404(self):

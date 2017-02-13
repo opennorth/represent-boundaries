@@ -21,10 +21,15 @@ if not settings.configured:
             'django.contrib.gis',
             'boundaries',
         ),
-        MIDDLEWARE_CLASSES=(),
+        TEMPLATES = [
+            {
+                'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                'APP_DIRS': True,
+            },
+        ],
+        MIDDLEWARE_CLASSES=[],
     )
-    if hasattr(django, 'setup'):  # Django 1.7
-        django.setup()
+    django.setup()
 
 if __name__ == '__main__':
     # @see https://docs.djangoproject.com/en/1.6/releases/1.6/#discovery-of-tests-in-any-test-module

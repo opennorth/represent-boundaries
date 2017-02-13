@@ -1,9 +1,9 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from boundaries.views import (BoundarySetListView, BoundarySetDetailView,
     BoundaryListView, BoundaryDetailView, BoundaryGeoDetailView)
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^boundary-sets/$',
         BoundarySetListView.as_view(),
         name='boundaries_set_list'),
@@ -28,4 +28,4 @@ urlpatterns = patterns('',
     url(r'^boundaries/(?P<set_slug>[\w_-]+)/(?P<slug>[\w_-]+)/(?P<geo_field>shape|simple_shape|centroid)$',
         BoundaryGeoDetailView.as_view(),
         name='boundaries_boundary_detail'),
-)
+]

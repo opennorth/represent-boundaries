@@ -1,9 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from datetime import date
+
 from django.contrib.gis.geos import GEOSGeometry
 
-from boundaries.models import Boundary
+from boundaries.models import BoundarySet, Boundary
 from boundaries.tests import ViewTestCase
 
 
@@ -19,6 +21,10 @@ class BoundaryListFilterTestCase(ViewTestCase):
     url = '/boundaries/'
 
     def setUp(self):
+        BoundarySet.objects.create(name='inc', last_updated=date(2000, 1, 1))
+        BoundarySet.objects.create(name='abc', last_updated=date(2000, 1, 1))
+        BoundarySet.objects.create(name='xyz', last_updated=date(2000, 1, 1))
+
         geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
         Boundary.objects.create(slug='foo', set_id='inc', shape=geom, simple_shape=geom, name='Foo', external_id=1)
         geom = GEOSGeometry('MULTIPOLYGON(((1 2,1 4,3 4,1 2)))')  # coverlaps

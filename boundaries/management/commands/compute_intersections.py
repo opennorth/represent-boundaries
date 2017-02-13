@@ -2,11 +2,10 @@ from __future__ import print_function
 
 import json
 import sys
-from optparse import make_option
 
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.six import text_type
-from django.utils.translation import ugettext as _, ugettext_lazy
+from django.utils.translation import ugettext as _
 
 from boundaries.models import BoundarySet
 
@@ -15,12 +14,13 @@ class Command(BaseCommand):
     help = _('Create a report of the area of intersection of every pair of boundaries from two boundary sets specified by their slug.')
     args = '<boundary-set-slug> <boundary-set-slug>'
 
-    option_list = getattr(BaseCommand, 'option_list', ()) + (  # Django < 1.10
-        make_option('-f', '--format', action='store', dest='format', default="csv",
-                    help=ugettext_lazy('Choose an output format: csv, json.')),
-        make_option('-m', '--metadata', action='store_true', dest='include_metadata', default=False,
-                    help=ugettext_lazy('Includes the original shapefile metadata in the output.')),
-    )
+    def add_arguments(self, parser):
+        parser.add_argument('-f', '--format', action='store', dest='format',
+            default='csv',
+            help=_('Choose an output format: csv, json.'))
+        parser.add_argument('-m', '--metadata', action='store_true', dest='include_metadata',
+            default=False,
+            help=_('Includes the original shapefile metadata in the output.'))
 
     def handle(self, *args, **options):
         if len(args) < 2:

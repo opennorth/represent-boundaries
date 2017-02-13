@@ -1,9 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from datetime import date
+
 from django.contrib.gis.geos import GEOSGeometry
 
-from boundaries.models import Boundary
+from boundaries.models import BoundarySet, Boundary
 from boundaries.tests import ViewTestCase, ViewsTests, PrettyTests, PaginationTests, BoundaryListTests
 
 
@@ -26,6 +28,9 @@ class BoundaryListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationTest
             'offset': 0,
         },
     }
+
+    def setUp(self):
+        BoundarySet.objects.create(slug='inc', last_updated=date(2000, 1, 1))
 
     def test_pagination(self):
         geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')

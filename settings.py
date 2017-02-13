@@ -1,5 +1,5 @@
 """
-To run `django-admin.py syncdb --settings settings --noinput` before testing.
+To run `django-admin.py migrate --settings settings --noinput` before testing.
 """
 
 SECRET_KEY = 'x'
@@ -19,4 +19,4 @@ INSTALLED_APPS = (
     'boundaries',
 )
 
-MIDDLEWARE_CLASSES = ()
+MIDDLEWARE_CLASSES = []
