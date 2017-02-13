@@ -19,4 +19,4 @@ INSTALLED_APPS = (
     'boundaries',
 )
 
-MIDDLEWARE_CLASSES = ()
+MIDDLEWARE_CLASSES = []

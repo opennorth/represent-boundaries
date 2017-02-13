@@ -21,7 +21,9 @@ class BoundaryListSetGeoFilterTestCase(ViewTestCase):
     url = '/boundaries/inc/shape'
 
     def setUp(self):
-        BoundarySet.objects.create(slug='inc', last_updated=date(2000, 1, 1))
+        BoundarySet.objects.create(name='inc', last_updated=date(2000, 1, 1))
+        BoundarySet.objects.create(name='abc', last_updated=date(2000, 1, 1))
+        BoundarySet.objects.create(name='xyz', last_updated=date(2000, 1, 1))
 
         geom = GEOSGeometry('MULTIPOLYGON(((0 0,0 5,5 5,0 0)))')
         Boundary.objects.create(slug='foo', set_id='inc', shape=geom, simple_shape=geom, name='Foo', external_id=1)

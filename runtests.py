@@ -21,7 +21,13 @@ if not settings.configured:
             'django.contrib.gis',
             'boundaries',
         ),
-        MIDDLEWARE_CLASSES=(),
+        TEMPLATES = [
+            {
+                'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                'APP_DIRS': True,
+            },
+        ],
+        MIDDLEWARE_CLASSES=[],
     )
     django.setup()
 

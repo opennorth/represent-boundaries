@@ -6,7 +6,6 @@ import os
 import os.path
 import subprocess
 from contextlib import closing
-from optparse import make_option
 from shutil import rmtree
 from tempfile import mkdtemp
 from zipfile import ZipFile
@@ -17,7 +16,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.template.defaultfilters import slugify
 from django.utils import six
-from django.utils.translation import ugettext as _, ugettext_lazy
+from django.utils.translation import ugettext as _
 
 import boundaries
 from boundaries.models import app_settings, BoundarySet, Boundary, Definition, Feature
@@ -27,26 +26,26 @@ log = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     help = _('Import boundaries described by shapefiles.')
-    option_list = getattr(BaseCommand, 'option_list', ()) + (  # Django < 1.10
-        make_option('-r', '--reload', action='store_true', dest='reload',
-                    default=False,
-                    help=ugettext_lazy('Reload boundary sets that have already been imported.')),
-        make_option('-d', '--data-dir', action='store', dest='data_dir',
-                    default=app_settings.SHAPEFILES_DIR,
-                    help=ugettext_lazy('Load shapefiles from this directory.')),
-        make_option('-e', '--except', action='store', dest='except',
-                    default='',
-                    help=ugettext_lazy("Don't load these boundary set slugs (comma-delimited).")),
-        make_option('-o', '--only', action='store', dest='only',
-                    default='',
-                    help=ugettext_lazy('Only load these boundary set slugs (comma-delimited).')),
-        make_option('-c', '--clean', action='store_true', dest='clean',
-                    default=False,
-                    help=ugettext_lazy('Clean shapefiles first with ogr2ogr.')),
-        make_option('-m', '--merge', action='store', dest='merge',
-                    default=None,
-                    help=ugettext_lazy('Merge strategy when there are duplicate slugs, either "combine" (extend the MultiPolygon) or "union" (union the geometries).')),
-    )
+
+    def add_arguments(self, parser):
+        parser.add_argument('-r', '--reload', action='store_true', dest='reload',
+            default=False,
+            help=_('Reload boundary sets that have already been imported.')),
+        parser.add_argument('-d', '--data-dir', action='store', dest='data_dir',
+            default=app_settings.SHAPEFILES_DIR,
+            help=_('Load shapefiles from this directory.')),
+        parser.add_argument('-e', '--except', action='store', dest='except',
+            default='',
+            help=_("Don't load these boundary set slugs (comma-delimited).")),
+        parser.add_argument('-o', '--only', action='store', dest='only',
+            default='',
+            help=_('Only load these boundary set slugs (comma-delimited).')),
+        parser.add_argument('-c', '--clean', action='store_true', dest='clean',
+            default=False,
+            help=_('Clean shapefiles first with ogr2ogr.')),
+        parser.add_argument('-m', '--merge', action='store', dest='merge',
+            default=None,
+            help=_('Merge strategy when there are duplicate slugs, either "combine" (extend the MultiPolygon) or "union" (union the geometries).')),
 
     def get_version(self):
         return '0.7.5'
