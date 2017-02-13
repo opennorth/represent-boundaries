@@ -262,7 +262,7 @@ class GeoTests(object):
     def test_wkt(self):
         response = self.client.get(self.url, {'format': 'wkt'})
         self.assertResponse(response, content_type='text/plain')
-        self.assertEqual(response.content, b'MULTIPOLYGON (((0 0, 0 5, 5 5, 0 0)))')
+        assertRegex(self, str(response.content), r'MULTIPOLYGON \(\(\(0(\.0+)? 0(\.0+)?, 0(\.0+)? 5(\.0+)?, 5(\.0+)? 5(\.0+)?, 0(\.0+)? 0(\.0+)?\)\)\)')
 
     def test_kml(self):
         response = self.client.get(self.url, {'format': 'kml'})
