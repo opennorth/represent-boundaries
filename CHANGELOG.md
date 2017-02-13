@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.x.x
+## 0.8.0 (2017-02-13)
 
 * Add support for Django 1.9 and 1.10.
 * Drop support for Django <= 1.7 and Python 2.6 and 3.3.
