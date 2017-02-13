@@ -26,8 +26,8 @@ log = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = ugettext_lazy('Import boundaries described by shapefiles.')
-    option_list = BaseCommand.option_list + (
+    help = _('Import boundaries described by shapefiles.')
+    option_list = getattr(BaseCommand, 'option_list', ()) + (  # Django < 1.10
         make_option('-r', '--reload', action='store_true', dest='reload',
                     default=False,
                     help=ugettext_lazy('Reload boundary sets that have already been imported.')),

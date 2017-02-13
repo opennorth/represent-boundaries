@@ -12,10 +12,10 @@ from boundaries.models import BoundarySet
 
 
 class Command(BaseCommand):
-    help = ugettext_lazy('Create a report of the area of intersection of every pair of boundaries from two boundary sets specified by their slug.')
+    help = _('Create a report of the area of intersection of every pair of boundaries from two boundary sets specified by their slug.')
     args = '<boundary-set-slug> <boundary-set-slug>'
 
-    option_list = BaseCommand.option_list + (
+    option_list = getattr(BaseCommand, 'option_list', ()) + (  # Django < 1.10
         make_option('-f', '--format', action='store', dest='format', default="csv",
                     help=ugettext_lazy('Choose an output format: csv, json.')),
         make_option('-m', '--metadata', action='store_true', dest='include_metadata', default=False,
