@@ -31,8 +31,6 @@ if not settings.configured:
     django.setup()
 
 if __name__ == '__main__':
-    # @see https://docs.djangoproject.com/en/1.6/releases/1.6/#discovery-of-tests-in-any-test-module
-    # @see https://docs.djangoproject.com/en/1.6/releases/1.6/#new-test-runner
     from django.test.runner import DiscoverRunner
     runner = DiscoverRunner(failfast=False)
     failures = runner.run_tests(['boundaries'])
