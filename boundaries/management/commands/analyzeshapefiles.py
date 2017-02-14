@@ -45,17 +45,16 @@ class Command(BaseCommand):
                     features = OrderedDict()
 
                     for data_source in data_sources:
-                        path = data_source.name[data_source.name.index('boundaries/'):]
-                        features[path] = []
+                        features[slug] = []
 
                         layer = data_source[0]
                         for feature in layer:
                             feature = Feature(feature, definition)
                             if feature.is_valid():
-                                features[path].append((feature.id, feature.name))
+                                features[slug].append((feature.id, feature.name))
 
-                    for name, features in features.items():
-                        print('%s: %d' % (name, len(features)))
+                    for slug, features in features.items():
+                        print('\n%s: %d' % (slug, len(features)))
                         for properties in sorted(features):
                             print('%s: %s' % properties)
             finally:
