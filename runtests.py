@@ -27,7 +27,6 @@ if not settings.configured:
                 'APP_DIRS': True,
             },
         ],
-        MIDDLEWARE_CLASSES=[],
     )
     django.setup()
 
