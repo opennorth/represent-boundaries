@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.x.x
+
+* Add `analyzeshapefiles` command to report the number of features to be loaded, along with names and identifiers.
+
 ## 0.8.0 (2017-02-13)
 
 * Add support for Django 1.9 and 1.10.
