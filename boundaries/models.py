@@ -7,7 +7,8 @@ from appconf import AppConf
 from django.contrib.gis.db import models
 from django.contrib.gis.gdal import CoordTransform, OGRGeometry, OGRGeomType, SpatialReference
 from django.contrib.gis.geos import GEOSGeometry
-from django.core import urlresolvers
+# @see https://docs.djangoproject.com/en/1.10/ref/urlresolvers/ Django 1.10
+from django.core.urlresolvers import reverse
 from django.template.defaultfilters import slugify
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.six import binary_type, string_types, text_type
@@ -90,7 +91,7 @@ class BoundarySet(models.Model):
     def as_dict(self):
         r = {
             'related': {
-                'boundaries_url': urlresolvers.reverse('boundaries_boundary_list', kwargs={'set_slug': self.slug}),
+                'boundaries_url': reverse('boundaries_boundary_list', kwargs={'set_slug': self.slug}),
             },
         }
         for field in self.api_fields:
@@ -103,9 +104,9 @@ class BoundarySet(models.Model):
     def get_dicts(sets):
         return [
             {
-                'url': urlresolvers.reverse('boundaries_set_detail', kwargs={'slug': s.slug}),
+                'url': reverse('boundaries_set_detail', kwargs={'slug': s.slug}),
                 'related': {
-                    'boundaries_url': urlresolvers.reverse('boundaries_boundary_list', kwargs={'set_slug': s.slug}),
+                    'boundaries_url': reverse('boundaries_boundary_list', kwargs={'set_slug': s.slug}),
                 },
                 'name': s.name,
                 'domain': s.domain,
@@ -186,11 +187,11 @@ class Boundary(models.Model):
         my_url = self.get_absolute_url()
         r = {
             'related': {
-                'boundary_set_url': urlresolvers.reverse('boundaries_set_detail', kwargs={'slug': self.set_id}),
+                'boundary_set_url': reverse('boundaries_set_detail', kwargs={'slug': self.set_id}),
                 'shape_url': my_url + 'shape',
                 'simple_shape_url': my_url + 'simple_shape',
                 'centroid_url': my_url + 'centroid',
-                'boundaries_url': urlresolvers.reverse('boundaries_boundary_list', kwargs={'set_slug': self.set_id}),
+                'boundaries_url': reverse('boundaries_boundary_list', kwargs={'set_slug': self.set_id}),
             }
         }
         for field in self.api_fields:
@@ -212,10 +213,10 @@ class Boundary(models.Model):
     def get_dicts(boundaries):
         return [
             {
-                'url': urlresolvers.reverse('boundaries_boundary_detail', kwargs={'slug': b[0], 'set_slug': b[1]}),
+                'url': reverse('boundaries_boundary_detail', kwargs={'slug': b[0], 'set_slug': b[1]}),
                 'name': b[2],
                 'related': {
-                    'boundary_set_url': urlresolvers.reverse('boundaries_set_detail', kwargs={'slug': b[1]}),
+                    'boundary_set_url': reverse('boundaries_set_detail', kwargs={'slug': b[1]}),
                 },
                 'boundary_set_name': b[3],
                 'external_id': b[4],
