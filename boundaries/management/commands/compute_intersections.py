@@ -12,9 +12,9 @@ from boundaries.models import BoundarySet
 
 class Command(BaseCommand):
     help = _('Create a report of the area of intersection of every pair of boundaries from two boundary sets specified by their slug.')
-    args = '<boundary-set-slug> <boundary-set-slug>'
 
     def add_arguments(self, parser):
+        parser.add_argument('slug', nargs=2)
         parser.add_argument('-f', '--format', action='store', dest='format',
             default='csv',
             help=_('Choose an output format: csv, json.'))
@@ -23,11 +23,8 @@ class Command(BaseCommand):
             help=_('Includes the original shapefile metadata in the output.'))
 
     def handle(self, *args, **options):
-        if len(args) < 2:
-            raise CommandError(_("Missing boundary set slugs."))
-
-        bset_a = BoundarySet.objects.get(slug=args[0])
-        bset_b = BoundarySet.objects.get(slug=args[1])
+        bset_a = BoundarySet.objects.get(slug=options['slug'][0])
+        bset_b = BoundarySet.objects.get(slug=options['slug'][1])
 
         if options["format"] == "csv":
             print(bset_a.slug, "area_1", bset_b.slug, "area_2", "area_intersection", "pct_of_1", "pct_of_2")
