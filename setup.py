@@ -2,12 +2,13 @@ from setuptools import setup
 
 setup(
     name="represent-boundaries",
-    version="0.8.0",
+    version="0.8.1",
     description="A web API to geographic boundaries loaded from shapefiles, packaged as a Django app.",
     author="Open North Inc.",
     author_email="represent@opennorth.ca",
     url="http://represent.poplus.org/",
     license="MIT",
+    zip_safe=False, # If packaged as a zip/egg, Django will by default not find static files
     packages=[
         'boundaries',
         'boundaries.management',
