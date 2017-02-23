@@ -7,13 +7,13 @@ from appconf import AppConf
 from django.contrib.gis.db import models
 from django.contrib.gis.gdal import CoordTransform, OGRGeometry, OGRGeomType, SpatialReference
 from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.postgres.fields import JSONField
 # @see https://docs.djangoproject.com/en/1.10/ref/urlresolvers/ update when Django < 2.0 support is dropped
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import slugify
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.six import binary_type, string_types, text_type
 from django.utils.translation import ugettext as _, ugettext_lazy
-from jsonfield import JSONField
 
 
 class MyAppConf(AppConf):

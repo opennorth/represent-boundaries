@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="represent-boundaries",
-    version="0.8.1",
+    version="0.9.0",
     description="A web API to geographic boundaries loaded from shapefiles, packaged as a Django app.",
     author="Open North Inc.",
     author_email="represent@opennorth.ca",
@@ -17,8 +17,6 @@ setup(
     ],
     install_requires=[
         'django-appconf',
-        # @see https://docs.djangoproject.com/en/1.10/ref/contrib/postgres/fields/#jsonfield Django 1.9 and PostgreSQL 9.4
-        'jsonfield>=0.9.20,<1',
     ],
     extras_require={
         'test': 'testfixtures',
