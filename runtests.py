@@ -21,7 +21,7 @@ if not settings.configured:
             'django.contrib.gis',
             'boundaries',
         ),
-        TEMPLATES = [
+        TEMPLATES=[
             {
                 'BACKEND': 'django.template.backends.django.DjangoTemplates',
                 'APP_DIRS': True,

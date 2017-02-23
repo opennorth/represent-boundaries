@@ -8,7 +8,8 @@ setup(
     author_email="represent@opennorth.ca",
     url="http://represent.poplus.org/",
     license="MIT",
-    zip_safe=False, # If packaged as a zip/egg, Django will by default not find static files
+    # If packaged as a zip/egg, Django will by default not find static files.
+    zip_safe=False,
     packages=[
         'boundaries',
         'boundaries.management',

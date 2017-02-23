@@ -3,7 +3,7 @@ from __future__ import print_function
 import json
 import sys
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.utils.six import text_type
 from django.utils.translation import ugettext as _
 
