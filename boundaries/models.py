@@ -7,7 +7,7 @@ from appconf import AppConf
 from django.contrib.gis.db import models
 from django.contrib.gis.gdal import CoordTransform, OGRGeometry, OGRGeomType, SpatialReference
 from django.contrib.gis.geos import GEOSGeometry
-# @see https://docs.djangoproject.com/en/1.10/ref/urlresolvers/ Django 1.10
+# @see https://docs.djangoproject.com/en/1.10/ref/urlresolvers/ update when Django < 2.0 support is dropped
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import slugify
 from django.utils.encoding import python_2_unicode_compatible
@@ -160,7 +160,7 @@ class Boundary(models.Model):
     api_fields = ['boundary_set_name', 'name', 'metadata', 'external_id', 'extent', 'centroid', 'start_date', 'end_date']
     api_fields_doc_from = {'boundary_set_name': 'set_name'}
 
-    # @see https://docs.djangoproject.com/en/1.10/releases/1.9/#geomanager-and-geoqueryset-custom-methods Django 1.9
+    # @see https://docs.djangoproject.com/en/1.10/releases/1.9/#geomanager-and-geoqueryset-custom-methods remove when Django 1.8 support is dropped
     objects = models.GeoManager()
 
     class Meta:
@@ -273,7 +273,7 @@ class Geometry(object):
         return Geometry(geometry)
 
     def cascaded_union(self):
-        # @see https://docs.djangoproject.com/en/1.10/releases/1.10/#id2 Django 1.10
+        # @see https://docs.djangoproject.com/en/1.10/releases/1.10/#id2 deprecated in favor of unary_union in Django 1.10
         geometry = self.geometry.geos.cascaded_union.ogr  # cascaded_union is in GEOS
         geometry = self.geometry_to_multipolygon(geometry)  # cascaded_union will return a Polygon
         return Geometry(geometry)
