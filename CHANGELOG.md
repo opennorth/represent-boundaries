@@ -1,9 +1,10 @@
 # Changelog
 
-## 0.x.x
+## 0.8.1 (2017-02-23)
 
 * Add `analyzeshapefiles` command to report the number of features to be loaded, along with names and identifiers.
 * Fix `compute_intersections` for Django 1.10.
+* Fix packaging for recent Django.
 * Remove South migrations.
 
 ## 0.8.0 (2017-02-13)
