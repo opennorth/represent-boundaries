@@ -48,7 +48,7 @@ class Command(BaseCommand):
             help=_('Merge strategy when there are duplicate slugs, either "combine" (extend the MultiPolygon) or "union" (union the geometries).')),
 
     def get_version(self):
-        return '0.8.1'
+        return '0.9.0'
 
     def handle(self, *args, **options):
         if settings.DEBUG:
