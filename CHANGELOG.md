@@ -2,7 +2,7 @@
 
 ## 0.9.1 (2017-02-23)
 
-* Python packaging change to fix omitting data files when installing
+* Fix packaging (was omitting data files during install).
 
 ## 0.9.0 (2017-02-23)
 
