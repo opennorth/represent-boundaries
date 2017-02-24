@@ -13,6 +13,8 @@ env:
   - DJANGO="Django>=1.10,<1.11"
   - DJANGO="Django=1.11b1"
 # - DJANGO="git+https://github.com/django/django.git@master#egg=django"
+addons:
+  postgresql: "9.5"
 install:
   - pip install $DJANGO
   - pip install psycopg2
