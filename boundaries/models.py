@@ -160,9 +160,6 @@ class Boundary(models.Model):
     api_fields = ['boundary_set_name', 'name', 'metadata', 'external_id', 'extent', 'centroid', 'start_date', 'end_date']
     api_fields_doc_from = {'boundary_set_name': 'set_name'}
 
-    # @see https://docs.djangoproject.com/en/1.10/releases/1.9/#geomanager-and-geoqueryset-custom-methods remove when Django 1.8 support is dropped
-    objects = models.GeoManager()
-
     class Meta:
         unique_together = (('slug', 'set'))
         verbose_name = ugettext_lazy('boundary')
