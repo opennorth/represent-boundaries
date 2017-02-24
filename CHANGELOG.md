@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1 (2017-02-23)
+
+* Python packaging change to fix omitting data files when installing
+
 ## 0.9.0 (2017-02-23)
 
 * Use Django 1.9's `JSONField` to migrate to PostgreSQL 9.4's `jsonb` datatype.
