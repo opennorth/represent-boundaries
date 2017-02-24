@@ -168,6 +168,7 @@ class Boundary(models.Model):
     def __str__(self):
         return "%s (%s)" % (self.name, self.set_name)
 
+    # https://docs.djangoproject.com/en/dev/releases/1.11/#models-permalink-decorator deprecated in Django 1.11
     @models.permalink
     def get_absolute_url(self):
         return 'boundaries_boundary_detail', [], {'set_slug': self.set_id, 'slug': self.slug}
