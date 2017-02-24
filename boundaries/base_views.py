@@ -9,7 +9,7 @@ from django.conf import settings
 from django.contrib.gis.measure import D
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, Http404, HttpResponseForbidden, HttpResponseBadRequest
-from django.template import loader, RequestContext
+from django.template import loader
 from django.template.defaultfilters import escapejs
 from django.utils.six import text_type
 from django.utils.six.moves.urllib.parse import urlencode
