@@ -92,8 +92,7 @@ class APIView(View):
             ctx['title'] = self.model._meta.verbose_name_plural
         else:
             ctx['title'] = self.model._meta.verbose_name
-        c = RequestContext(request, ctx)
-        return HttpResponse(template.render(c))
+        return HttpResponse(template.render(ctx, request=request))
 
 
 class ModelListView(APIView):

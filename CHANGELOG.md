@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.0 (2017-02-23)
+
+* Use Django 1.9's `JSONField` to migrate to PostgreSQL 9.4's `jsonb` datatype
+* Drop support for Django <= 1.8
+* Drop support for PostgreSQL <= 9.3
+
 ## 0.8.1 (2017-02-23)
 
 * Add `analyzeshapefiles` command to report the number of features to be loaded, along with names and identifiers.

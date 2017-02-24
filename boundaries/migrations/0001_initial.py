@@ -2,9 +2,15 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import jsonfield.fields
 import django.contrib.gis.db.models.fields
 
+class JSONField(models.TextField):
+    """Mocks jsonfield 0.92's column-type behaviour"""
+    def db_type(self, connection):
+        if connection.vendor == 'postgresql' and connection.pg_version >= 90300:
+            return 'json'
+        else:
+            return super(JSONField, self).db_type(connection)
 
 class Migration(migrations.Migration):
 
@@ -20,11 +26,11 @@ class Migration(migrations.Migration):
                 ('slug', models.SlugField(max_length=200, help_text="The boundary's unique identifier within the set, used as a path component in URLs.")),
                 ('external_id', models.CharField(max_length=64, help_text='An identifier of the boundary, which should be unique within the set.')),
                 ('name', models.CharField(db_index=True, max_length=192, help_text='The name of the boundary.')),
-                ('metadata', jsonfield.fields.JSONField(default=dict, help_text='The attributes of the boundary from the shapefile, as a dictionary.', blank=True)),
+                ('metadata', JSONField(default=dict, help_text='The attributes of the boundary from the shapefile, as a dictionary.', blank=True)),
                 ('shape', django.contrib.gis.db.models.fields.MultiPolygonField(srid=4326, help_text='The geometry of the boundary in EPSG:4326.')),
                 ('simple_shape', django.contrib.gis.db.models.fields.MultiPolygonField(srid=4326, help_text='The simplified geometry of the boundary in EPSG:4326.')),
                 ('centroid', django.contrib.gis.db.models.fields.PointField(srid=4326, help_text='The centroid of the boundary in EPSG:4326.', null=True)),
-                ('extent', jsonfield.fields.JSONField(blank=True, help_text='The bounding box of the boundary as a list like [xmin, ymin, xmax, ymax] in EPSG:4326.', null=True)),
+                ('extent', JSONField(blank=True, help_text='The bounding box of the boundary as a list like [xmin, ymin, xmax, ymax] in EPSG:4326.', null=True)),
                 ('label_point', django.contrib.gis.db.models.fields.PointField(spatial_index=False, srid=4326, blank=True, help_text='The point at which to place a label for the boundary in EPSG:4326, used by represent-maps.', null=True)),
             ],
             options={
@@ -45,10 +51,10 @@ class Migration(migrations.Migration):
                 ('source_url', models.URLField(help_text='A URL to the source of the data.', blank=True)),
                 ('notes', models.TextField(help_text='Free-form text notes, often used to describe changes that were made to the original source data.', blank=True)),
                 ('licence_url', models.URLField(help_text='A URL to the licence under which the data is made available.', blank=True)),
-                ('extent', jsonfield.fields.JSONField(blank=True, help_text="The set's boundaries' bounding box as a list like [xmin, ymin, xmax, ymax] in EPSG:4326.", null=True)),
+                ('extent', JSONField(blank=True, help_text="The set's boundaries' bounding box as a list like [xmin, ymin, xmax, ymax] in EPSG:4326.", null=True)),
                 ('start_date', models.DateField(blank=True, help_text="The date from which the set's boundaries are in effect.", null=True)),
                 ('end_date', models.DateField(blank=True, help_text="The date until which the set's boundaries are in effect.", null=True)),
-                ('extra', jsonfield.fields.JSONField(blank=True, help_text='Any additional metadata.', null=True)),
+                ('extra', JSONField(blank=True, help_text='Any additional metadata.', null=True)),
             ],
             options={
                 'ordering': ('name',),

@@ -13,36 +13,38 @@ from boundaries.tests import FeatureProxy
 
 
 class FeatureTestCase(TestCase):
-    definition = Definition({
-        'last_updated': date(2000, 1, 1),
-        'encoding': 'utf-8',
-        'name': 'Districts',
-        'name_func': clean_attr('Name'),
-        'id_func': attr('ID'),
-        'slug_func': attr('Code'),
-        'is_valid_func': lambda f: f.get('ID') == '1',
-        'label_point_func': lambda f: Point(0, 1),
-    })
 
-    fields = {
-        'Name': 'VALID',
-        'ID': '1',
-        'Code': '\tFoo—Bar–Baz \r Bzz\n',  # m-dash, n-dash
-    }
+    def setUp(self):
+        self.definition = definition = Definition({
+            'last_updated': date(2000, 1, 1),
+            'encoding': 'utf-8',
+            'name': 'Districts',
+            'name_func': clean_attr('Name'),
+            'id_func': attr('ID'),
+            'slug_func': attr('Code'),
+            'is_valid_func': lambda f: f.get('ID') == '1',
+            'label_point_func': lambda f: Point(0, 1),
+        })
 
-    boundary_set = BoundarySet(
-        last_updated=definition['last_updated'],
-        name=definition['name'],
-        singular=definition['singular'],
-    )
+        self.fields = {
+            'Name': 'VALID',
+            'ID': '1',
+            'Code': '\tFoo—Bar–Baz \r Bzz\n',  # m-dash, n-dash
+        }
 
-    feature = Feature(FeatureProxy(fields), definition)
+        self.boundary_set = BoundarySet(
+            last_updated=definition['last_updated'],
+            name=definition['name'],
+            singular=definition['singular'],
+        )
 
-    other = Feature(FeatureProxy({
-        'Name': 'INVALID',
-        'ID': 100,
-        'Code': 3,
-    }), definition, SpatialReference(4269), boundary_set)
+        self.feature = Feature(FeatureProxy(self.fields), definition)
+
+        self.other = Feature(FeatureProxy({
+            'Name': 'INVALID',
+            'ID': 100,
+            'Code': 3,
+        }), definition, SpatialReference(4269), self.boundary_set)
 
     def test_init(self):
         self.assertEqual(self.feature.boundary_set, None)
@@ -99,7 +101,7 @@ class FeatureTestCase(TestCase):
         self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0 5,5 5,0 0)))')
         self.assertEqual(boundary.centroid.ogr.wkt, 'POINT (1.6667 3.333366666666666)')
         self.assertEqual(boundary.extent, (0.0, 0.0, 4.999999999999999, 4.999999999999999))
-        self.assertEqual(boundary.label_point, Point(0, 1))
+        self.assertEqual(boundary.label_point, Point(0, 1, srid=4326))
         self.assertEqual(boundary.start_date, None)
         self.assertEqual(boundary.end_date, None)
 
