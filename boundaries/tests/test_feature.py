@@ -101,7 +101,7 @@ class FeatureTestCase(TestCase):
         self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0 5,5 5,0 0)))')
         self.assertEqual(boundary.centroid.ogr.wkt, 'POINT (1.6667 3.333366666666666)')
         self.assertEqual(boundary.extent, (0.0, 0.0, 4.999999999999999, 4.999999999999999))
-        self.assertEqual(boundary.label_point, Point(0, 1))
+        self.assertEqual(boundary.label_point, Point(0, 1, srid=4326))
         self.assertEqual(boundary.start_date, None)
         self.assertEqual(boundary.end_date, None)
 
