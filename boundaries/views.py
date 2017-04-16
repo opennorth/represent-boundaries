@@ -52,7 +52,7 @@ class BoundaryListView(ModelGeoListView):
                 raise Http404
             except ValueError:
                 raise BadRequest(_("Invalid value for intersects filter"))
-            qs = qs.filter(models.Q(shape__covers=shape) | models.Q(shape__overlaps=shape))
+            qs = qs.filter(models.Q(shape__covers=shape) | models.Q(shape__overlaps=shape)).order_by('name')
 
         if 'touches' in request.GET:
             try:

@@ -73,7 +73,7 @@ class BoundaryListFilterTestCase(ViewTestCase):
     def test_filter_intersects(self):
         response = self.client.get(self.url, {'intersects': 'abc/bar'})
         self.assertResponse(response)
-        self.assertJSONEqual(response, '{"meta": {"total_count": 2, "related": {"centroids_url": "/boundaries/centroid?intersects=abc%2Fbar", "simple_shapes_url": "/boundaries/simple_shape?intersects=abc%2Fbar", "shapes_url": "/boundaries/shape?intersects=abc%2Fbar"}, "next": null, "limit": 20, "offset": 0, "previous": null}, "objects": [{"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}, {"url": "/boundaries/abc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/abc/"}}]}')
+        self.assertJSONEqual(response, '{"meta": {"total_count": 2, "related": {"centroids_url": "/boundaries/centroid?intersects=abc%2Fbar", "simple_shapes_url": "/boundaries/simple_shape?intersects=abc%2Fbar", "shapes_url": "/boundaries/shape?intersects=abc%2Fbar"}, "next": null, "limit": 20, "offset": 0, "previous": null}, "objects": [{"url": "/boundaries/abc/bar/", "boundary_set_name": "", "external_id": "2", "name": "Bar", "related": {"boundary_set_url": "/boundary-sets/abc/"}}, {"url": "/boundaries/inc/foo/", "boundary_set_name": "", "external_id": "1", "name": "Foo", "related": {"boundary_set_url": "/boundary-sets/inc/"}}]}')
 
     def test_filter_intersects_404(self):
         response = self.client.get(self.url, {'intersects': 'inc/nonexistent'})
