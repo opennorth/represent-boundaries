@@ -3,6 +3,7 @@
 ## 0.9.2
 
 * Support shapefiles with date field values.
+* Add support for Django 2.0.
 * Drop support for Django <= 1.10.
 
 ## 0.9.1 (2017-02-23)

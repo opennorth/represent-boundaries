@@ -44,8 +44,8 @@ class GeometryTestCase(TestCase):
         self.assertEqual(geometry.geometry.geom_name, 'MULTIPOLYGON')
         self.assertEqual(geometry.wkt, 'MULTIPOLYGON (((0 0,0 5,5 5,0 0)))')
 
-    def test_cascaded_union(self):
-        geometry = Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0 5,5 5,0 0)),((0 0,5 0,5 5,0 0)))')).cascaded_union()
+    def test_unary_union(self):
+        geometry = Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0 5,5 5,0 0)),((0 0,5 0,5 5,0 0)))')).unary_union()
         self.assertIsInstance(geometry, Geometry)
         self.assertEqual(geometry.geometry.geom_name, 'MULTIPOLYGON')
         self.assertEqual(geometry.wkt, 'MULTIPOLYGON (((0 0,0 5,5 5,5 0,0 0)))')

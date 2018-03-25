@@ -162,7 +162,7 @@ class Command(BaseCommand):
                 if merge_strategy == 'combine':
                     boundary.merge(feature.geometry)
                 elif merge_strategy == 'union':
-                    boundary.cascaded_union(feature.geometry)
+                    boundary.unary_union(feature.geometry)
                 else:
                     raise ValueError(_("The merge strategy '%(value)s' must be 'combine' or 'union'.") % {'value': merge_strategy})
                 boundary.centroid = boundary.shape.centroid

@@ -10,8 +10,8 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.postgres.fields import JSONField
 # @see https://docs.djangoproject.com/en/1.10/ref/urlresolvers/ update when Django < 2.0 support is dropped
 from django.core.serializers.json import DjangoJSONEncoder
-from django.core.urlresolvers import reverse
 from django.template.defaultfilters import slugify
+from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.six import binary_type, string_types, text_type
 from django.utils.translation import ugettext as _, ugettext_lazy
@@ -131,7 +131,7 @@ class Boundary(models.Model):
     """
     A boundary, corresponding to a feature in a shapefile.
     """
-    set = models.ForeignKey(BoundarySet, related_name='boundaries',
+    set = models.ForeignKey(BoundarySet, related_name='boundaries', on_delete=models.CASCADE,
         help_text=ugettext_lazy('The set to which the boundary belongs.'))
     set_name = models.CharField(max_length=100,
         help_text=ugettext_lazy('A generic singular name for the boundary.'))
@@ -232,12 +232,12 @@ class Boundary(models.Model):
         self.shape = Geometry(self.shape.ogr).merge(geometry).wkt
         self.simple_shape = Geometry(self.simple_shape.ogr).merge(simple_geometry).wkt
 
-    def cascaded_union(self, geometry):
+    def unary_union(self, geometry):
         """
         Merges the boundary's shape with the geometry (EPSG:4326) and performs a
         union, then recalculates the shape's simplifications.
         """
-        geometry = Geometry(self.shape.ogr).merge(geometry).cascaded_union()
+        geometry = Geometry(self.shape.ogr).merge(geometry).unary_union()
 
         self.shape = geometry.wkt
         self.simple_shape = geometry.simplify().wkt
@@ -271,10 +271,9 @@ class Geometry(object):
         geometry = self.geometry_to_multipolygon(geometry)  # simplify can return a Polygon
         return Geometry(geometry)
 
-    def cascaded_union(self):
-        # @see https://docs.djangoproject.com/en/1.10/releases/1.10/#id2 deprecated in favor of unary_union in Django 1.10
-        geometry = self.geometry.geos.cascaded_union.ogr  # cascaded_union is in GEOS
-        geometry = self.geometry_to_multipolygon(geometry)  # cascaded_union will return a Polygon
+    def unary_union(self):
+        geometry = self.geometry.geos.unary_union.ogr  # returns a Polygon
+        geometry = self.geometry_to_multipolygon(geometry)
         return Geometry(geometry)
 
     def merge(self, other):

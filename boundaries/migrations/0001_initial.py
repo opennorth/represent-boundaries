@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='boundary',
             name='set',
-            field=models.ForeignKey(related_name='boundaries', to='boundaries.BoundarySet', help_text='The set to which the boundary belongs.'),
+            field=models.ForeignKey(related_name='boundaries', to='boundaries.BoundarySet', on_delete=models.CASCADE, help_text='The set to which the boundary belongs.'),
             preserve_default=True,
         ),
         migrations.AlterUniqueTogether(
