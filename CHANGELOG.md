@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.2
+
+* Support shapefiles with date field values.
+* Drop support for Django <= 1.10.
+
 ## 0.9.1 (2017-02-23)
 
 * Fix packaging (was omitting data files during install).

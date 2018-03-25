@@ -9,6 +9,7 @@ from django.contrib.gis.gdal import CoordTransform, OGRGeometry, OGRGeomType, Sp
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.postgres.fields import JSONField
 # @see https://docs.djangoproject.com/en/1.10/ref/urlresolvers/ update when Django < 2.0 support is dropped
+from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import slugify
 from django.utils.encoding import python_2_unicode_compatible
@@ -140,7 +141,7 @@ class Boundary(models.Model):
         help_text=ugettext_lazy("An identifier of the boundary, which should be unique within the set."))
     name = models.CharField(max_length=192, db_index=True,
         help_text=ugettext_lazy('The name of the boundary.'))
-    metadata = JSONField(default={}, blank=True,
+    metadata = JSONField(default={}, blank=True, encoder=DjangoJSONEncoder,
         help_text=ugettext_lazy('The attributes of the boundary from the shapefile, as a dictionary.'))
     shape = models.MultiPolygonField(
         help_text=ugettext_lazy('The geometry of the boundary in EPSG:4326.'))
