@@ -2,6 +2,8 @@
 
 ## 0.9.3
 
+* `analyzeshapefiles` outputs boundary sets in alphabetical order by name/slug.
+
 ## 0.9.2 (2018-03-25)
 
 * Support shapefiles with date field values.

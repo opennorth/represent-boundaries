@@ -27,9 +27,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         boundaries.autodiscover(options['data_dir'])
 
-        for slug, definition in boundaries.registry.items():
+        for slug in sorted(boundaries.registry):
             name = slug
             slug = slugify(slug)
+            definition = boundaries.registry[name]
 
             # Backwards-compatibility with having the name, instead of the slug,
             # as the first argument to `boundaries.register`.
