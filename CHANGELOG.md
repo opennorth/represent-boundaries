@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.2
+## 0.9.2 (2018-03-25)
 
 * Support shapefiles with date field values.
 * Add support for Django 2.0.
