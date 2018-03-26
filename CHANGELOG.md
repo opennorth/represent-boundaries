@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.9.3
+
 ## 0.9.2 (2018-03-25)
 
 * Support shapefiles with date field values.
