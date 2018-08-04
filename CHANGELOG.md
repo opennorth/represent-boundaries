@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.9.3
+## 0.9.4
+
+## 0.9.3 (2018-08-04)
 
 * `analyzeshapefiles` outputs boundary sets in alphabetical order by name/slug.
 
