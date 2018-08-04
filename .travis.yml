@@ -17,7 +17,7 @@ matrix:
   # @see https://docs.djangoproject.com/en/dev/releases/2.0/#python-compatibility
   exclude:
   - python: "2.7"
-    env: DJANGO="Django>=2.0,<=2.1"
+    env: DJANGO="Django>=2.0,<2.1"
 addons:
   postgresql: "9.5"
   apt:
