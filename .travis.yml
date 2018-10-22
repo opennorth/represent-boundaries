@@ -12,12 +12,15 @@ python:
 env:
   - DJANGO="Django>=1.11,<1.12"
   - DJANGO="Django>=2.0,<2.1"
+  - DJANGO="Django>=2.1,<2.2"
 # - DJANGO="git+https://github.com/django/django.git@master#egg=django"
 matrix:
   # @see https://docs.djangoproject.com/en/dev/releases/2.0/#python-compatibility
   exclude:
   - python: "2.7"
     env: DJANGO="Django>=2.0,<2.1"
+  - python: "2.7"
+    env: DJANGO="Django>=2.1,<2.2"
 addons:
   postgresql: "9.5"
   apt:
