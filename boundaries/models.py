@@ -67,7 +67,7 @@ class BoundarySet(models.Model):
         help_text=ugettext_lazy("The date from which the set's boundaries are in effect."))
     end_date = models.DateField(blank=True, null=True,
         help_text=ugettext_lazy("The date until which the set's boundaries are in effect."))
-    extra = JSONField(default={}, blank=True,
+    extra = JSONField(default=dict, blank=True,
         help_text=ugettext_lazy("Any additional metadata."))
 
     name_plural = property(lambda s: s.name)
@@ -141,7 +141,7 @@ class Boundary(models.Model):
         help_text=ugettext_lazy("An identifier of the boundary, which should be unique within the set."))
     name = models.CharField(max_length=192, db_index=True,
         help_text=ugettext_lazy('The name of the boundary.'))
-    metadata = JSONField(default={}, blank=True, encoder=DjangoJSONEncoder,
+    metadata = JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder,
         help_text=ugettext_lazy('The attributes of the boundary from the shapefile, as a dictionary.'))
     shape = models.MultiPolygonField(
         help_text=ugettext_lazy('The geometry of the boundary in EPSG:4326.'))
@@ -169,10 +169,8 @@ class Boundary(models.Model):
     def __str__(self):
         return "%s (%s)" % (self.name, self.set_name)
 
-    # https://docs.djangoproject.com/en/dev/releases/1.11/#models-permalink-decorator deprecated in Django 1.11
-    @models.permalink
     def get_absolute_url(self):
-        return 'boundaries_boundary_detail', [], {'set_slug': self.set_id, 'slug': self.slug}
+        return reverse('boundaries_boundary_detail', kwargs={'set_slug': self.set_id, 'slug': self.slug})
 
     @property
     def boundary_set(self):
