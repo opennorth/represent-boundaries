@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.9.5
+
 ## 0.9.4 (2019-01-09)
 
 * Add support for Django 2.1.
