@@ -1,12 +1,16 @@
 from setuptools import setup
 
+with open('README.rst') as f:
+    long_description = f.read()
+
 setup(
     name="represent-boundaries",
     version="0.9.5",
-    description="A web API to geographic boundaries loaded from shapefiles, packaged as a Django app.",
     author="Open North Inc.",
     author_email="represent@opennorth.ca",
     url="http://represent.poplus.org/",
+    description="A web API to geographic boundaries loaded from shapefiles, packaged as a Django app.",
+    long_description=long_description,
     license="MIT",
     # If packaged as a zip/egg, Django will by default not find static files.
     zip_safe=False,
