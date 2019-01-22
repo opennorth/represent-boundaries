@@ -73,8 +73,8 @@ Released under the MIT license
 
 .. |PyPI version| image:: https://badge.fury.io/py/represent-boundaries.svg
    :target: https://badge.fury.io/py/represent-boundaries
-.. |Build Status| image:: https://secure.travis-ci.com/opennorth/represent-boundaries.png
-   :target: https://travis-ci.com/opennorth/represent-boundaries
+.. |Build Status| image:: https://secure.travis-ci.org/opennorth/represent-boundaries.png
+   :target: https://travis-ci.org/opennorth/represent-boundaries
 .. |Dependency Status| image:: https://gemnasium.com/opennorth/represent-boundaries.png
    :target: https://gemnasium.com/opennorth/represent-boundaries
 .. |Coverage Status| image:: https://coveralls.io/repos/opennorth/represent-boundaries/badge.png?branch=master
