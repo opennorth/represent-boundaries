@@ -37,21 +37,15 @@ Public instances include:
 -  `gis.govtrack.us <http://gis.govtrack.us/map/demo/cd-2012/>`__ for
    the US: `source code <https://github.com/JoshData/boundaries_us>`__
 
-Represent Boundaries is one of many `Poplus
-Components <http://poplus.org/components/>`__: independent pieces of
-software developed to solve a range of common problems encountered when
-building civic and democratic websites. `Check out the other
-components. <http://poplus.org/components/current/>`__
-
 Documentation
 -------------
 
--  `Installation <http://represent.poplus.org/docs/install/>`__
--  `Add data to the API <http://represent.poplus.org/docs/import/>`__
--  `Use the API <http://represent.poplus.org/docs/api/>`__
--  `Update data in the API <http://represent.poplus.org/docs/manage/>`__
+-  `Installation <https://opennorth.github.io/represent-boundaries-docs/docs/install/>`__
+-  `Add data to the API <https://opennorth.github.io/represent-boundaries-docs/docs/import/>`__
+-  `Use the API <https://opennorth.github.io/represent-boundaries-docs/docs/api/>`__
+-  `Update data in the API <https://opennorth.github.io/represent-boundaries-docs/docs/manage/>`__
 -  `Read the API
-   reference <http://represent.poplus.org/docs/reference/>`__
+   reference <https://opennorth.github.io/represent-boundaries-docs/docs/reference/>`__
 
 Testing
 -------

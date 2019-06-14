@@ -8,7 +8,7 @@ setup(
     version="0.9.5",
     author="Open North Inc.",
     author_email="represent@opennorth.ca",
-    url="http://represent.poplus.org/",
+    url="https://opennorth.github.io/represent-boundaries-docs/",
     description="A web API to geographic boundaries loaded from shapefiles, packaged as a Django app.",
     long_description=long_description,
     license="MIT",
