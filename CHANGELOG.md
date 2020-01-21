@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.5
+## 0.9.5 (Unreleased)
 
 * Add support for Django 2.2.
 * Drop support for Python 2.7 and 3.4.
