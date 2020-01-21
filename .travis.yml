@@ -8,7 +8,8 @@ python:
   - "3.7"
   - "3.8"
 env:
-  # https://docs.djangoproject.com/en/dev/releases/
+  # https://www.djangoproject.com/download/
+  - DJANGO="Django>=1.11,<1.12"
   - DJANGO="Django>=2.0,<2.1"
   - DJANGO="Django>=2.1,<2.2"
   - DJANGO="Django>=2.2,<2.3"
