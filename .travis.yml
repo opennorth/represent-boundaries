@@ -1,28 +1,18 @@
 sudo: false
-dist: trusty
 language: python
 cache: pip
 python:
-  # @see http://lucumr.pocoo.org/2013/5/21/porting-to-python-3-redux/
-  # @see https://docs.djangoproject.com/en/dev/releases/1.11/#python-compatibility
-  - "2.7"
-  - "3.4"
+  # https://devguide.python.org/#branchstatus
   - "3.5"
   - "3.6"
+  - "3.7"
+  - "3.8"
 env:
-  - DJANGO="Django>=1.11,<1.12"
+  # https://docs.djangoproject.com/en/dev/releases/
   - DJANGO="Django>=2.0,<2.1"
   - DJANGO="Django>=2.1,<2.2"
-# - DJANGO="git+https://github.com/django/django.git@master#egg=django"
-matrix:
-  # @see https://docs.djangoproject.com/en/dev/releases/2.0/#python-compatibility
-  exclude:
-  - python: "2.7"
-    env: DJANGO="Django>=2.0,<2.1"
-  - python: "2.7"
-    env: DJANGO="Django>=2.1,<2.2"
-  - python: "3.4"
-    env: DJANGO="Django>=2.1,<2.2"
+  - DJANGO="Django>=2.2,<2.3"
+  # - DJANGO="Django>=3.0,<3.1"
 addons:
   postgresql: "9.5"
   apt:
