@@ -5,14 +5,13 @@ from datetime import date
 
 from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import Point
-from django.test import TestCase
 
 from boundaries import attr, clean_attr
 from boundaries.models import BoundarySet, Definition, Feature
-from boundaries.tests import FeatureProxy
+from boundaries.tests import BoundariesTestCase, FeatureProxy
 
 
-class FeatureTestCase(TestCase):
+class FeatureTestCase(BoundariesTestCase):
 
     def setUp(self):
         self.definition = definition = Definition({
@@ -99,8 +98,8 @@ class FeatureTestCase(TestCase):
         self.assertEqual(boundary.metadata, self.fields)
         self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)))')
         self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0 5,5 5,0 0)))')
-        self.assertEqual(boundary.centroid.ogr.wkt, 'POINT (1.6667 3.333366666666666)')
-        self.assertEqual(boundary.extent, (0.0, 0.0, 4.999999999999999, 4.999999999999999))
+        self.assertRegex(boundary.centroid.ogr.wkt, r'\APOINT \(1\.6667 3\.3333666666666\d+\)\Z')
+        self.assertTupleAlmostEqual(boundary.extent, (0.0, 0.0, 5.0, 5.0))
         self.assertEqual(boundary.label_point, Point(0, 1, srid=4326))
         self.assertEqual(boundary.start_date, None)
         self.assertEqual(boundary.end_date, None)

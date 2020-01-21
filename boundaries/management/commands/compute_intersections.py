@@ -4,7 +4,6 @@ import json
 import sys
 
 from django.core.management.base import BaseCommand
-from django.utils.six import text_type
 from django.utils.translation import ugettext as _
 
 from boundaries.models import BoundarySet
@@ -43,7 +42,7 @@ class Command(BaseCommand):
                 try:
                     geometry = a_bdry.shape.intersection(b_bdry.shape)
                 except Exception as e:
-                    sys.stderr.write("%s/%s: %s\n" % (a_slug, b_bdry.slug, text_type(e)))
+                    sys.stderr.write("%s/%s: %s\n" % (a_slug, b_bdry.slug, str(e)))
                     continue
 
                 int_area = geometry.area

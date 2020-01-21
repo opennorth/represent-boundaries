@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import json
 import re
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.gis.measure import D
@@ -11,8 +12,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, Http404, HttpResponseForbidden, HttpResponseBadRequest
 from django.template import loader
 from django.template.defaultfilters import escapejs
-from django.utils.six import text_type
-from django.utils.six.moves.urllib.parse import urlencode
 from django.utils.translation import ugettext as _
 from django.views.generic import View
 
@@ -46,7 +45,7 @@ class APIView(View):
         try:
             result = super(APIView, self).dispatch(request, *args, **kwargs)
         except BadRequest as e:
-            return HttpResponseBadRequest(text_type(e), content_type='text/plain')
+            return HttpResponseBadRequest(str(e), content_type='text/plain')
         if isinstance(result, HttpResponse):
             return result
         if request.GET.get('format') == 'apibrowser':
@@ -448,7 +447,7 @@ class Paginator(object):
             request_params = {}
 
             for k, v in self.request_data.items():
-                if isinstance(v, text_type):
+                if isinstance(v, str):
                     request_params[k] = v.encode('utf-8')
                 else:
                     request_params[k] = v

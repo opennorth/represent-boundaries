@@ -2,6 +2,9 @@
 
 ## 0.9.5
 
+* Add support for Django 2.2.
+* Drop support for Python 2.7 and 3.4.
+
 ## 0.9.4 (2019-01-09)
 
 * Add support for Django 2.1.

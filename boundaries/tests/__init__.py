@@ -4,14 +4,13 @@ from __future__ import unicode_literals
 import json
 import re
 from copy import deepcopy
+from urllib.parse import parse_qsl, unquote_plus, urlparse
 
 from django.conf import settings
 from django.contrib.gis.gdal import OGRGeometry
 from django.contrib.gis.geos import GEOSGeometry
 from django.test import TestCase
 from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six import assertRegex, string_types
-from django.utils.six.moves.urllib.parse import parse_qsl, unquote_plus, urlparse
 
 from boundaries.models import app_settings, Boundary
 
@@ -34,6 +33,14 @@ class FeatureProxy(dict):
     @property
     def geom(self):
         return OGRGeometry('MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)))')
+
+
+class BoundariesTestCase(TestCase):
+    def assertTupleAlmostEqual(self, actual, expected):
+        self.assertTrue(isinstance(actual, tuple))
+        self.assertEqual(len(actual), len(expected))
+        for i, value in enumerate(expected):
+            self.assertAlmostEqual(actual[i], expected[i])
 
 
 class ViewTestCase(TestCase):
@@ -63,11 +70,11 @@ class ViewTestCase(TestCase):
         self.assertNotIn('Access-Control-Allow-Origin', response)
 
     def assertJSONEqual(self, actual, expected):
-        if isinstance(actual, string_types):
+        if isinstance(actual, str):
             actual = json.loads(actual)
         else:  # It's a response.
             actual = load_response(actual)
-        if isinstance(expected, string_types):
+        if isinstance(expected, str):
             expected = json.loads(expected)
         else:
             expected = deepcopy(expected)
@@ -82,7 +89,7 @@ class URL(object):
     """
 
     def __init__(self, url):
-        if isinstance(url, string_types):
+        if isinstance(url, str):
             parsed = urlparse(url)
             self.parsed = parsed._replace(query=frozenset(parse_qsl(parsed.query)), path=unquote_plus(parsed.path))
         else:  # It's already a URL.
@@ -142,7 +149,7 @@ class ViewsTests(object):
         self.assertResponse(response)
         content = response.content.decode('utf-8')
         self.assertJSONEqual(content[66:-2], self.json)
-        assertRegex(self, content, jsonp_re)
+        self.assertRegex(content, jsonp_re)
 
     def test_apibrowser(self):
         response = self.client.get(self.url, {'format': 'apibrowser', 'limit': 20})
@@ -155,15 +162,15 @@ class PrettyTests(object):
         response = self.client.get(self.url, {'pretty': 1})
         self.assertResponse(response)
         self.assertEqual(load_response(response), self.json)
-        assertRegex(self, response.content.decode('utf-8'), pretty_re)
+        self.assertRegex(response.content.decode('utf-8'), pretty_re)
 
     def test_jsonp_and_pretty(self):
         response = self.client.get(self.url, {'callback': 'abcdefghijklmnopqrstuvwxyz.ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890`~!@#$%^&*()-_=+[{]}\\|;:\'",<>/?', 'pretty': 1})
         self.assertResponse(response)
         content = response.content.decode('utf-8')
         self.assertJSONEqual(content[66:-2], self.json)
-        assertRegex(self, content, jsonp_re)
-        assertRegex(self, response.content.decode('utf-8'), pretty_re)
+        self.assertRegex(content, jsonp_re)
+        self.assertRegex(response.content.decode('utf-8'), pretty_re)
 
 
 class PaginationTests(object):
@@ -262,7 +269,7 @@ class GeoTests(object):
     def test_wkt(self):
         response = self.client.get(self.url, {'format': 'wkt'})
         self.assertResponse(response, content_type='text/plain')
-        assertRegex(self, str(response.content), r'MULTIPOLYGON \(\(\(0(\.0+)? 0(\.0+)?, 0(\.0+)? 5(\.0+)?, 5(\.0+)? 5(\.0+)?, 0(\.0+)? 0(\.0+)?\)\)\)')
+        self.assertRegex(str(response.content), r'MULTIPOLYGON \(\(\(0(\.0+)? 0(\.0+)?, 0(\.0+)? 5(\.0+)?, 5(\.0+)? 5(\.0+)?, 0(\.0+)? 0(\.0+)?\)\)\)')
 
     def test_kml(self):
         response = self.client.get(self.url, {'format': 'kml'})

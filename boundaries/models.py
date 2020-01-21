@@ -13,7 +13,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six import binary_type, string_types, text_type
 from django.utils.translation import ugettext as _, ugettext_lazy
 
 
@@ -97,8 +96,8 @@ class BoundarySet(models.Model):
         }
         for field in self.api_fields:
             r[field] = getattr(self, field)
-            if not isinstance(r[field], (string_types, int, list, tuple, dict)) and r[field] is not None:
-                r[field] = text_type(r[field])
+            if not isinstance(r[field], (str, int, list, tuple, dict)) and r[field] is not None:
+                r[field] = str(r[field])
         return r
 
     @staticmethod
@@ -198,8 +197,8 @@ class Boundary(models.Model):
                     "type": "Point",
                     "coordinates": r[field].coords
                 }
-            if not isinstance(r[field], (string_types, int, list, tuple, dict)) and r[field] is not None:
-                r[field] = text_type(r[field])
+            if not isinstance(r[field], (str, int, list, tuple, dict)) and r[field] is not None:
+                r[field] = str(r[field])
         return r
 
     @staticmethod
@@ -349,13 +348,13 @@ class Feature(object):
     def id(self):
         # Coerce to string, as the field in the feature from which the ID is
         # derived may be numeric.
-        return text_type(self.definition['id_func'](self))
+        return str(self.definition['id_func'](self))
 
     @property
     def slug(self):
         # Coerce to string, as the field in the feature from which the slug is
         # derived may be numeric.
-        return slugify(slug_re.sub('-', text_type(self.definition['slug_func'](self))))
+        return slugify(slug_re.sub('-', str(self.definition['slug_func'](self))))
 
     @property
     def label_point(self):
@@ -365,7 +364,7 @@ class Feature(object):
     def metadata(self):
         d = {}
         for field in self.feature.fields:
-            if isinstance(field, binary_type):
+            if isinstance(field, bytes):
                 key = field.decode()
             else:
                 key = field
