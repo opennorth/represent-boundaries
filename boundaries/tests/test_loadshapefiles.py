@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import errno
 import os
 import os.path
 import traceback
@@ -14,7 +15,7 @@ from django.test import TestCase
 import boundaries
 from boundaries.management.commands.loadshapefiles import Command, create_data_sources
 from boundaries.models import BoundarySet, Definition, Feature
-from boundaries.tests import FeatureProxy
+from boundaries.tests import BoundariesTestCase, FeatureProxy
 
 
 def fixture(basename):
@@ -32,7 +33,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
             try:
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/polygons')
             except Exception as e:
-                if not hasattr(e, 'errno') or e.errno != os.errno.ENOENT:
+                if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
                     self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
         l.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing polygons.'),
@@ -48,7 +49,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
             try:
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features')
             except Exception as e:
-                if not hasattr(e, 'errno') or e.errno != os.errno.ENOENT:
+                if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
                     self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
         l.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'),
@@ -61,7 +62,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
             try:
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/srid')
             except Exception as e:
-                if not hasattr(e, 'errno') or e.errno != os.errno.ENOENT:
+                if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
                     self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
         l.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing wards.'),
@@ -79,7 +80,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
                     ('boundaries.management.commands.loadshapefiles', 'INFO', 'districts count: 0'),
                 )
             except Exception as e:
-                if not hasattr(e, 'errno') or e.errno != os.errno.ENOENT:
+                if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
                     self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
                 else:
                     l.check(('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'))
@@ -138,7 +139,7 @@ class LoadableTestCase(TestCase):
         self.assertFalse(Command().loadable('foo', date(2000, 1, 1)))
 
 
-class LoadBoundaryTestCase(TestCase):
+class LoadBoundaryTestCase(BoundariesTestCase):
     definition = Definition({
         'last_updated': date(2000, 1, 1),
         'name': 'Districts',
@@ -166,8 +167,8 @@ class LoadBoundaryTestCase(TestCase):
         self.assertEqual(boundary.metadata, {})
         self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)))')
         self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0 5,5 5,0 0)))')
-        self.assertEqual(boundary.centroid.ogr.wkt, 'POINT (1.6667 3.333366666666666)')
-        self.assertEqual(boundary.extent, (0.0, 0.0, 4.999999999999999, 4.999999999999999))
+        self.assertRegex(boundary.centroid.ogr.wkt, r'\APOINT \(1\.6667 3\.3333666666666\d+\)\Z')
+        self.assertTupleAlmostEqual(boundary.extent, (0.0, 0.0, 5.0, 5.0))
         self.assertEqual(boundary.label_point, None)
         self.assertEqual(boundary.start_date, None)
         self.assertEqual(boundary.end_date, None)
@@ -190,7 +191,7 @@ class LoadBoundaryTestCase(TestCase):
         boundary = Command().load_boundary(self.feature, 'combine')
         self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)),((0 0,0.0001 0.0001,0 5,5 5,0 0)))')
         self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0 0,0 5,5 5,0 0)),((0 0,0 5,5 5,0 0)))')
-        self.assertEqual(boundary.centroid.ogr.wkt, 'POINT (1.6667 3.333366666666667)')
+        self.assertRegex(boundary.centroid.ogr.wkt, r'\APOINT \(1\.6667 3\.3333666666666+7\)\Z')
         self.assertEqual(boundary.extent, (0.0, 0.0, 5.0, 5.0))
 
     def test_union_merge_strategy(self):
@@ -198,9 +199,13 @@ class LoadBoundaryTestCase(TestCase):
         Command().load_boundary(self.feature, 'invalid')
 
         boundary = Command().load_boundary(self.feature, 'union')
-        self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,0 5,0 5,5 5,5 5,0.0001 0.0001)))')
-        self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,5 5,5 5,0.0001 0.0001)))')
-        self.assertEqual(boundary.centroid.ogr.wkt, 'POINT (1.6667 3.333366666666667)')
+        try:  # Django < 2.2
+            self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,0 5,0 5,5 5,5 5,0.0001 0.0001)))')
+            self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,5 5,5 5,0.0001 0.0001)))')
+        except AssertionError:
+            self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,5 5,0.0001 0.0001)))')
+            self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,5 5,0.0001 0.0001)))')
+        self.assertRegex(boundary.centroid.ogr.wkt, r'\APOINT \(1\.6667 3\.3333666666666+7\)\Z')
         self.assertEqual(boundary.extent, (0.0, 0.0001, 5.0, 5.0))
 
 

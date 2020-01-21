@@ -19,8 +19,15 @@ if not settings.configured:
             'django.contrib.auth',
             'django.contrib.contenttypes',
             'django.contrib.gis',
+            'django.contrib.sessions',
+            'django.contrib.messages',
             'boundaries',
         ),
+        MIDDLEWARE=[
+            'django.contrib.sessions.middleware.SessionMiddleware',
+            'django.contrib.auth.middleware.AuthenticationMiddleware',
+            'django.contrib.messages.middleware.MessageMiddleware',
+        ],
         TEMPLATES=[
             {
                 'BACKEND': 'django.template.backends.django.DjangoTemplates',

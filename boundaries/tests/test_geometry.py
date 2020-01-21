@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from django.contrib.gis.gdal import OGRGeometry, SpatialReference
 from django.test import TestCase
-from django.utils.six import assertRegex
 
 from boundaries.models import Geometry
 
@@ -27,13 +26,13 @@ class GeometryTestCase(TestCase):
         geometry = Geometry(OGRGeometry('POLYGON ((0 0,0 5,5 5,0 0))')).transform(SpatialReference(26917))
         self.assertIsInstance(geometry, Geometry)
         self.assertEqual(geometry.geometry.geom_name, 'MULTIPOLYGON')
-        assertRegex(self, geometry.wkt, r'MULTIPOLYGON \(\(\(-85.488743884\d{6} 0.0,-85.488743884\d{6} 0.000045096\d{6},-85.488699089\d{6} 0.000045096\d{6},-85.488743884\d{6} 0.0\)\)\)')
+        self.assertRegex(geometry.wkt, r'MULTIPOLYGON \(\(\(-85.488743884\d+ 0.0,-85.488743884\d+ 0.000045096\d+,-85.488699089\d+ 0.000045096\d+,-85.488743884\d+ 0.0\)\)\)')
 
     def test_transform_multipolygon(self):
         geometry = Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0 5,5 5,0 0)))')).transform(SpatialReference(26917))
         self.assertIsInstance(geometry, Geometry)
         self.assertEqual(geometry.geometry.geom_name, 'MULTIPOLYGON')
-        assertRegex(self, geometry.wkt, r'MULTIPOLYGON \(\(\(-85.488743884\d{6} 0.0,-85.488743884\d{6} 0.000045096\d{6},-85.488699089\d{6} 0.000045096\d{6},-85.488743884\d{6} 0.0\)\)\)')
+        self.assertRegex(geometry.wkt, r'MULTIPOLYGON \(\(\(-85.488743884\d+ 0.0,-85.488743884\d+ 0.000045096\d+,-85.488699089\d+ 0.000045096\d+,-85.488743884\d+ 0.0\)\)\)')
 
     def test_transform_nonpolygon(self):
         self.assertRaisesRegexp(ValueError, r'\AThe geometry is a Point but must be a Polygon or a MultiPolygon\.\Z', Geometry(OGRGeometry('POINT (0 0)')).transform, SpatialReference(26917))
@@ -70,7 +69,7 @@ class GeometryTestCase(TestCase):
 
     def test_centroid(self):
         geometry = Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0 5,5 5,0 0)))'))
-        self.assertEqual(geometry.centroid.ogr.wkt, 'POINT (1.666666666666667 3.333333333333333)')
+        self.assertRegex(geometry.centroid.ogr.wkt, r'\APOINT \(1\.6666666666666+7 3\.33333333333333+\)\Z')
 
     def test_extent(self):
         geometry = Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0 5,5 5,0 0)))'))
