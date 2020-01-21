@@ -15,7 +15,6 @@ from django.contrib.gis.gdal import DataSource, SpatialReference
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.template.defaultfilters import slugify
-from django.utils import six
 from django.utils.translation import ugettext as _
 
 import boundaries
@@ -53,7 +52,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if settings.DEBUG:
             print(_('DEBUG is True. This can cause memory usage to balloon. Continue? [y/n]'))
-            if six.moves.input().lower() != 'y':
+            if input().lower() != 'y':
                 return
 
         boundaries.autodiscover(options['data_dir'])
