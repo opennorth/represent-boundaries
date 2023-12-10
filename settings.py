@@ -1,5 +1,5 @@
 """
-To run `PYTHONPATH=$PYTHONPATH:$PWD django-admin.py migrate --settings settings --noinput`.
+To run `env PYTHONPATH=$PYTHONPATH:$PWD DJANGO_SETTINGS_MODULE=settings django-admin.py migrate --noinput`.
 """
 import os
 

@@ -54,7 +54,7 @@ Testing
 
     createdb represent_boundaries_test
     psql represent_boundaries_test -c 'CREATE EXTENSION postgis;'
-    django-admin migrate --settings settings --noinput
+    env DJANGO_SETTINGS_MODULE=settings django-admin migrate --noinput
     python runtests.py
 
 Acknowledgements

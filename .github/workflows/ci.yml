@@ -15,10 +15,15 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: setup.cfg
+      # https://docs.djangoproject.com/en/4.2/ref/contrib/gis/install/geolibs/
+      - run: |
+          sudo apt update
+          sudo apt install binutils libproj-dev gdal-bin
       - run: pip install .[test] '${{ matrix.django-version }}' psycopg2-binary
       - env:
           PORT: ${{ job.services.postgres.ports[5432] }}
-        run: django-admin migrate --settings settings --noinput
+          DJANGO_SETTINGS_MODULE: settings
+        run: env PYTHONPATH=$PYTHONPATH:$PWD django-admin migrate --noinput
       - env:
           PORT: ${{ job.services.postgres.ports[5432] }}
         run: coverage run --source=boundaries runtests.py
