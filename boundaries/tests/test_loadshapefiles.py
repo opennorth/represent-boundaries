@@ -26,13 +26,13 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
         boundaries._basepath = '.'
 
     def test_loadshapefiles(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             try:
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/polygons')
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
                     self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
-        l.check(
+        logcapture.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing polygons.'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading polygons from boundaries/tests/definitions/polygons/test_poly.shp'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', '1...'),
@@ -42,36 +42,36 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
         )
 
     def test_no_features(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             try:
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features')
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
                     self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
-        l.check(
+        logcapture.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading districts from boundaries/tests/definitions/no_features/../../fixtures/foo.shp'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'districts count: 0'),
         )
 
     def test_srid(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             try:
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/srid')
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
                     self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
-        l.check(
+        logcapture.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing wards.'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading wards from boundaries/tests/definitions/srid/../../fixtures/foo.shp'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'wards count: 0'),
         )
 
     def test_clean(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             try:
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features', clean=True)
-                l.check(
+                logcapture.check(
                     ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'),
                     ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading districts from boundaries/tests/definitions/no_features/../../fixtures/foo._cleaned_.shp'),
                     ('boundaries.management.commands.loadshapefiles', 'INFO', 'districts count: 0'),
@@ -80,22 +80,22 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
                     self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
                 else:
-                    l.check(('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'))
+                    logcapture.check(('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'))
 
     def test_only(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features', only='unknown')
-        l.check(('boundaries.management.commands.loadshapefiles', 'DEBUG', 'Skipping districts.'))
+        logcapture.check(('boundaries.management.commands.loadshapefiles', 'DEBUG', 'Skipping districts.'))
 
     def test_except(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features', **{'except': 'districts'})
-        l.check(('boundaries.management.commands.loadshapefiles', 'DEBUG', 'Skipping districts.'))
+        logcapture.check(('boundaries.management.commands.loadshapefiles', 'DEBUG', 'Skipping districts.'))
 
     def test_no_data_sources(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_data_sources')
-        l.check(
+        logcapture.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing empty.'),
             ('boundaries.management.commands.loadshapefiles', 'WARNING', 'No shapefiles found.'),
         )

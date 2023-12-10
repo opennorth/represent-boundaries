@@ -215,8 +215,10 @@ class ModelGeoListView(ModelListView):
 
         if format in ('json', 'apibrowser'):
             strings = ['{"objects": [']
-            strings.append(','.join('{{"name": "{}", "{}": {}}}'.format(escapejs(x[1]), field, x[0].geojson)
-                                     for x in qs.values_list(field, self.name_field)))
+            strings.append(','.join(
+                '{{"name": "{}", "{}": {}}}'.format(escapejs(x[1]), field, x[0].geojson)
+                for x in qs.values_list(field, self.name_field))
+            )
             strings.append(']}')
             return RawJSONResponse(''.join(strings))
         elif format == 'wkt':
