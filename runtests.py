@@ -48,7 +48,7 @@ if not settings.configured:
                 },
             },
         ],
-        DEFAULT_AUTO_FIELD='django.db.models.BigAutoField',
+        DEFAULT_AUTO_FIELD='django.db.models.AutoField',
         ROOT_URLCONF='boundaries.urls',
     )
     django.setup()
