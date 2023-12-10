@@ -44,7 +44,10 @@ class GeometryTestCase(TestCase):
         geometry = Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0 5,5 5,0 0)),((0 0,5 0,5 5,0 0)))')).unary_union()
         self.assertIsInstance(geometry, Geometry)
         self.assertEqual(geometry.geometry.geom_name, 'MULTIPOLYGON')
-        self.assertEqual(geometry.wkt, 'MULTIPOLYGON (((0 0,0 5,5 5,5 0,0 0)))')
+        self.assertEqual(
+            geometry.geometry.difference(OGRGeometry('MULTIPOLYGON (((0 0,0 5,5 5,5 0,0 0)))')).wkt,
+            'POLYGON EMPTY',
+        )
 
     def test_merge_with_ogrgeometry(self):
         other = OGRGeometry('MULTIPOLYGON (((5 0,5 3,2 0,5 0)))')

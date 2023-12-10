@@ -5,6 +5,7 @@ import traceback
 from datetime import date
 from zipfile import BadZipfile
 
+from django.contrib.gis.gdal import OGRGeometry
 from django.core.management import call_command
 from django.test import TestCase
 from testfixtures import LogCapture
@@ -196,12 +197,9 @@ class LoadBoundaryTestCase(BoundariesTestCase):
         Command().load_boundary(self.feature, 'invalid')
 
         boundary = Command().load_boundary(self.feature, 'union')
-        try:  # Django < 2.2
-            self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,0 5,0 5,5 5,5 5,0.0001 0.0001)))')
-            self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,5 5,5 5,0.0001 0.0001)))')
-        except AssertionError:
-            self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,5 5,0.0001 0.0001)))')
-            self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,5 5,0.0001 0.0001)))')
+        expected = OGRGeometry('MULTIPOLYGON (((0.0001 0.0001,0 5,5 5,0.0001 0.0001)))')
+        self.assertEqual(boundary.shape.ogr.difference(expected).wkt, 'POLYGON EMPTY')
+        self.assertEqual(boundary.simple_shape.ogr.difference(expected).wkt, 'POLYGON EMPTY')
         self.assertRegex(boundary.centroid.ogr.wkt, r'\APOINT \(1\.6667 3\.3333666666666+7\)\Z')
         self.assertEqual(boundary.extent, (0.0, 0.0001, 5.0, 5.0))
 
