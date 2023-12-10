@@ -179,7 +179,9 @@ class ModelGeoListView(ModelListView):
                     wkt = f'POINT({longitude} {latitude})'
                     qs = qs.filter(**{self.default_geo_filter_field + "__contains": wkt})
                 except ValueError:
-                    raise BadRequest(_("Invalid latitude,longitude '%(value)s' provided.") % {'value': request.GET['contains']})
+                    raise BadRequest(
+                        _("Invalid latitude,longitude '%(value)s' provided.") % {'value': request.GET['contains']}
+                    )
 
             if 'near' in request.GET:
                 latitude, longitude, range = request.GET['near'].split(',')
@@ -208,8 +210,10 @@ class ModelGeoListView(ModelListView):
 
         if qs.count() > app_settings.MAX_GEO_LIST_RESULTS:
             return HttpResponseForbidden(
-                _("Spatial-list queries cannot return more than %(expected)d resources; this query would return %(actual)s. Please filter your query.")
-                % {'expected': app_settings.MAX_GEO_LIST_RESULTS, 'actual': qs.count()})
+                _(
+                    "Spatial-list queries cannot return more than %(expected)d resources; "
+                    "this query would return %(actual)s. Please filter your query."
+                ) % {'expected': app_settings.MAX_GEO_LIST_RESULTS, 'actual': qs.count()})
 
         format = request.GET.get('format', 'json')
 
@@ -222,7 +226,9 @@ class ModelGeoListView(ModelListView):
             strings.append(']}')
             return RawJSONResponse(''.join(strings))
         elif format == 'wkt':
-            return HttpResponse("\n".join(geom.wkt for geom in qs.values_list(field, flat=True)), content_type="text/plain")
+            return HttpResponse(
+                "\n".join(geom.wkt for geom in qs.values_list(field, flat=True)), content_type="text/plain"
+            )
         elif format == 'kml':
             placemarks = [kml.generate_placemark(x[1], x[0]) for x in qs.values_list(field, self.name_field)]
             resp = HttpResponse(
@@ -306,7 +312,9 @@ class Paginator:
     Taken from django-tastypie. Thanks!
     """
 
-    def __init__(self, request_data, objects, resource_uri=None, limit=None, offset=0, max_limit=1000, collection_name='objects'):
+    def __init__(
+        self, request_data, objects, resource_uri=None, limit=None, offset=0, max_limit=1000, collection_name='objects'
+    ):
         """
         Instantiates the ``Paginator`` and allows for some configuration.
 
@@ -356,10 +364,14 @@ class Paginator:
         try:
             limit = int(limit)
         except ValueError:
-            raise BadRequest(_("Invalid limit '%(value)s' provided. Please provide a positive integer.") % {'value': limit})
+            raise BadRequest(
+                _("Invalid limit '%(value)s' provided. Please provide a positive integer.") % {'value': limit}
+            )
 
         if limit < 0:
-            raise BadRequest(_("Invalid limit '%(value)s' provided. Please provide a positive integer >= 0.") % {'value': limit})
+            raise BadRequest(
+                _("Invalid limit '%(value)s' provided. Please provide a positive integer >= 0.") % {'value': limit}
+            )
 
         if self.max_limit and (not limit or limit > self.max_limit):
             # If it's more than the max, we're only going to return the max.
@@ -385,10 +397,14 @@ class Paginator:
         try:
             offset = int(offset)
         except ValueError:
-            raise BadRequest(_("Invalid offset '%(value)s' provided. Please provide a positive integer.") % {'value': offset})
+            raise BadRequest(
+                _("Invalid offset '%(value)s' provided. Please provide a positive integer.") % {'value': offset}
+            )
 
         if offset < 0:
-            raise BadRequest(_("Invalid offset '%(value)s' provided. Please provide a positive integer >= 0.") % {'value': offset})
+            raise BadRequest(
+                _("Invalid offset '%(value)s' provided. Please provide a positive integer >= 0.") % {'value': offset}
+            )
 
         return offset
 

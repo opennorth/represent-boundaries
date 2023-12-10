@@ -70,7 +70,10 @@ class Command(BaseCommand):
             action='store',
             dest='merge',
             default=None,
-            help=_('Merge strategy when there are duplicate slugs, either "combine" (extend the MultiPolygon) or "union" (union the geometries).'),
+            help=_(
+                'Merge strategy when there are duplicate slugs, '
+                'either "combine" (extend the MultiPolygon) or "union" (union the geometries).'
+            ),
         )
 
     def get_version(self):
@@ -105,7 +108,11 @@ class Command(BaseCommand):
                 definition.setdefault('name', name)
                 definition = Definition(definition)
 
-                data_sources, tmpdirs = create_data_sources(definition['file'], encoding=definition['encoding'], convert_3d_to_2d=options['clean'])
+                data_sources, tmpdirs = create_data_sources(
+                    definition['file'],
+                    encoding=definition['encoding'],
+                    convert_3d_to_2d=options['clean'],
+                )
 
                 try:
                     if not data_sources:
@@ -179,7 +186,9 @@ class Command(BaseCommand):
         if None not in boundary_set.extent:  # unless there are no features
             boundary_set.save()
 
-        log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=boundary_set).count()})
+        log.info(
+            _('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=boundary_set).count()}
+        )
 
     def load_boundary(self, feature, merge_strategy=None):
         if merge_strategy:
@@ -190,7 +199,9 @@ class Command(BaseCommand):
                 elif merge_strategy == 'union':
                     boundary.unary_union(feature.geometry)
                 else:
-                    raise ValueError(_("The merge strategy '%(value)s' must be 'combine' or 'union'.") % {'value': merge_strategy})
+                    raise ValueError(
+                        _("The merge strategy '%(value)s' must be 'combine' or 'union'.") % {'value': merge_strategy}
+                    )
                 boundary.centroid = boundary.shape.centroid
                 boundary.extent = boundary.shape.extent
                 boundary.save()
@@ -242,7 +253,9 @@ def create_data_sources(path, encoding='ascii', convert_3d_to_2d=False, zipfile=
         elif path.endswith('.zip'):
             return create_data_sources_from_zip(path)
         else:
-            raise ValueError(_("The path must be a shapefile, a ZIP file, or a directory: %(value)s.") % {'value': path})
+            raise ValueError(
+                _("The path must be a shapefile, a ZIP file, or a directory: %(value)s.") % {'value': path}
+            )
 
     data_sources = []
     tmpdirs = []

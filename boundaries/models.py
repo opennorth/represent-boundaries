@@ -9,8 +9,8 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.defaultfilters import slugify
 from django.urls import reverse
-from django.utils.translation import gettext as _
-from django.utils.translation import gettext_lazy
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 
 
 class MyAppConf(AppConf):
@@ -42,70 +42,85 @@ class BoundarySet(models.Model):
         max_length=200,
         primary_key=True,
         editable=False,
-        help_text=gettext_lazy("The boundary set's unique identifier, used as a path component in URLs."),
+        help_text=_("The boundary set's unique identifier, used as a path component in URLs."),
     )
     name = models.CharField(
         max_length=100,
         unique=True,
-        help_text=gettext_lazy('The plural name of the boundary set.'),
+        help_text=_('The plural name of the boundary set.'),
     )
     singular = models.CharField(
         max_length=100,
-        help_text=gettext_lazy('A generic singular name for a boundary in the set.'),
+        help_text=_('A generic singular name for a boundary in the set.'),
     )
     authority = models.CharField(
         max_length=256,
-        help_text=gettext_lazy('The entity responsible for publishing the data.'),
+        help_text=_('The entity responsible for publishing the data.'),
     )
     domain = models.CharField(
         max_length=256,
-        help_text=gettext_lazy("The geographic area covered by the boundary set."),
+        help_text=_("The geographic area covered by the boundary set."),
     )
     last_updated = models.DateField(
-        help_text=gettext_lazy('The most recent date on which the data was updated.')),
+        help_text=_('The most recent date on which the data was updated.')),
     source_url = models.URLField(
         blank=True,
-        help_text=gettext_lazy('A URL to the source of the data.'),
+        help_text=_('A URL to the source of the data.'),
     )
     notes = models.TextField(
         blank=True,
-        help_text=gettext_lazy('Free-form text notes, often used to describe changes that were made to the original source data.'),
+        help_text=_(
+            'Free-form text notes, often used to describe changes that were made to the original source data.'
+        ),
     )
     licence_url = models.URLField(
         blank=True,
-        help_text=gettext_lazy('A URL to the licence under which the data is made available.'),
+        help_text=_('A URL to the licence under which the data is made available.'),
     )
     extent = models.JSONField(
         blank=True,
         null=True,
-        help_text=gettext_lazy("The set's boundaries' bounding box as a list like [xmin, ymin, xmax, ymax] in EPSG:4326."),
+        help_text=_("The set's boundaries' bounding box as a list like [xmin, ymin, xmax, ymax] in EPSG:4326."),
     )
     start_date = models.DateField(
         blank=True,
         null=True,
-        help_text=gettext_lazy("The date from which the set's boundaries are in effect."),
+        help_text=_("The date from which the set's boundaries are in effect."),
     )
     end_date = models.DateField(
         blank=True,
         null=True,
-        help_text=gettext_lazy("The date until which the set's boundaries are in effect."),
+        help_text=_("The date until which the set's boundaries are in effect."),
     )
     extra = models.JSONField(
         default=dict,
         blank=True,
-        help_text=gettext_lazy("Any additional metadata."),
+        help_text=_("Any additional metadata."),
     )
 
     name_plural = property(lambda s: s.name)
     name_singular = property(lambda s: s.singular)
 
-    api_fields = ('name_plural', 'name_singular', 'authority', 'domain', 'source_url', 'notes', 'licence_url', 'last_updated', 'extent', 'extra', 'start_date', 'end_date')
+    api_fields = [
+        'name_plural',
+        'name_singular',
+        'authority',
+        'domain',
+        'source_url',
+        'notes',
+        'licence_url',
+        'last_updated',
+        'extent',
+        'extra',
+        'start_date',
+        'end_date',
+    ]
     api_fields_doc_from = {'name_plural': 'name', 'name_singular': 'singular'}
 
     class Meta:
         ordering = ('name',)
-        verbose_name = gettext_lazy('boundary set')
-        verbose_name_plural = gettext_lazy('boundary sets')
+        verbose_name = _('boundary set')
+        verbose_name_plural = _('boundary sets')
 
     def __str__(self):
         return self.name
@@ -160,71 +175,73 @@ class Boundary(models.Model):
         BoundarySet,
         related_name='boundaries',
         on_delete=models.CASCADE,
-        help_text=gettext_lazy('The set to which the boundary belongs.'),
+        help_text=_('The set to which the boundary belongs.'),
     )
     set_name = models.CharField(
         max_length=100,
-        help_text=gettext_lazy('A generic singular name for the boundary.'),
+        help_text=_('A generic singular name for the boundary.'),
     )
     slug = models.SlugField(
         max_length=200,
         db_index=True,
-        help_text=gettext_lazy("The boundary's unique identifier within the set, used as a path component in URLs."),
+        help_text=_("The boundary's unique identifier within the set, used as a path component in URLs."),
     )
     external_id = models.CharField(
         max_length=255,
-        help_text=gettext_lazy("An identifier of the boundary, which should be unique within the set."),
+        help_text=_("An identifier of the boundary, which should be unique within the set."),
     )
     name = models.CharField(
         max_length=192,
         db_index=True,
-        help_text=gettext_lazy('The name of the boundary.'),
+        help_text=_('The name of the boundary.'),
     )
     metadata = models.JSONField(
         default=dict,
         blank=True,
         encoder=DjangoJSONEncoder,
-        help_text=gettext_lazy('The attributes of the boundary from the shapefile, as a dictionary.'),
+        help_text=_('The attributes of the boundary from the shapefile, as a dictionary.'),
     )
     shape = models.MultiPolygonField(
-        help_text=gettext_lazy('The geometry of the boundary in EPSG:4326.'),
+        help_text=_('The geometry of the boundary in EPSG:4326.'),
     )
     simple_shape = models.MultiPolygonField(
-        help_text=gettext_lazy('The simplified geometry of the boundary in EPSG:4326.'),
+        help_text=_('The simplified geometry of the boundary in EPSG:4326.'),
     )
     centroid = models.PointField(
         null=True,
-        help_text=gettext_lazy('The centroid of the boundary in EPSG:4326.'),
+        help_text=_('The centroid of the boundary in EPSG:4326.'),
     )
     extent = models.JSONField(
         blank=True,
         null=True,
-        help_text=gettext_lazy('The bounding box of the boundary as a list like [xmin, ymin, xmax, ymax] in EPSG:4326.'),
+        help_text=_('The bounding box of the boundary as a list like [xmin, ymin, xmax, ymax] in EPSG:4326.'),
     )
     label_point = models.PointField(
         blank=True,
         null=True,
         spatial_index=False,
-        help_text=gettext_lazy('The point at which to place a label for the boundary in EPSG:4326, used by represent-maps.'),
+        help_text=_('The point at which to place a label for the boundary in EPSG:4326, used by represent-maps.'),
     )
     start_date = models.DateField(
         blank=True,
         null=True,
-        help_text=gettext_lazy("The date from which the boundary is in effect."),
+        help_text=_("The date from which the boundary is in effect."),
     )
     end_date = models.DateField(
         blank=True,
         null=True,
-        help_text=gettext_lazy("The date until which the boundary is in effect."),
+        help_text=_("The date until which the boundary is in effect."),
     )
 
-    api_fields = ['boundary_set_name', 'name', 'metadata', 'external_id', 'extent', 'centroid', 'start_date', 'end_date']
+    api_fields = [
+        'boundary_set_name', 'name', 'metadata', 'external_id', 'extent', 'centroid', 'start_date', 'end_date'
+    ]
     api_fields_doc_from = {'boundary_set_name': 'set_name'}
 
     class Meta:
         unique_together = (('slug', 'set'))
-        verbose_name = gettext_lazy('boundary')
-        verbose_name_plural = gettext_lazy('boundaries')  # avoids "boundarys"
+        verbose_name = _('boundary')
+        verbose_name_plural = _('boundaries')  # avoids "boundarys"
 
     def __str__(self):
         return f"{self.name} ({self.set_name})"
@@ -324,7 +341,7 @@ class Geometry:
         Uses `ST_SimplifyPreserveTopology` to avoid invalid geometries and
         ensures the result is a MultiPolygon.
         """
-        geometry = self.geometry.geos.simplify(app_settings.SIMPLE_SHAPE_TOLERANCE, preserve_topology=True).ogr  # simplify is in GEOS
+        geometry = self.geometry.geos.simplify(app_settings.SIMPLE_SHAPE_TOLERANCE, preserve_topology=True).ogr
         geometry = self.geometry_to_multipolygon(geometry)  # simplify can return a Polygon
         return Geometry(geometry)
 
@@ -372,7 +389,9 @@ class Geometry:
             multipolygon.add(geometry)
             return multipolygon
         else:
-            raise ValueError(_('The geometry is a %(value)s but must be a Polygon or a MultiPolygon.') % {'value': value})
+            raise ValueError(
+                gettext('The geometry is a %(value)s but must be a Polygon or a MultiPolygon.') % {'value': value}
+            )
 
 
 slug_re = re.compile(r'[–—]')  # n-dash, m-dash

@@ -8,7 +8,10 @@ from boundaries.models import BoundarySet
 
 
 class Command(BaseCommand):
-    help = _('Create a report of the area of intersection of every pair of boundaries from two boundary sets specified by their slug.')
+    help = _(
+        'Create a report of the area of intersection of every pair of boundaries from two boundary sets '
+        'specified by their slug.'
+    )
 
     def add_arguments(self, parser):
         parser.add_argument('slug', nargs=2)
