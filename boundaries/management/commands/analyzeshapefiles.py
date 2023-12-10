@@ -17,9 +17,14 @@ class Command(BaseCommand):
     help = _('Reports the number of features to be loaded, along with names and identifiers.')
 
     def add_arguments(self, parser):
-        parser.add_argument('-d', '--data-dir', action='store', dest='data_dir',
+        parser.add_argument(
+            '-d',
+            '--data-dir',
+            action='store',
+            dest='data_dir',
             default=app_settings.SHAPEFILES_DIR,
-            help=_('Load shapefiles from this directory.'))
+            help=_('Load shapefiles from this directory.'),
+        )
 
     def handle(self, *args, **options):
         boundaries.autodiscover(options['data_dir'])

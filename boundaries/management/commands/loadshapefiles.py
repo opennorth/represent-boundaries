@@ -24,24 +24,54 @@ class Command(BaseCommand):
     help = _('Import boundaries described by shapefiles.')
 
     def add_arguments(self, parser):
-        parser.add_argument('-r', '--reload', action='store_true', dest='reload',
+        parser.add_argument(
+            '-r',
+            '--reload',
+            action='store_true',
+            dest='reload',
             default=False,
-            help=_('Reload boundary sets that have already been imported.')),
-        parser.add_argument('-d', '--data-dir', action='store', dest='data_dir',
+            help=_('Reload boundary sets that have already been imported.'),
+        )
+        parser.add_argument(
+            '-d',
+            '--data-dir',
+            action='store',
+            dest='data_dir',
             default=app_settings.SHAPEFILES_DIR,
-            help=_('Load shapefiles from this directory.')),
-        parser.add_argument('-e', '--except', action='store', dest='except',
+            help=_('Load shapefiles from this directory.'),
+        )
+        parser.add_argument(
+            '-e',
+            '--except',
+            action='store',
+            dest='except',
             default='',
-            help=_("Don't load these boundary set slugs (comma-delimited).")),
-        parser.add_argument('-o', '--only', action='store', dest='only',
+            help=_("Don't load these boundary set slugs (comma-delimited)."),
+        )
+        parser.add_argument(
+            '-o',
+            '--only',
+            action='store',
+            dest='only',
             default='',
-            help=_('Only load these boundary set slugs (comma-delimited).')),
-        parser.add_argument('-c', '--clean', action='store_true', dest='clean',
+            help=_('Only load these boundary set slugs (comma-delimited).'),
+        )
+        parser.add_argument(
+            '-c',
+            '--clean',
+            action='store_true',
+            dest='clean',
             default=False,
-            help=_('Clean shapefiles first with ogr2ogr.')),
-        parser.add_argument('-m', '--merge', action='store', dest='merge',
+            help=_('Clean shapefiles first with ogr2ogr.'),
+        )
+        parser.add_argument(
+            '-m',
+            '--merge',
+            action='store',
+            dest='merge',
             default=None,
-            help=_('Merge strategy when there are duplicate slugs, either "combine" (extend the MultiPolygon) or "union" (union the geometries).')),
+            help=_('Merge strategy when there are duplicate slugs, either "combine" (extend the MultiPolygon) or "union" (union the geometries).'),
+        )
 
     def get_version(self):
         return '0.9.5'

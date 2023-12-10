@@ -12,12 +12,22 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('slug', nargs=2)
-        parser.add_argument('-f', '--format', action='store', dest='format',
+        parser.add_argument(
+            '-f',
+            '--format',
+            action='store',
+            dest='format',
             default='csv',
-            help=_('Choose an output format: csv, json.'))
-        parser.add_argument('-m', '--metadata', action='store_true', dest='include_metadata',
+            help=_('Choose an output format: csv, json.'),
+        )
+        parser.add_argument(
+            '-m',
+            '--metadata',
+            action='store_true',
+            dest='include_metadata',
             default=False,
-            help=_('Includes the original shapefile metadata in the output.'))
+            help=_('Includes the original shapefile metadata in the output.'),
+        )
 
     def handle(self, *args, **options):
         bset_a = BoundarySet.objects.get(slug=options['slug'][0])
