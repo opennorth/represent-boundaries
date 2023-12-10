@@ -3,12 +3,18 @@ To run `env PYTHONPATH=$PYTHONPATH:$PWD DJANGO_SETTINGS_MODULE=settings django-a
 """
 import os
 
+ci = os.getenv('CI', False)
+
 SECRET_KEY = 'x'
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'represent_boundaries',
+        'HOST': 'localhost',
+        'NAME': 'postgres' if ci else 'represent_boundaries',
+        'USER': 'postgres' if ci else '',
+        'PASSWORD': 'postgres' if ci else '',
+        'PORT': os.getenv('PORT', 5432),
     }
 }
 
