@@ -7,7 +7,7 @@ SECRET_KEY = 'x'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'travis_ci_test',
+        'NAME': 'represent_boundaries',
     }
 }
 

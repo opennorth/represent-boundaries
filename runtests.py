@@ -9,8 +9,10 @@ if not settings.configured:
         DATABASES={
             'default': {
                 'ENGINE': 'django.contrib.gis.db.backends.postgis',
-                'NAME': 'travis_ci_test',
+                'NAME': 'postgres' if os.getenv('CI', False) else 'represent_boundaries_test',
                 'USER': 'postgres' if os.getenv('CI', False) else '',
+                'PASSWORD': 'postgres' if os.getenv('CI', False) else '',
+                'PORT': os.getenv('PORT', 5432),
             }
         },
         ROOT_URLCONF='boundaries.urls',
