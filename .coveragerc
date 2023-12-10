@@ -1,5 +1,0 @@
-[report]
-omit =
-  */migrations/*
-  */south_migrations/*
-  */tests/*
