@@ -1,6 +1,7 @@
 """
 To run `PYTHONPATH=$PYTHONPATH:$PWD django-admin.py migrate --settings settings --noinput`.
 """
+import os
 
 SECRET_KEY = 'x'
 
@@ -42,3 +43,10 @@ TEMPLATES = [
         },
     },
 ]
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+if 'GDAL_LIBRARY_PATH' in os.environ:
+    GDAL_LIBRARY_PATH = os.getenv('GDAL_LIBRARY_PATH')
+if 'GEOS_LIBRARY_PATH' in os.environ:
+    GEOS_LIBRARY_PATH = os.getenv('GEOS_LIBRARY_PATH')
