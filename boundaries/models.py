@@ -9,7 +9,6 @@ from django.db.models import JSONField
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.defaultfilters import slugify
 from django.urls import reverse
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import gettext as _, gettext_lazy
 
 
@@ -33,7 +32,6 @@ class MyAppConf(AppConf):
 app_settings = MyAppConf()
 
 
-@python_2_unicode_compatible
 class BoundarySet(models.Model):
 
     """
@@ -121,7 +119,6 @@ class BoundarySet(models.Model):
             self.extent[3] = extent[3]
 
 
-@python_2_unicode_compatible
 class Boundary(models.Model):
 
     """
@@ -237,7 +234,6 @@ class Boundary(models.Model):
         self.simple_shape = geometry.simplify().wkt
 
 
-@python_2_unicode_compatible
 class Geometry:
     def __init__(self, geometry):
         if hasattr(geometry, 'geometry'):
@@ -315,7 +311,6 @@ class Geometry:
 slug_re = re.compile(r'[–—]')  # n-dash, m-dash
 
 
-@python_2_unicode_compatible
 class Feature:
 
     # @see https://github.com/django/django/blob/master/django/contrib/gis/gdal/feature.py
@@ -394,7 +389,6 @@ class Feature:
         )
 
 
-@python_2_unicode_compatible
 class Definition:
     """
     The dictionary must have `name` and `name_func` keys.

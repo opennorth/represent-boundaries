@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.gis.gdal import OGRGeometry
 from django.contrib.gis.geos import GEOSGeometry
 from django.test import TestCase
-from django.utils.encoding import python_2_unicode_compatible
 
 from boundaries.models import app_settings, Boundary
 
@@ -78,7 +77,6 @@ class ViewTestCase(TestCase):
         self.assertCountEqual(comparable(actual), comparable(expected))
 
 
-@python_2_unicode_compatible
 class URL:
 
     """
