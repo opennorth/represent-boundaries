@@ -1,6 +1,3 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 from django.contrib.gis.gdal import OGRGeometry, SpatialReference
 from django.test import TestCase
 
@@ -35,7 +32,7 @@ class GeometryTestCase(TestCase):
         self.assertRegex(geometry.wkt, r'MULTIPOLYGON \(\(\(-85.488743884\d+ 0.0,-85.488743884\d+ 0.000045096\d+,-85.488699089\d+ 0.000045096\d+,-85.488743884\d+ 0.0\)\)\)')
 
     def test_transform_nonpolygon(self):
-        self.assertRaisesRegexp(ValueError, r'\AThe geometry is a Point but must be a Polygon or a MultiPolygon\.\Z', Geometry(OGRGeometry('POINT (0 0)')).transform, SpatialReference(26917))
+        self.assertRaisesRegex(ValueError, r'\AThe geometry is a Point but must be a Polygon or a MultiPolygon\.\Z', Geometry(OGRGeometry('POINT (0 0)')).transform, SpatialReference(26917))
 
     def test_simplify(self):
         geometry = Geometry(OGRGeometry('MULTIPOLYGON (((0 0,0.0001 0.0001,0 5,5 5,0 0)))')).simplify()

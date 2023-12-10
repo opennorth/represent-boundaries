@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import json
 import sys
 
@@ -42,7 +40,7 @@ class Command(BaseCommand):
                 try:
                     geometry = a_bdry.shape.intersection(b_bdry.shape)
                 except Exception as e:
-                    sys.stderr.write("%s/%s: %s\n" % (a_slug, b_bdry.slug, str(e)))
+                    sys.stderr.write("{}/{}: {}\n".format(a_slug, b_bdry.slug, str(e)))
                     continue
 
                 int_area = geometry.area

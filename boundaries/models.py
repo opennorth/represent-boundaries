@@ -1,6 +1,3 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 import re
 
 from appconf import AppConf
@@ -86,7 +83,7 @@ class BoundarySet(models.Model):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
-        return super(BoundarySet, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
     def as_dict(self):
         r = {
@@ -166,7 +163,7 @@ class Boundary(models.Model):
         verbose_name_plural = ugettext_lazy('boundaries')  # avoids "boundarys"
 
     def __str__(self):
-        return "%s (%s)" % (self.name, self.set_name)
+        return "{} ({})".format(self.name, self.set_name)
 
     def get_absolute_url(self):
         return reverse('boundaries_boundary_detail', kwargs={'set_slug': self.set_id, 'slug': self.slug})
@@ -241,7 +238,7 @@ class Boundary(models.Model):
 
 
 @python_2_unicode_compatible
-class Geometry(object):
+class Geometry:
     def __init__(self, geometry):
         if hasattr(geometry, 'geometry'):
             self.geometry = geometry.geometry
@@ -319,7 +316,7 @@ slug_re = re.compile(r'[–—]')  # n-dash, m-dash
 
 
 @python_2_unicode_compatible
-class Feature(object):
+class Feature:
 
     # @see https://github.com/django/django/blob/master/django/contrib/gis/gdal/feature.py
     def __init__(self, feature, definition, srs=None, boundary_set=None, start_date=None, end_date=None):
@@ -398,7 +395,7 @@ class Feature(object):
 
 
 @python_2_unicode_compatible
-class Definition(object):
+class Definition:
     """
     The dictionary must have `name` and `name_func` keys.
     """

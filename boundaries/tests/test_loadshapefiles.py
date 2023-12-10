@@ -1,6 +1,3 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 import errno
 import os
 import os.path
@@ -34,7 +31,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/polygons')
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
-                    self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+                    self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
         l.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing polygons.'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading polygons from boundaries/tests/definitions/polygons/test_poly.shp'),
@@ -50,7 +47,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features')
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
-                    self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+                    self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
         l.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading districts from boundaries/tests/definitions/no_features/../../fixtures/foo.shp'),
@@ -63,7 +60,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/srid')
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
-                    self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+                    self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
         l.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing wards.'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading wards from boundaries/tests/definitions/srid/../../fixtures/foo.shp'),
@@ -81,7 +78,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
                 )
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
-                    self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+                    self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
                 else:
                     l.check(('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'))
 
@@ -107,18 +104,18 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
         try:
             Command().get_version()
         except Exception as e:
-            self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+            self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
 
 
 class LoadableTestCase(TestCase):
 
     def test_whitelist(self):
-        self.assertTrue(Command().loadable('foo', date(2000, 1, 1), whitelist=set(['foo'])))
-        self.assertFalse(Command().loadable('bar', date(2000, 1, 1), whitelist=set(['foo'])))
+        self.assertTrue(Command().loadable('foo', date(2000, 1, 1), whitelist={'foo'}))
+        self.assertFalse(Command().loadable('bar', date(2000, 1, 1), whitelist={'foo'}))
 
     def test_blacklist(self):
-        self.assertFalse(Command().loadable('foo', date(2000, 1, 1), blacklist=set(['foo'])))
-        self.assertTrue(Command().loadable('bar', date(2000, 1, 1), blacklist=set(['foo'])))
+        self.assertFalse(Command().loadable('foo', date(2000, 1, 1), blacklist={'foo'}))
+        self.assertTrue(Command().loadable('bar', date(2000, 1, 1), blacklist={'foo'}))
 
     def test_reload_existing(self):
         BoundarySet.objects.create(name='Foo', last_updated=date(2010, 1, 1))
@@ -177,12 +174,12 @@ class LoadBoundaryTestCase(BoundariesTestCase):
         try:
             Command().load_boundary(self.feature, 'invalid')
         except Exception as e:
-            self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+            self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
 
     def test_invalid_merge_strategy(self):
         Command().load_boundary(self.feature, 'invalid')
 
-        self.assertRaisesRegexp(ValueError, r"\AThe merge strategy 'invalid' must be 'combine' or 'union'.\Z", Command().load_boundary, self.feature, 'invalid')
+        self.assertRaisesRegex(ValueError, r"\AThe merge strategy 'invalid' must be 'combine' or 'union'.\Z", Command().load_boundary, self.feature, 'invalid')
 
     def test_combine_merge_strategy(self):
         self.boundary_set.save()
@@ -212,7 +209,7 @@ class LoadBoundaryTestCase(BoundariesTestCase):
 class DataSourcesTestCase(TestCase):
 
     def test_empty_txt(self):
-        self.assertRaisesRegexp(ValueError, r"\AThe path must be a shapefile, a ZIP file, or a directory: .+/boundaries/tests/fixtures/empty/empty\.txt\.\Z", create_data_sources, fixture('empty/empty.txt'))
+        self.assertRaisesRegex(ValueError, r"\AThe path must be a shapefile, a ZIP file, or a directory: .+/boundaries/tests/fixtures/empty/empty\.txt\.\Z", create_data_sources, fixture('empty/empty.txt'))
 
     def test_foo_shp(self):
         path = fixture('foo.shp')
@@ -231,7 +228,7 @@ class DataSourcesTestCase(TestCase):
         self.assertEqual(data_sources[0].layer_count, 1)
 
     def test_bad_zip(self):
-        self.assertRaisesRegexp(BadZipfile, r"\AFile is not a zip file\Z", create_data_sources, fixture('bad.zip'))
+        self.assertRaisesRegex(BadZipfile, r"\AFile is not a zip file\Z", create_data_sources, fixture('bad.zip'))
 
     def test_empty(self):
         data_sources, tmpdirs = create_data_sources(fixture('empty'))
