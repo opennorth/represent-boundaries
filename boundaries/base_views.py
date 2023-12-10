@@ -176,14 +176,14 @@ class ModelGeoListView(ModelListView):
             if 'contains' in request.GET:
                 try:
                     latitude, longitude = re.sub(r'[^\d.,-]', '', request.GET['contains']).split(',')
-                    wkt = 'POINT({} {})'.format(longitude, latitude)
+                    wkt = f'POINT({longitude} {latitude})'
                     qs = qs.filter(**{self.default_geo_filter_field + "__contains": wkt})
                 except ValueError:
                     raise BadRequest(_("Invalid latitude,longitude '%(value)s' provided.") % {'value': request.GET['contains']})
 
             if 'near' in request.GET:
                 latitude, longitude, range = request.GET['near'].split(',')
-                wkt = 'POINT({} {})'.format(longitude, latitude)
+                wkt = f'POINT({longitude} {latitude})'
                 numeral = re.match('([0-9]+)', range).group(1)
                 unit = range[len(numeral):]
                 numeral = int(numeral)
@@ -216,7 +216,7 @@ class ModelGeoListView(ModelListView):
         if format in ('json', 'apibrowser'):
             strings = ['{"objects": [']
             strings.append(','.join(
-                '{{"name": "{}", "{}": {}}}'.format(escapejs(x[1]), field, x[0].geojson)
+                f'{{"name": "{escapejs(x[1])}", "{field}": {x[0].geojson}}}'
                 for x in qs.values_list(field, self.name_field))
             )
             strings.append(']}')
@@ -460,7 +460,7 @@ class Paginator:
             request_params.update({'limit': limit, 'offset': offset})
             encoded_params = urlencode(request_params)
 
-        return '{}?{}'.format(self.resource_uri, encoded_params)
+        return f'{self.resource_uri}?{encoded_params}'
 
     def page(self):
         """

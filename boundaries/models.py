@@ -162,7 +162,7 @@ class Boundary(models.Model):
         verbose_name_plural = gettext_lazy('boundaries')  # avoids "boundarys"
 
     def __str__(self):
-        return "{} ({})".format(self.name, self.set_name)
+        return f"{self.name} ({self.set_name})"
 
     def get_absolute_url(self):
         return reverse('boundaries_boundary_detail', kwargs={'set_slug': self.set_id, 'slug': self.slug})

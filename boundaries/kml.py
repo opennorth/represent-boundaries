@@ -2,7 +2,7 @@ from xml.sax.saxutils import escape
 
 
 def generate_placemark(name, geom):
-    return "<Placemark><name>{}</name>{}</Placemark>".format(escape(name), geom.kml)
+    return f"<Placemark><name>{escape(name)}</name>{geom.kml}</Placemark>"
 
 
 def generate_kml_document(placemarks):

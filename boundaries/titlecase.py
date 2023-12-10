@@ -65,8 +65,7 @@ def titlecase(text):
 
             match = MAC_MC.match(word)
             if match:
-                tc_line.append("{}{}".format(match.group(1).capitalize(),
-                                         match.group(2).capitalize()))
+                tc_line.append(f"{match.group(1).capitalize()}{match.group(2).capitalize()}")
                 continue
 
             if "/" in word and "//" not in word:
@@ -83,17 +82,11 @@ def titlecase(text):
 
         result = " ".join(tc_line)
 
-        result = SMALL_FIRST.sub(lambda m: '{}{}'.format(
-            m.group(1),
-            m.group(2).capitalize()
-        ), result)
+        result = SMALL_FIRST.sub(lambda m: f'{m.group(1)}{m.group(2).capitalize()}', result)
 
         result = SMALL_LAST.sub(lambda m: m.group(0).capitalize(), result)
 
-        result = SUBPHRASE.sub(lambda m: '{}{}'.format(
-            m.group(1),
-            m.group(2).capitalize()
-        ), result)
+        result = SUBPHRASE.sub(lambda m: f'{m.group(1)}{m.group(2).capitalize()}', result)
 
         processed.append(result)
 

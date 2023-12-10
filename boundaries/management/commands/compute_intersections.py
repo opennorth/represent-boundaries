@@ -40,7 +40,7 @@ class Command(BaseCommand):
                 try:
                     geometry = a_bdry.shape.intersection(b_bdry.shape)
                 except Exception as e:
-                    sys.stderr.write("{}/{}: {}\n".format(a_slug, b_bdry.slug, str(e)))
+                    sys.stderr.write(f"{a_slug}/{b_bdry.slug}: {e}\n")
                     continue
 
                 int_area = geometry.area

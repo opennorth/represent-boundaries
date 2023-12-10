@@ -31,7 +31,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/polygons')
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
-                    self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
+                    self.fail(f'Exception {type(e).__name__} raised: {e} {traceback.format_exc()}')
         logcapture.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing polygons.'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading polygons from boundaries/tests/definitions/polygons/test_poly.shp'),
@@ -47,7 +47,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features')
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
-                    self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
+                    self.fail(f'Exception {type(e).__name__} raised: {e} {traceback.format_exc()}')
         logcapture.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading districts from boundaries/tests/definitions/no_features/../../fixtures/foo.shp'),
@@ -60,7 +60,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/srid')
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
-                    self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
+                    self.fail(f'Exception {type(e).__name__} raised: {e} {traceback.format_exc()}')
         logcapture.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing wards.'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading wards from boundaries/tests/definitions/srid/../../fixtures/foo.shp'),
@@ -78,7 +78,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
                 )
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
-                    self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
+                    self.fail(f'Exception {type(e).__name__} raised: {e} {traceback.format_exc()}')
                 else:
                     logcapture.check(('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'))
 
@@ -104,7 +104,7 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
         try:
             Command().get_version()
         except Exception as e:
-            self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
+            self.fail(f'Exception {type(e).__name__} raised: {e} {traceback.format_exc()}')
 
 
 class LoadableTestCase(TestCase):
@@ -174,7 +174,7 @@ class LoadBoundaryTestCase(BoundariesTestCase):
         try:
             Command().load_boundary(self.feature, 'invalid')
         except Exception as e:
-            self.fail('Exception {} raised: {} {}'.format(type(e).__name__, e, traceback.format_exc()))
+            self.fail(f'Exception {type(e).__name__} raised: {e} {traceback.format_exc()}')
 
     def test_invalid_merge_strategy(self):
         Command().load_boundary(self.feature, 'invalid')
