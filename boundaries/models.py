@@ -62,7 +62,8 @@ class BoundarySet(models.Model):
         help_text=_("The geographic area covered by the boundary set."),
     )
     last_updated = models.DateField(
-        help_text=_('The most recent date on which the data was updated.')),
+        help_text=_('The most recent date on which the data was updated.'),
+    )
     source_url = models.URLField(
         blank=True,
         help_text=_('A URL to the source of the data.'),
