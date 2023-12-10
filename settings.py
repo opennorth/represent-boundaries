@@ -50,7 +50,7 @@ TEMPLATES = [
     },
 ]
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 if 'GDAL_LIBRARY_PATH' in os.environ:
     GDAL_LIBRARY_PATH = os.getenv('GDAL_LIBRARY_PATH')
