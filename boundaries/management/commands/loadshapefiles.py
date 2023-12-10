@@ -12,7 +12,7 @@ from django.contrib.gis.gdal import DataSource, SpatialReference
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.template.defaultfilters import slugify
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 import boundaries
 from boundaries.models import app_settings, BoundarySet, Boundary, Definition, Feature

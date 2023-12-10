@@ -1,6 +1,6 @@
 from django.contrib.gis.db import models
 from django.http import Http404
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from boundaries.base_views import (ModelListView, ModelDetailView,
     ModelGeoListView, ModelGeoDetailView, BadRequest)
