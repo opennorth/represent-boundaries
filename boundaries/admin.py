@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
-from boundaries.models import BoundarySet, Boundary
+from boundaries.models import Boundary, BoundarySet
 
 
 @admin.register(BoundarySet)

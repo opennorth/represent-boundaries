@@ -1,10 +1,10 @@
 from datetime import date
 
-from django.test import TestCase
 from django.contrib.gis.gdal import OGRGeometry
-from django.contrib.gis.geos import Point, GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Point
+from django.test import TestCase
 
-from boundaries.models import BoundarySet, Boundary, Geometry
+from boundaries.models import Boundary, BoundarySet, Geometry
 
 
 class BoundaryTestCase(TestCase):

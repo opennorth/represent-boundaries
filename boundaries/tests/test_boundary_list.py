@@ -2,8 +2,8 @@ from datetime import date
 
 from django.contrib.gis.geos import GEOSGeometry
 
-from boundaries.models import BoundarySet, Boundary
-from boundaries.tests import ViewTestCase, ViewsTests, PrettyTests, PaginationTests, BoundaryListTests
+from boundaries.models import Boundary, BoundarySet
+from boundaries.tests import BoundaryListTests, PaginationTests, PrettyTests, ViewsTests, ViewTestCase
 
 
 class BoundaryListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationTests, BoundaryListTests):

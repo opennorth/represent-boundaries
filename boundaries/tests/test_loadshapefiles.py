@@ -4,10 +4,10 @@ import os.path
 import traceback
 from datetime import date
 from zipfile import BadZipfile
-from testfixtures import LogCapture
 
 from django.core.management import call_command
 from django.test import TestCase
+from testfixtures import LogCapture
 
 import boundaries
 from boundaries.management.commands.loadshapefiles import Command, create_data_sources

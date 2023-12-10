@@ -4,7 +4,6 @@ from django.test import TestCase
 
 from boundaries.models import Definition
 
-
 if not hasattr(TestCase, 'assertCountEqual'):  # Python < 3.2
     TestCase.assertCountEqual = TestCase.assertItemsEqual
 

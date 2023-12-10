@@ -1,7 +1,12 @@
 from django.urls import path, re_path
 
-from boundaries.views import (BoundarySetListView, BoundarySetDetailView,
-    BoundaryListView, BoundaryDetailView, BoundaryGeoDetailView)
+from boundaries.views import (
+    BoundaryDetailView,
+    BoundaryGeoDetailView,
+    BoundaryListView,
+    BoundarySetDetailView,
+    BoundarySetListView,
+)
 
 urlpatterns = [
     path('boundary-sets/',

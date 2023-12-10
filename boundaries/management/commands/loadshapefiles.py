@@ -15,7 +15,7 @@ from django.template.defaultfilters import slugify
 from django.utils.translation import gettext as _
 
 import boundaries
-from boundaries.models import app_settings, BoundarySet, Boundary, Definition, Feature
+from boundaries.models import Boundary, BoundarySet, Definition, Feature, app_settings
 
 log = logging.getLogger(__name__)
 

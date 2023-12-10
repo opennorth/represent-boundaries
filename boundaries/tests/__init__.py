@@ -8,7 +8,7 @@ from django.contrib.gis.gdal import OGRGeometry
 from django.contrib.gis.geos import GEOSGeometry
 from django.test import TestCase
 
-from boundaries.models import app_settings, Boundary
+from boundaries.models import Boundary, app_settings
 
 jsonp_re = re.compile(r'\Aabcdefghijklmnopqrstuvwxyz\.ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\$_\((.+)\);\Z', re.DOTALL)
 pretty_re = re.compile(r'\n    ')

@@ -8,7 +8,7 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.contrib.gis.measure import D
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse, Http404, HttpResponseForbidden, HttpResponseBadRequest
+from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.template import loader
 from django.template.defaultfilters import escapejs
 from django.utils.translation import gettext as _

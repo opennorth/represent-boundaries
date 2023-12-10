@@ -4,12 +4,14 @@ from appconf import AppConf
 from django.contrib.gis.db import models
 from django.contrib.gis.gdal import CoordTransform, OGRGeometry, OGRGeomType, SpatialReference
 from django.contrib.gis.geos import GEOSGeometry
-from django.db.models import JSONField
+
 # @see https://docs.djangoproject.com/en/1.10/ref/urlresolvers/ update when Django < 2.0 support is dropped
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db.models import JSONField
 from django.template.defaultfilters import slugify
 from django.urls import reverse
-from django.utils.translation import gettext as _, gettext_lazy
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 
 class MyAppConf(AppConf):

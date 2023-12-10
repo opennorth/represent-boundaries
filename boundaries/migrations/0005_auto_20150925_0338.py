@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 
+
 class JSONField(models.TextField):
     """Mocks jsonfield 0.92's column-type behaviour"""
     def db_type(self, connection):

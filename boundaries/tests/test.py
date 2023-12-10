@@ -1,7 +1,7 @@
 from datetime import date
-from testfixtures import LogCapture
 
 from django.test import TestCase
+from testfixtures import LogCapture
 
 import boundaries
 

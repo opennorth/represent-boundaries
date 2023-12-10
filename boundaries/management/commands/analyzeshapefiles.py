@@ -8,7 +8,7 @@ from django.utils.translation import gettext as _
 
 import boundaries
 from boundaries.management.commands.loadshapefiles import create_data_sources
-from boundaries.models import app_settings, Definition, Feature
+from boundaries.models import Definition, Feature, app_settings
 
 log = logging.getLogger(__name__)
 

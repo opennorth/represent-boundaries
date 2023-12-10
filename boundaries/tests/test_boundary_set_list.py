@@ -1,7 +1,7 @@
 from datetime import date
 
 from boundaries.models import BoundarySet
-from boundaries.tests import ViewTestCase, ViewsTests, PrettyTests, PaginationTests
+from boundaries.tests import PaginationTests, PrettyTests, ViewsTests, ViewTestCase
 
 
 class BoundarySetListTestCase(ViewTestCase, ViewsTests, PrettyTests, PaginationTests):

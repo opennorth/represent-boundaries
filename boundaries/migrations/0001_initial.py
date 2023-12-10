@@ -1,5 +1,6 @@
-from django.db import models, migrations
 import django.contrib.gis.db.models.fields
+from django.db import migrations, models
+
 
 class JSONField(models.TextField):
     """Mocks jsonfield 0.92's column-type behaviour"""
