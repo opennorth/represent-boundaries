@@ -30,6 +30,7 @@ class MyAppConf(AppConf):
 
 
 app_settings = MyAppConf()
+slug_re = re.compile(r'[–—]')  # n-dash, m-dash
 
 
 class BoundarySet(models.Model):
@@ -391,9 +392,6 @@ class Geometry:
             raise ValueError(
                 gettext('The geometry is a %(value)s but must be a Polygon or a MultiPolygon.') % {'value': value}
             )
-
-
-slug_re = re.compile(r'[–—]')  # n-dash, m-dash
 
 
 class Feature:
