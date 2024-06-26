@@ -3,12 +3,11 @@ from collections import OrderedDict
 from shutil import rmtree
 
 from django.core.management.base import BaseCommand
-from django.template.defaultfilters import slugify
 from django.utils.translation import gettext as _
 
 import boundaries
 from boundaries.management.commands.loadshapefiles import create_data_sources
-from boundaries.models import Definition, Feature, app_settings
+from boundaries.models import Definition, Feature, app_settings, slugify
 
 log = logging.getLogger(__name__)
 

@@ -11,11 +11,10 @@ from django.conf import settings
 from django.contrib.gis.gdal import DataSource, SpatialReference
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from django.template.defaultfilters import slugify
 from django.utils.translation import gettext as _
 
 import boundaries
-from boundaries.models import Boundary, BoundarySet, Definition, Feature, app_settings
+from boundaries.models import Boundary, BoundarySet, Definition, Feature, app_settings, slugify
 
 log = logging.getLogger(__name__)
 
@@ -77,7 +76,7 @@ class Command(BaseCommand):
         )
 
     def get_version(self):
-        return '0.10.1'
+        return '0.10.2'
 
     def handle(self, *args, **options):
         if settings.DEBUG:

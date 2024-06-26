@@ -6,7 +6,7 @@ from django.contrib.gis.gdal import CoordTransform, OGRGeometry, OGRGeomType, Sp
 from django.contrib.gis.geos import GEOSGeometry
 
 from django.core.serializers.json import DjangoJSONEncoder
-from django.template.defaultfilters import slugify
+from django.template import defaultfilters
 from django.urls import reverse
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
@@ -31,6 +31,10 @@ class MyAppConf(AppConf):
 
 app_settings = MyAppConf()
 slug_re = re.compile(r'[–—]')  # n-dash, m-dash
+
+
+def slugify(value):
+    return defaultfilters.slugify(slug_re.sub('-', value))
 
 
 class BoundarySet(models.Model):
@@ -127,7 +131,7 @@ class BoundarySet(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(slug_re.sub('-', self.name))
+            self.slug = slugify(self.name)
         return super().save(*args, **kwargs)
 
     def as_dict(self):
@@ -429,7 +433,7 @@ class Feature:
     def slug(self):
         # Coerce to string, as the field in the feature from which the slug is
         # derived may be numeric.
-        return slugify(slug_re.sub('-', str(self.definition['slug_func'](self))))
+        return slugify(str(self.definition['slug_func'](self)))
 
     @property
     def label_point(self):
