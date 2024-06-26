@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.5 (2024-06-26)
+## 0.10.0 (2024-06-26)
 
 * Replace n-dashes and m-dashes in boundary set slugs with hyphens.
 * Add support for Django 3.2 and 4.2.
