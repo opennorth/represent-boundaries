@@ -128,7 +128,7 @@ class BoundarySet(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            self.slug = slugify(slug_re.sub('-', self.name))
         return super().save(*args, **kwargs)
 
     def as_dict(self):
