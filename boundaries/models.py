@@ -5,7 +5,6 @@ from django.contrib.gis.db import models
 from django.contrib.gis.gdal import CoordTransform, OGRGeometry, OGRGeomType, SpatialReference
 from django.contrib.gis.geos import GEOSGeometry
 
-# @see https://docs.djangoproject.com/en/1.10/ref/urlresolvers/ update when Django < 2.0 support is dropped
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.defaultfilters import slugify
 from django.urls import reverse
