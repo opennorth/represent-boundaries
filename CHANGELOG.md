@@ -1,10 +1,10 @@
 # Changelog
 
-## 0.9.5 (Unreleased)
+## 0.9.5 (2024-06-26)
 
 * Replace n-dashes and m-dashes in boundary set slugs with hyphens.
-* Add support for Django 2.2.
-* Drop support for Python 2.7 and 3.4.
+* Add support for Django 3.2 and 4.2.
+* Drop support for Python <= 3.7.
 
 ## 0.9.4 (2019-01-09)
 
