@@ -41,7 +41,6 @@ class BoundarySet(models.Model):
     slug = models.SlugField(
         max_length=200,
         primary_key=True,
-        editable=False,
         help_text=_("The boundary set's unique identifier, used as a path component in URLs."),
     )
     name = models.CharField(
