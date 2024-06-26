@@ -1,5 +1,4 @@
-from django.contrib import admin
-from django.contrib.gis.admin import OSMGeoAdmin
+from django.contrib.gis import admin
 
 from boundaries.models import Boundary, BoundarySet
 
@@ -10,7 +9,7 @@ class BoundarySetAdmin(admin.ModelAdmin):
 
 
 @admin.register(Boundary)
-class BoundaryAdmin(OSMGeoAdmin):
+class BoundaryAdmin(admin.OSMGeoAdmin):
     list_display = ('name', 'external_id', 'set')
     list_display_links = ('name', 'external_id')
     list_filter = ('set',)
