@@ -1,17 +1,14 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 import logging
 from collections import OrderedDict
 from shutil import rmtree
 
 from django.core.management.base import BaseCommand
 from django.template.defaultfilters import slugify
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 import boundaries
 from boundaries.management.commands.loadshapefiles import create_data_sources
-from boundaries.models import app_settings, Definition, Feature
+from boundaries.models import Definition, Feature, app_settings
 
 log = logging.getLogger(__name__)
 
@@ -20,9 +17,14 @@ class Command(BaseCommand):
     help = _('Reports the number of features to be loaded, along with names and identifiers.')
 
     def add_arguments(self, parser):
-        parser.add_argument('-d', '--data-dir', action='store', dest='data_dir',
+        parser.add_argument(
+            '-d',
+            '--data-dir',
+            action='store',
+            dest='data_dir',
             default=app_settings.SHAPEFILES_DIR,
-            help=_('Load shapefiles from this directory.'))
+            help=_('Load shapefiles from this directory.'),
+        )
 
     def handle(self, *args, **options):
         boundaries.autodiscover(options['data_dir'])

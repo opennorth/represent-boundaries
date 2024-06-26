@@ -1,12 +1,9 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 import logging
 import os
 import re
 import sys
 
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 log = logging.getLogger(__name__)
 registry = {}
@@ -78,15 +75,14 @@ def import_file(path):
     # The module object is returned, but this return value is unused by this
     # package.
 
-    if sys.version_info > (3, 3):
-        """
+    """
         If we're in Python 3, we'll use the PEP 302 import loader.
         """
-        import importlib.machinery
-        loader = importlib.machinery.SourceFileLoader(module, path)
-        obj = loader.load_module()
-        sys.modules.pop(module)
-        return obj
+    import importlib.machinery
+    loader = importlib.machinery.SourceFileLoader(module, path)
+    obj = loader.load_module()
+    sys.modules.pop(module)
+    return obj
 
     """
     If we're in Python 2, we'll use the `imp` module.

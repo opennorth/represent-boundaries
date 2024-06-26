@@ -1,12 +1,8 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 from datetime import date
 
 from django.test import TestCase
 
 from boundaries.models import Definition
-
 
 if not hasattr(TestCase, 'assertCountEqual'):  # Python < 3.2
     TestCase.assertCountEqual = TestCase.assertItemsEqual

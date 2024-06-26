@@ -1,16 +1,14 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 import errno
 import os
 import os.path
 import traceback
 from datetime import date
 from zipfile import BadZipfile
-from testfixtures import LogCapture
 
+from django.contrib.gis.gdal import OGRGeometry
 from django.core.management import call_command
 from django.test import TestCase
+from testfixtures import LogCapture
 
 import boundaries
 from boundaries.management.commands.loadshapefiles import Command, create_data_sources
@@ -29,13 +27,13 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
         boundaries._basepath = '.'
 
     def test_loadshapefiles(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             try:
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/polygons')
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
-                    self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
-        l.check(
+                    self.fail(f'Exception {type(e).__name__} raised: {e} {traceback.format_exc()}')
+        logcapture.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing polygons.'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading polygons from boundaries/tests/definitions/polygons/test_poly.shp'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', '1...'),
@@ -45,60 +43,60 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
         )
 
     def test_no_features(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             try:
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features')
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
-                    self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
-        l.check(
+                    self.fail(f'Exception {type(e).__name__} raised: {e} {traceback.format_exc()}')
+        logcapture.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading districts from boundaries/tests/definitions/no_features/../../fixtures/foo.shp'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'districts count: 0'),
         )
 
     def test_srid(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             try:
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/srid')
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
-                    self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
-        l.check(
+                    self.fail(f'Exception {type(e).__name__} raised: {e} {traceback.format_exc()}')
+        logcapture.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing wards.'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading wards from boundaries/tests/definitions/srid/../../fixtures/foo.shp'),
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'wards count: 0'),
         )
 
     def test_clean(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             try:
                 call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features', clean=True)
-                l.check(
+                logcapture.check(
                     ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'),
                     ('boundaries.management.commands.loadshapefiles', 'INFO', 'Loading districts from boundaries/tests/definitions/no_features/../../fixtures/foo._cleaned_.shp'),
                     ('boundaries.management.commands.loadshapefiles', 'INFO', 'districts count: 0'),
                 )
             except Exception as e:
                 if not hasattr(e, 'errno') or e.errno != errno.ENOENT:
-                    self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+                    self.fail(f'Exception {type(e).__name__} raised: {e} {traceback.format_exc()}')
                 else:
-                    l.check(('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'))
+                    logcapture.check(('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing districts.'))
 
     def test_only(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features', only='unknown')
-        l.check(('boundaries.management.commands.loadshapefiles', 'DEBUG', 'Skipping districts.'))
+        logcapture.check(('boundaries.management.commands.loadshapefiles', 'DEBUG', 'Skipping districts.'))
 
     def test_except(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_features', **{'except': 'districts'})
-        l.check(('boundaries.management.commands.loadshapefiles', 'DEBUG', 'Skipping districts.'))
+        logcapture.check(('boundaries.management.commands.loadshapefiles', 'DEBUG', 'Skipping districts.'))
 
     def test_no_data_sources(self):
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             call_command('loadshapefiles', data_dir='boundaries/tests/definitions/no_data_sources')
-        l.check(
+        logcapture.check(
             ('boundaries.management.commands.loadshapefiles', 'INFO', 'Processing empty.'),
             ('boundaries.management.commands.loadshapefiles', 'WARNING', 'No shapefiles found.'),
         )
@@ -107,18 +105,18 @@ class LoadShapefilesTestCase(TestCase):  # @todo This only ensures there's no gr
         try:
             Command().get_version()
         except Exception as e:
-            self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+            self.fail(f'Exception {type(e).__name__} raised: {e} {traceback.format_exc()}')
 
 
 class LoadableTestCase(TestCase):
 
     def test_whitelist(self):
-        self.assertTrue(Command().loadable('foo', date(2000, 1, 1), whitelist=set(['foo'])))
-        self.assertFalse(Command().loadable('bar', date(2000, 1, 1), whitelist=set(['foo'])))
+        self.assertTrue(Command().loadable('foo', date(2000, 1, 1), whitelist={'foo'}))
+        self.assertFalse(Command().loadable('bar', date(2000, 1, 1), whitelist={'foo'}))
 
     def test_blacklist(self):
-        self.assertFalse(Command().loadable('foo', date(2000, 1, 1), blacklist=set(['foo'])))
-        self.assertTrue(Command().loadable('bar', date(2000, 1, 1), blacklist=set(['foo'])))
+        self.assertFalse(Command().loadable('foo', date(2000, 1, 1), blacklist={'foo'}))
+        self.assertTrue(Command().loadable('bar', date(2000, 1, 1), blacklist={'foo'}))
 
     def test_reload_existing(self):
         BoundarySet.objects.create(name='Foo', last_updated=date(2010, 1, 1))
@@ -177,12 +175,12 @@ class LoadBoundaryTestCase(BoundariesTestCase):
         try:
             Command().load_boundary(self.feature, 'invalid')
         except Exception as e:
-            self.fail('Exception %s raised: %s %s' % (type(e).__name__, e, traceback.format_exc()))
+            self.fail(f'Exception {type(e).__name__} raised: {e} {traceback.format_exc()}')
 
     def test_invalid_merge_strategy(self):
         Command().load_boundary(self.feature, 'invalid')
 
-        self.assertRaisesRegexp(ValueError, r"\AThe merge strategy 'invalid' must be 'combine' or 'union'.\Z", Command().load_boundary, self.feature, 'invalid')
+        self.assertRaisesRegex(ValueError, r"\AThe merge strategy 'invalid' must be 'combine' or 'union'.\Z", Command().load_boundary, self.feature, 'invalid')
 
     def test_combine_merge_strategy(self):
         self.boundary_set.save()
@@ -199,12 +197,9 @@ class LoadBoundaryTestCase(BoundariesTestCase):
         Command().load_boundary(self.feature, 'invalid')
 
         boundary = Command().load_boundary(self.feature, 'union')
-        try:  # Django < 2.2
-            self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,0 5,0 5,5 5,5 5,0.0001 0.0001)))')
-            self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,5 5,5 5,0.0001 0.0001)))')
-        except AssertionError:
-            self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,5 5,0.0001 0.0001)))')
-            self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((0.0001 0.0001,0 5,5 5,0.0001 0.0001)))')
+        expected = OGRGeometry('MULTIPOLYGON (((0.0001 0.0001,0 5,5 5,0.0001 0.0001)))')
+        self.assertEqual(boundary.shape.ogr.difference(expected).wkt, 'POLYGON EMPTY')
+        self.assertEqual(boundary.simple_shape.ogr.difference(expected).wkt, 'POLYGON EMPTY')
         self.assertRegex(boundary.centroid.ogr.wkt, r'\APOINT \(1\.6667 3\.3333666666666+7\)\Z')
         self.assertEqual(boundary.extent, (0.0, 0.0001, 5.0, 5.0))
 
@@ -212,7 +207,7 @@ class LoadBoundaryTestCase(BoundariesTestCase):
 class DataSourcesTestCase(TestCase):
 
     def test_empty_txt(self):
-        self.assertRaisesRegexp(ValueError, r"\AThe path must be a shapefile, a ZIP file, or a directory: .+/boundaries/tests/fixtures/empty/empty\.txt\.\Z", create_data_sources, fixture('empty/empty.txt'))
+        self.assertRaisesRegex(ValueError, r"\AThe path must be a shapefile, a ZIP file, or a directory: .+/boundaries/tests/fixtures/empty/empty\.txt\.\Z", create_data_sources, fixture('empty/empty.txt'))
 
     def test_foo_shp(self):
         path = fixture('foo.shp')
@@ -231,7 +226,7 @@ class DataSourcesTestCase(TestCase):
         self.assertEqual(data_sources[0].layer_count, 1)
 
     def test_bad_zip(self):
-        self.assertRaisesRegexp(BadZipfile, r"\AFile is not a zip file\Z", create_data_sources, fixture('bad.zip'))
+        self.assertRaisesRegex(BadZipfile, r"\AFile is not a zip file\Z", create_data_sources, fixture('bad.zip'))
 
     def test_empty(self):
         data_sources, tmpdirs = create_data_sources(fixture('empty'))

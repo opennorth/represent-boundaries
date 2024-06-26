@@ -1,12 +1,9 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 from datetime import date
 
 from django.contrib.gis.geos import GEOSGeometry
 
-from boundaries.models import BoundarySet, Boundary
-from boundaries.tests import ViewTestCase, ViewsTests, GeoListTests, GeoTests
+from boundaries.models import Boundary, BoundarySet
+from boundaries.tests import GeoListTests, GeoTests, ViewsTests, ViewTestCase
 
 
 class BoundaryListSetGeoTestCase(ViewTestCase, ViewsTests, GeoListTests, GeoTests):

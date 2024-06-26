@@ -1,10 +1,7 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 from datetime import date
-from testfixtures import LogCapture
 
 from django.test import TestCase
+from testfixtures import LogCapture
 
 import boundaries
 
@@ -22,13 +19,13 @@ class BoundariesTestCase(TestCase):
         # Uses bar_definition.py and foo_definition.py fixtures.
         boundaries.registry = {}
         boundaries._basepath = '.'
-        with LogCapture() as l:
+        with LogCapture() as logcapture:
             boundaries.autodiscover('./boundaries/tests/fixtures')
             self.assertEqual(len(boundaries.registry), 1)
             self.assertEqual(boundaries.registry['Districts']['file'], './boundaries/tests/fixtures/foo.shp')
             self.assertEqual(boundaries.registry['Districts']['last_updated'], date(2000, 1, 1))
 
-        l.check(('boundaries', 'WARNING', 'Multiple definitions of Districts found.'))
+        logcapture.check(('boundaries', 'WARNING', 'Multiple definitions of Districts found.'))
 
     def test_attr(self):
         self.assertEqual(boundaries.attr('foo')({'foo': 'bar'}), 'bar')

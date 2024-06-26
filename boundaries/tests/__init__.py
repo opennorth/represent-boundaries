@@ -1,6 +1,3 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 import json
 import re
 from copy import deepcopy
@@ -10,9 +7,8 @@ from django.conf import settings
 from django.contrib.gis.gdal import OGRGeometry
 from django.contrib.gis.geos import GEOSGeometry
 from django.test import TestCase
-from django.utils.encoding import python_2_unicode_compatible
 
-from boundaries.models import app_settings, Boundary
+from boundaries.models import Boundary, app_settings
 
 jsonp_re = re.compile(r'\Aabcdefghijklmnopqrstuvwxyz\.ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\$_\((.+)\);\Z', re.DOTALL)
 pretty_re = re.compile(r'\n    ')
@@ -81,8 +77,7 @@ class ViewTestCase(TestCase):
         self.assertCountEqual(comparable(actual), comparable(expected))
 
 
-@python_2_unicode_compatible
-class URL(object):
+class URL:
 
     """
     https://stackoverflow.com/questions/5371992/comparing-two-urls-in-python
@@ -128,7 +123,7 @@ def load_response(response):
     return json.loads(response.content.decode('utf-8'))
 
 
-class ViewsTests(object):
+class ViewsTests:
 
     def test_get(self):
         response = self.client.get(self.url)
@@ -156,7 +151,7 @@ class ViewsTests(object):
         self.assertResponse(response, content_type='text/html; charset=utf-8')
 
 
-class PrettyTests(object):
+class PrettyTests:
 
     def test_pretty(self):
         response = self.client.get(self.url, {'pretty': 1})
@@ -173,7 +168,7 @@ class PrettyTests(object):
         self.assertRegex(response.content.decode('utf-8'), pretty_re)
 
 
-class PaginationTests(object):
+class PaginationTests:
 
     def test_limit_is_set(self):
         response = self.client.get(self.url, {'limit': 10})
@@ -237,7 +232,7 @@ class PaginationTests(object):
         self.assertEqual(response.content, b"Invalid offset '-1' provided. Please provide a positive integer >= 0.")
 
 
-class BoundaryListTests(object):
+class BoundaryListTests:
 
     def test_omits_meta_if_too_many_items_match(self):
         app_settings.MAX_GEO_LIST_RESULTS, _ = 0, app_settings.MAX_GEO_LIST_RESULTS
@@ -252,7 +247,7 @@ class BoundaryListTests(object):
         app_settings.MAX_GEO_LIST_RESULTS = _
 
 
-class GeoListTests(object):
+class GeoListTests:
 
     def test_must_not_match_too_many_items(self):
         app_settings.MAX_GEO_LIST_RESULTS, _ = 0, app_settings.MAX_GEO_LIST_RESULTS
@@ -264,7 +259,7 @@ class GeoListTests(object):
         app_settings.MAX_GEO_LIST_RESULTS = _
 
 
-class GeoTests(object):
+class GeoTests:
 
     def test_wkt(self):
         response = self.client.get(self.url, {'format': 'wkt'})

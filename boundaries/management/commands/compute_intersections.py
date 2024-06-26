@@ -1,25 +1,36 @@
-from __future__ import print_function
-
 import json
 import sys
 
 from django.core.management.base import BaseCommand
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from boundaries.models import BoundarySet
 
 
 class Command(BaseCommand):
-    help = _('Create a report of the area of intersection of every pair of boundaries from two boundary sets specified by their slug.')
+    help = _(
+        'Create a report of the area of intersection of every pair of boundaries from two boundary sets '
+        'specified by their slug.'
+    )
 
     def add_arguments(self, parser):
         parser.add_argument('slug', nargs=2)
-        parser.add_argument('-f', '--format', action='store', dest='format',
+        parser.add_argument(
+            '-f',
+            '--format',
+            action='store',
+            dest='format',
             default='csv',
-            help=_('Choose an output format: csv, json.'))
-        parser.add_argument('-m', '--metadata', action='store_true', dest='include_metadata',
+            help=_('Choose an output format: csv, json.'),
+        )
+        parser.add_argument(
+            '-m',
+            '--metadata',
+            action='store_true',
+            dest='include_metadata',
             default=False,
-            help=_('Includes the original shapefile metadata in the output.'))
+            help=_('Includes the original shapefile metadata in the output.'),
+        )
 
     def handle(self, *args, **options):
         bset_a = BoundarySet.objects.get(slug=options['slug'][0])
@@ -42,7 +53,7 @@ class Command(BaseCommand):
                 try:
                     geometry = a_bdry.shape.intersection(b_bdry.shape)
                 except Exception as e:
-                    sys.stderr.write("%s/%s: %s\n" % (a_slug, b_bdry.slug, str(e)))
+                    sys.stderr.write(f"{a_slug}/{b_bdry.slug}: {e}\n")
                     continue
 
                 int_area = geometry.area

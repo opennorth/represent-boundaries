@@ -2,8 +2,9 @@ from datetime import date
 
 import boundaries
 
-boundaries.register('Federal electoral districts',  # The string to be used for
-    # the boundary set's slug. The slug will be "federal-electoral-districts".
+boundaries.register(
+    # The string to be used for the boundary set's slug. The slug will be "federal-electoral-districts".
+    'Federal electoral districts',
 
     # (Optional) The path to the shapefile's directory relative to this file.
     # If this definition file and the shapefile share the same directory, you

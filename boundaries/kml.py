@@ -1,10 +1,8 @@
-from __future__ import unicode_literals
-
 from xml.sax.saxutils import escape
 
 
 def generate_placemark(name, geom):
-    return "<Placemark><name>%s</name>%s</Placemark>" % (escape(name), geom.kml)
+    return f"<Placemark><name>{escape(name)}</name>{geom.kml}</Placemark>"
 
 
 def generate_kml_document(placemarks):

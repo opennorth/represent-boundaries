@@ -1,12 +1,9 @@
-from __future__ import unicode_literals
-
 from django.contrib.gis.db import models
 from django.http import Http404
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
-from boundaries.base_views import (ModelListView, ModelDetailView,
-    ModelGeoListView, ModelGeoDetailView, BadRequest)
-from boundaries.models import BoundarySet, Boundary, app_settings
+from boundaries.base_views import BadRequest, ModelDetailView, ModelGeoDetailView, ModelGeoListView, ModelListView
+from boundaries.models import Boundary, BoundarySet, app_settings
 
 
 class BoundarySetListView(ModelListView):
@@ -42,7 +39,7 @@ class BoundaryListView(ModelGeoListView):
     model = Boundary
 
     def filter(self, request, qs):
-        qs = super(BoundaryListView, self).filter(request, qs)
+        qs = super().filter(request, qs)
 
         if 'intersects' in request.GET:
             try:
@@ -71,7 +68,7 @@ class BoundaryListView(ModelGeoListView):
         return qs
 
     def get_qs(self, request, set_slug=None):
-        qs = super(BoundaryListView, self).get_qs(request)
+        qs = super().get_qs(request)
         if set_slug:
             if not BoundarySet.objects.filter(slug=set_slug).exists():
                 raise Http404
@@ -79,7 +76,7 @@ class BoundaryListView(ModelGeoListView):
         return qs
 
     def get_related_resources(self, request, qs, meta):
-        r = super(BoundaryListView, self).get_related_resources(request, qs, meta)
+        r = super().get_related_resources(request, qs, meta)
         if meta['total_count'] == 0 or meta['total_count'] > app_settings.MAX_GEO_LIST_RESULTS:
             return r
 
@@ -95,7 +92,7 @@ class BoundaryListView(ModelGeoListView):
         return r
 
 
-class BoundaryObjectGetterMixin(object):
+class BoundaryObjectGetterMixin:
 
     model = Boundary
 
@@ -111,7 +108,7 @@ class BoundaryDetailView(ModelDetailView, BoundaryObjectGetterMixin):
     """ e.g. /boundary/federal-electoral-districts/outremont/ """
 
     def __init__(self):
-        super(BoundaryDetailView, self).__init__()
+        super().__init__()
         self.base_qs = self.base_qs.defer('shape', 'simple_shape')
 
 

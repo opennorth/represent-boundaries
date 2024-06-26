@@ -1,6 +1,5 @@
 """ A mini API framework.
 """
-from __future__ import unicode_literals
 
 import json
 import re
@@ -9,17 +8,17 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.contrib.gis.measure import D
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponse, Http404, HttpResponseForbidden, HttpResponseBadRequest
+from django.http import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.template import loader
 from django.template.defaultfilters import escapejs
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.generic import View
 
 from boundaries import kml
 from boundaries.models import app_settings
 
 
-class RawJSONResponse(object):
+class RawJSONResponse:
 
     """APIView subclasses can return these if they have
     already-serialized JSON to return"""
@@ -43,7 +42,7 @@ class APIView(View):
 
     def dispatch(self, request, *args, **kwargs):
         try:
-            result = super(APIView, self).dispatch(request, *args, **kwargs)
+            result = super().dispatch(request, *args, **kwargs)
         except BadRequest as e:
             return HttpResponseBadRequest(str(e), content_type='text/plain')
         if isinstance(result, HttpResponse):
@@ -77,7 +76,7 @@ class APIView(View):
         jsonresult = json.dumps(result, indent=4)
         template = loader.get_template('boundaries/apibrowser.html')
         json_url = request.path
-        params = dict([k, v.encode('utf-8')] for k, v in request.GET.items())
+        params = {k: v.encode('utf-8') for k, v in request.GET.items()}
         params.pop('format')
         if params:
             json_url += '?' + urlencode(params)
@@ -171,20 +170,22 @@ class ModelGeoListView(ModelListView):
     default_geo_filter_field = None
 
     def filter(self, request, qs):
-        qs = super(ModelGeoListView, self).filter(request, qs)
+        qs = super().filter(request, qs)
 
         if self.default_geo_filter_field:
             if 'contains' in request.GET:
                 try:
                     latitude, longitude = re.sub(r'[^\d.,-]', '', request.GET['contains']).split(',')
-                    wkt = 'POINT(%s %s)' % (longitude, latitude)
+                    wkt = f'POINT({longitude} {latitude})'
                     qs = qs.filter(**{self.default_geo_filter_field + "__contains": wkt})
                 except ValueError:
-                    raise BadRequest(_("Invalid latitude,longitude '%(value)s' provided.") % {'value': request.GET['contains']})
+                    raise BadRequest(
+                        _("Invalid latitude,longitude '%(value)s' provided.") % {'value': request.GET['contains']}
+                    )
 
             if 'near' in request.GET:
                 latitude, longitude, range = request.GET['near'].split(',')
-                wkt = 'POINT(%s %s)' % (longitude, latitude)
+                wkt = f'POINT({longitude} {latitude})'
                 numeral = re.match('([0-9]+)', range).group(1)
                 unit = range[len(numeral):]
                 numeral = int(numeral)
@@ -196,7 +197,7 @@ class ModelGeoListView(ModelListView):
     def get(self, request, **kwargs):
         if 'geo_field' not in kwargs:
             # If it's not a geo request, let ModelListView handle it.
-            return super(ModelGeoListView, self).get(request, **kwargs)
+            return super().get(request, **kwargs)
 
         field = kwargs.pop('geo_field')
         if field not in self.allowed_geo_fields:
@@ -209,19 +210,25 @@ class ModelGeoListView(ModelListView):
 
         if qs.count() > app_settings.MAX_GEO_LIST_RESULTS:
             return HttpResponseForbidden(
-                _("Spatial-list queries cannot return more than %(expected)d resources; this query would return %(actual)s. Please filter your query.")
-                % {'expected': app_settings.MAX_GEO_LIST_RESULTS, 'actual': qs.count()})
+                _(
+                    "Spatial-list queries cannot return more than %(expected)d resources; "
+                    "this query would return %(actual)s. Please filter your query."
+                ) % {'expected': app_settings.MAX_GEO_LIST_RESULTS, 'actual': qs.count()})
 
         format = request.GET.get('format', 'json')
 
         if format in ('json', 'apibrowser'):
             strings = ['{"objects": [']
-            strings.append(','.join(('{"name": "%s", "%s": %s}' % (escapejs(x[1]), field, x[0].geojson)
-                                     for x in qs.values_list(field, self.name_field))))
+            strings.append(','.join(
+                f'{{"name": "{escapejs(x[1])}", "{field}": {x[0].geojson}}}'
+                for x in qs.values_list(field, self.name_field))
+            )
             strings.append(']}')
             return RawJSONResponse(''.join(strings))
         elif format == 'wkt':
-            return HttpResponse("\n".join((geom.wkt for geom in qs.values_list(field, flat=True))), content_type="text/plain")
+            return HttpResponse(
+                "\n".join(geom.wkt for geom in qs.values_list(field, flat=True)), content_type="text/plain"
+            )
         elif format == 'kml':
             placemarks = [kml.generate_placemark(x[1], x[0]) for x in qs.values_list(field, self.name_field)]
             resp = HttpResponse(
@@ -246,7 +253,7 @@ class ModelDetailView(APIView):
     returns a serializable dict of the object's data."""
 
     def __init__(self):
-        super(ModelDetailView, self).__init__()
+        super().__init__()
         self.base_qs = self.model.objects.all()
 
     def get(self, request, **kwargs):
@@ -271,7 +278,7 @@ class ModelGeoDetailView(ModelDetailView):
     def get(self, request, **kwargs):
         if 'geo_field' not in kwargs:
             # If it's not a geo request, let ModelDetailView handle it.
-            return super(ModelGeoDetailView, self).get(request, **kwargs)
+            return super().get(request, **kwargs)
 
         field = kwargs.pop('geo_field')
         if field not in self.allowed_geo_fields:
@@ -299,13 +306,15 @@ class ModelGeoDetailView(ModelDetailView):
             raise NotImplementedError
 
 
-class Paginator(object):
+class Paginator:
 
     """
     Taken from django-tastypie. Thanks!
     """
 
-    def __init__(self, request_data, objects, resource_uri=None, limit=None, offset=0, max_limit=1000, collection_name='objects'):
+    def __init__(
+        self, request_data, objects, resource_uri=None, limit=None, offset=0, max_limit=1000, collection_name='objects'
+    ):
         """
         Instantiates the ``Paginator`` and allows for some configuration.
 
@@ -355,10 +364,14 @@ class Paginator(object):
         try:
             limit = int(limit)
         except ValueError:
-            raise BadRequest(_("Invalid limit '%(value)s' provided. Please provide a positive integer.") % {'value': limit})
+            raise BadRequest(
+                _("Invalid limit '%(value)s' provided. Please provide a positive integer.") % {'value': limit}
+            )
 
         if limit < 0:
-            raise BadRequest(_("Invalid limit '%(value)s' provided. Please provide a positive integer >= 0.") % {'value': limit})
+            raise BadRequest(
+                _("Invalid limit '%(value)s' provided. Please provide a positive integer >= 0.") % {'value': limit}
+            )
 
         if self.max_limit and (not limit or limit > self.max_limit):
             # If it's more than the max, we're only going to return the max.
@@ -384,10 +397,14 @@ class Paginator(object):
         try:
             offset = int(offset)
         except ValueError:
-            raise BadRequest(_("Invalid offset '%(value)s' provided. Please provide a positive integer.") % {'value': offset})
+            raise BadRequest(
+                _("Invalid offset '%(value)s' provided. Please provide a positive integer.") % {'value': offset}
+            )
 
         if offset < 0:
-            raise BadRequest(_("Invalid offset '%(value)s' provided. Please provide a positive integer >= 0.") % {'value': offset})
+            raise BadRequest(
+                _("Invalid offset '%(value)s' provided. Please provide a positive integer >= 0.") % {'value': offset}
+            )
 
         return offset
 
@@ -459,7 +476,7 @@ class Paginator(object):
             request_params.update({'limit': limit, 'offset': offset})
             encoded_params = urlencode(request_params)
 
-        return '%s?%s' % (self.resource_uri, encoded_params)
+        return f'{self.resource_uri}?{encoded_params}'
 
     def page(self):
         """

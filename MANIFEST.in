@@ -1,3 +1,12 @@
+include CHANGELOG.md
 recursive-include boundaries/locale *
 recursive-include boundaries/static *
 recursive-include boundaries/templates *
+recursive-include boundaries/tests *.dbf
+recursive-include boundaries/tests *.prj
+recursive-include boundaries/tests *.py
+recursive-include boundaries/tests *.shp
+recursive-include boundaries/tests *.shx
+recursive-include boundaries/tests *.txt
+recursive-include boundaries/tests *.zip
+exclude *.py

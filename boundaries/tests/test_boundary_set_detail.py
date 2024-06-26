@@ -1,10 +1,7 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 from datetime import date
 
 from boundaries.models import BoundarySet
-from boundaries.tests import ViewTestCase, ViewsTests, PrettyTests
+from boundaries.tests import PrettyTests, ViewsTests, ViewTestCase
 
 
 class BoundarySetDetailTestCase(ViewTestCase, ViewsTests, PrettyTests):

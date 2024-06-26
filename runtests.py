@@ -5,15 +5,20 @@ import django
 from django.conf import settings
 
 if not settings.configured:
+    ci = os.getenv('CI', False)
+
     settings.configure(
+        SECRET_KEY='x',
         DATABASES={
             'default': {
                 'ENGINE': 'django.contrib.gis.db.backends.postgis',
-                'NAME': 'travis_ci_test',
-                'USER': 'postgres' if os.getenv('CI', False) else '',
+                'HOST': 'localhost',
+                'NAME': 'postgres' if ci else 'represent_boundaries_test',
+                'USER': 'postgres' if ci else '',
+                'PASSWORD': 'postgres' if ci else '',
+                'PORT': os.getenv('PORT', 5432),
             }
         },
-        ROOT_URLCONF='boundaries.urls',
         INSTALLED_APPS=(
             'django.contrib.admin',
             'django.contrib.auth',
@@ -43,6 +48,8 @@ if not settings.configured:
                 },
             },
         ],
+        DEFAULT_AUTO_FIELD='django.db.models.AutoField',
+        ROOT_URLCONF='boundaries.urls',
     )
     django.setup()
 

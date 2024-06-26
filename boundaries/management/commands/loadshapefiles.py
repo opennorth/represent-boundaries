@@ -1,6 +1,3 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 import logging
 import os
 import os.path
@@ -15,10 +12,10 @@ from django.contrib.gis.gdal import DataSource, SpatialReference
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.template.defaultfilters import slugify
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 import boundaries
-from boundaries.models import app_settings, BoundarySet, Boundary, Definition, Feature
+from boundaries.models import Boundary, BoundarySet, Definition, Feature, app_settings
 
 log = logging.getLogger(__name__)
 
@@ -27,24 +24,57 @@ class Command(BaseCommand):
     help = _('Import boundaries described by shapefiles.')
 
     def add_arguments(self, parser):
-        parser.add_argument('-r', '--reload', action='store_true', dest='reload',
+        parser.add_argument(
+            '-r',
+            '--reload',
+            action='store_true',
+            dest='reload',
             default=False,
-            help=_('Reload boundary sets that have already been imported.')),
-        parser.add_argument('-d', '--data-dir', action='store', dest='data_dir',
+            help=_('Reload boundary sets that have already been imported.'),
+        )
+        parser.add_argument(
+            '-d',
+            '--data-dir',
+            action='store',
+            dest='data_dir',
             default=app_settings.SHAPEFILES_DIR,
-            help=_('Load shapefiles from this directory.')),
-        parser.add_argument('-e', '--except', action='store', dest='except',
+            help=_('Load shapefiles from this directory.'),
+        )
+        parser.add_argument(
+            '-e',
+            '--except',
+            action='store',
+            dest='except',
             default='',
-            help=_("Don't load these boundary set slugs (comma-delimited).")),
-        parser.add_argument('-o', '--only', action='store', dest='only',
+            help=_("Don't load these boundary set slugs (comma-delimited)."),
+        )
+        parser.add_argument(
+            '-o',
+            '--only',
+            action='store',
+            dest='only',
             default='',
-            help=_('Only load these boundary set slugs (comma-delimited).')),
-        parser.add_argument('-c', '--clean', action='store_true', dest='clean',
+            help=_('Only load these boundary set slugs (comma-delimited).'),
+        )
+        parser.add_argument(
+            '-c',
+            '--clean',
+            action='store_true',
+            dest='clean',
             default=False,
-            help=_('Clean shapefiles first with ogr2ogr.')),
-        parser.add_argument('-m', '--merge', action='store', dest='merge',
+            help=_('Clean shapefiles first with ogr2ogr.'),
+        )
+        parser.add_argument(
+            '-m',
+            '--merge',
+            action='store',
+            dest='merge',
             default=None,
-            help=_('Merge strategy when there are duplicate slugs, either "combine" (extend the MultiPolygon) or "union" (union the geometries).')),
+            help=_(
+                'Merge strategy when there are duplicate slugs, '
+                'either "combine" (extend the MultiPolygon) or "union" (union the geometries).'
+            ),
+        )
 
     def get_version(self):
         return '0.9.5'
@@ -78,7 +108,11 @@ class Command(BaseCommand):
                 definition.setdefault('name', name)
                 definition = Definition(definition)
 
-                data_sources, tmpdirs = create_data_sources(definition['file'], encoding=definition['encoding'], convert_3d_to_2d=options['clean'])
+                data_sources, tmpdirs = create_data_sources(
+                    definition['file'],
+                    encoding=definition['encoding'],
+                    convert_3d_to_2d=options['clean'],
+                )
 
                 try:
                     if not data_sources:
@@ -152,7 +186,9 @@ class Command(BaseCommand):
         if None not in boundary_set.extent:  # unless there are no features
             boundary_set.save()
 
-        log.info(_('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=boundary_set).count()})
+        log.info(
+            _('%(slug)s count: %(count)i') % {'slug': slug, 'count': Boundary.objects.filter(set=boundary_set).count()}
+        )
 
     def load_boundary(self, feature, merge_strategy=None):
         if merge_strategy:
@@ -163,7 +199,9 @@ class Command(BaseCommand):
                 elif merge_strategy == 'union':
                     boundary.unary_union(feature.geometry)
                 else:
-                    raise ValueError(_("The merge strategy '%(value)s' must be 'combine' or 'union'.") % {'value': merge_strategy})
+                    raise ValueError(
+                        _("The merge strategy '%(value)s' must be 'combine' or 'union'.") % {'value': merge_strategy}
+                    )
                 boundary.centroid = boundary.shape.centroid
                 boundary.extent = boundary.shape.extent
                 boundary.save()
@@ -215,7 +253,9 @@ def create_data_sources(path, encoding='ascii', convert_3d_to_2d=False, zipfile=
         elif path.endswith('.zip'):
             return create_data_sources_from_zip(path)
         else:
-            raise ValueError(_("The path must be a shapefile, a ZIP file, or a directory: %(value)s.") % {'value': path})
+            raise ValueError(
+                _("The path must be a shapefile, a ZIP file, or a directory: %(value)s.") % {'value': path}
+            )
 
     data_sources = []
     tmpdirs = []

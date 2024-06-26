@@ -1,0 +1,44 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, '3.10', '3.11', '3.12']
+        django-version: ['Django>=3.2,<4', 'Django>=4.2,<5']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: setup.cfg
+      # https://docs.djangoproject.com/en/4.2/ref/contrib/gis/install/geolibs/
+      - run: |
+          sudo apt update
+          sudo apt install binutils libproj-dev gdal-bin
+      - run: pip install .[test] '${{ matrix.django-version }}' psycopg2-binary
+      - env:
+          PORT: ${{ job.services.postgres.ports[5432] }}
+          DJANGO_SETTINGS_MODULE: settings
+        run: env PYTHONPATH=$PYTHONPATH:$PWD django-admin migrate --noinput
+      - env:
+          PORT: ${{ job.services.postgres.ports[5432] }}
+        run: coverage run --source=boundaries runtests.py
+      - env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: coveralls --service=github
+    services:
+      postgres:
+        image: postgis/postgis:15-3.4
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432/tcp

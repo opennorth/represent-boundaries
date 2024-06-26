@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+from django.db import migrations, models
 
-from django.db import models, migrations
 
 class JSONField(models.TextField):
     """Mocks jsonfield 0.92's column-type behaviour"""
@@ -9,7 +7,7 @@ class JSONField(models.TextField):
         if connection.vendor == 'postgresql' and connection.pg_version >= 90300:
             return 'json'
         else:
-            return super(JSONField, self).db_type(connection)
+            return super().db_type(connection)
 
 def set_defaults(apps, schema_editor):
     Boundary = apps.get_model("boundaries", "Boundary")

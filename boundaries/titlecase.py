@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 Original Perl version by: John Gruber http://daringfireball.net/ 10 May 2008
 Python version by Stuart Colville http://muffinresearch.co.uk
@@ -11,15 +9,15 @@ import re
 __all__ = ['titlecase']
 __version__ = '0.5.2'
 
-SMALL = 'a|an|and|as|at|but|by|en|for|if|in|of|on|or|the|to|v\.?|via|vs\.?'
+SMALL = r'a|an|and|as|at|but|by|en|for|if|in|of|on|or|the|to|v\.?|via|vs\.?'
 PUNCT = r"""!"#$%&'‘()*+,\-./:;?@[\\\]_`{|}~"""
 
 SMALL_WORDS = re.compile(r'^(%s)$' % SMALL, re.I)
 INLINE_PERIOD = re.compile(r'[a-z][.][a-z]', re.I)
 UC_ELSEWHERE = re.compile(r'[%s]*?[a-zA-Z]+[A-Z]+?' % PUNCT)
 CAPFIRST = re.compile(r"^[%s]*?([A-Za-z])" % PUNCT)
-SMALL_FIRST = re.compile(r'^([%s]*)(%s)\b' % (PUNCT, SMALL), re.I)
-SMALL_LAST = re.compile(r'\b(%s)[%s]?$' % (SMALL, PUNCT), re.I)
+SMALL_FIRST = re.compile(r'^([{}]*)({})\b'.format(PUNCT, SMALL), re.I)
+SMALL_LAST = re.compile(r'\b({})[{}]?$'.format(SMALL, PUNCT), re.I)
 SUBPHRASE = re.compile(r'([:.;?!][ ])(%s)' % SMALL)
 APOS_SECOND = re.compile(r"^[dol]{1}['‘]{1}[a-z]+$", re.I)
 ALL_CAPS = re.compile(r'^[\w\s%s]+$' % PUNCT, flags=re.U)
@@ -67,8 +65,7 @@ def titlecase(text):
 
             match = MAC_MC.match(word)
             if match:
-                tc_line.append("%s%s" % (match.group(1).capitalize(),
-                                         match.group(2).capitalize()))
+                tc_line.append(f"{match.group(1).capitalize()}{match.group(2).capitalize()}")
                 continue
 
             if "/" in word and "//" not in word:
@@ -85,17 +82,11 @@ def titlecase(text):
 
         result = " ".join(tc_line)
 
-        result = SMALL_FIRST.sub(lambda m: '%s%s' % (
-            m.group(1),
-            m.group(2).capitalize()
-        ), result)
+        result = SMALL_FIRST.sub(lambda m: f'{m.group(1)}{m.group(2).capitalize()}', result)
 
         result = SMALL_LAST.sub(lambda m: m.group(0).capitalize(), result)
 
-        result = SUBPHRASE.sub(lambda m: '%s%s' % (
-            m.group(1),
-            m.group(2).capitalize()
-        ), result)
+        result = SUBPHRASE.sub(lambda m: f'{m.group(1)}{m.group(2).capitalize()}', result)
 
         processed.append(result)
 

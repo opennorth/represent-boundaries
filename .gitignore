@@ -1,5 +1,6 @@
 *.pyc
 *.egg-info
 *_cleaned_*
+/build
 /dist
 /.coverage

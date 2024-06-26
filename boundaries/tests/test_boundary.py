@@ -1,13 +1,10 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 from datetime import date
 
-from django.test import TestCase
 from django.contrib.gis.gdal import OGRGeometry
-from django.contrib.gis.geos import Point, GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, Point
+from django.test import TestCase
 
-from boundaries.models import BoundarySet, Boundary, Geometry
+from boundaries.models import Boundary, BoundarySet, Geometry
 
 
 class BoundaryTestCase(TestCase):
@@ -138,5 +135,11 @@ class BoundaryTestCase(TestCase):
         boundary = Boundary(shape='MULTIPOLYGON (((0 0,0 5,2.5 5.0001,5 5,0 0)))')
         boundary.unary_union(Geometry(OGRGeometry('MULTIPOLYGON (((0 0,5 0,5 5,0 0)))')))
 
-        self.assertEqual(boundary.shape.ogr.wkt, 'MULTIPOLYGON (((5 5,5 0,0 0,0 5,2.5 5.0001,5 5)))')
-        self.assertEqual(boundary.simple_shape.ogr.wkt, 'MULTIPOLYGON (((5 5,5 0,0 0,0 5,5 5)))')
+        self.assertEqual(
+            boundary.shape.ogr.difference(OGRGeometry('MULTIPOLYGON (((5 5,5 0,0 0,0 5,2.5 5.0001,5 5)))')).wkt,
+            'POLYGON EMPTY',
+        )
+        self.assertEqual(
+            boundary.simple_shape.ogr.difference(OGRGeometry('MULTIPOLYGON (((5 5,5 0,0 0,0 5,5 5)))')).wkt,
+            'POLYGON EMPTY',
+        )

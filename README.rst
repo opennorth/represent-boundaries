@@ -1,7 +1,7 @@
 Represent Boundaries
 ====================
 
-|PyPI version| |Build Status| |Dependency Status| |Coverage Status|
+|PyPI version| |Build Status| |Coverage Status|
 
 Represent Boundaries is a web API to geographic areas, like electoral
 districts. It allows you to easily find the areas that cover your users'
@@ -52,9 +52,9 @@ Testing
 
 ::
 
-    createdb travis_ci_test
-    psql travis_ci_test -c 'CREATE EXTENSION postgis;'
-    django-admin.py migrate --settings settings --noinput
+    createdb represent_boundaries_test
+    psql represent_boundaries_test -c 'CREATE EXTENSION postgis;'
+    env DJANGO_SETTINGS_MODULE=settings django-admin migrate --noinput
     python runtests.py
 
 Acknowledgements
@@ -67,9 +67,7 @@ Released under the MIT license
 
 .. |PyPI version| image:: https://badge.fury.io/py/represent-boundaries.svg
    :target: https://badge.fury.io/py/represent-boundaries
-.. |Build Status| image:: https://secure.travis-ci.org/opennorth/represent-boundaries.png
-   :target: https://travis-ci.org/opennorth/represent-boundaries
-.. |Dependency Status| image:: https://gemnasium.com/opennorth/represent-boundaries.png
-   :target: https://gemnasium.com/opennorth/represent-boundaries
+.. |Build Status| image:: https://github.com/opennorth/represent-boundaries/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/opennorth/represent-boundaries/actions/workflows/ci.yml
 .. |Coverage Status| image:: https://coveralls.io/repos/opennorth/represent-boundaries/badge.png?branch=master
    :target: https://coveralls.io/r/opennorth/represent-boundaries
