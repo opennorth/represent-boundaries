@@ -57,6 +57,16 @@ Testing
     env DJANGO_SETTINGS_MODULE=settings django-admin migrate --noinput
     python runtests.py
 
+Release process
+---------------
+
+-  Run `env PYTHONPATH=. DJANGO_SETTINGS_MODULE=settings django-admin makemigrations`
+-  Run `env PYTHONPATH=. DJANGO_SETTINGS_MODULE=settings django-admin makemessages -l en && django-admin compilemessages`
+-  Update the version number in `setup.py` and `loadshapefiles.py`
+-  Update the release date in `CHANGELOG.md`
+-  Tag the release: `git tag -a x.x.x -m 'x.x.x release.'`
+-  Push the tag: `git push --follow-tags`
+
 Acknowledgements
 ----------------
 
